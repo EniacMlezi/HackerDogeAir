@@ -22,7 +22,7 @@ void    error_response(struct http_request *, int, const char *);
 int 
 login(struct http_request *req)
 {
-    struct login_request_params params;
+    struct login_request_params params = {NULL, NULL};
 
     if(req->method == HTTP_METHOD_GET)
     {   //a GET receives the login form
@@ -56,12 +56,12 @@ bool
 login_parseparams(struct http_request *req, struct login_request_params *params)
 {
     http_populate_post(req);
-    if(!http_argument_get_string(req, "email", params->email))
+    if(!http_argument_get_string(req, "email", &(params->email)))
     {
         error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid email. validator failed");
         return (KORE_RESULT_ERROR); 
     }
-    if(!http_argument_get_string(req, "password", params->password))
+    if(!http_argument_get_string(req, "password", &(params->password)))
     {
         error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid password. validator failed");
         return (KORE_RESULT_ERROR); 
