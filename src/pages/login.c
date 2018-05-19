@@ -8,29 +8,40 @@
 #include "model/user.h"
 #include "assets.h"
 
-int     loginpost(struct http_request *);
-bool    trylogin(char *, char *, struct http_request *);
-void    error_response(struct http_request *, int, const char *);
-
-int 
-loginpost(struct http_request *req)
+struct login_request_params
 {
     char *email;
     char *password;
+};
 
-    http_populate_post(req);    //read request arguments from POST
+int     login(struct http_request *);
+bool    login_trylogin(char *, char *, struct http_request *);
+bool    login_parseparams(struct http_request *req, struct login_request_params *params);
+void    error_response(struct http_request *, int, const char *);
 
-    if(!http_argument_get_string(req, "email", &email)
-        || !http_argument_get_string(req, "password", &password))
-    {   //validators should avoid this case, when they don't; kill request.
-        kore_log(LOG_ERR, "Could not retrieve email or password. \n"
-                "email: '%s' password: '%s' ", email, password);
-        return (KORE_RESULT_ERROR); //don't serve users who bypass validators
+int 
+login(struct http_request *req)
+{
+    struct login_request_params params;
+
+    if(req->method == HTTP_METHOD_GET)
+    {   //a GET receives the login form
+        http_response_header(req, "content-type", "text/html");
+        http_response(req, HTTP_STATUS_OK, asset_login_html, asset_len_login_html);
+        return (KORE_RESULT_OK);
+    }
+    else if(req->method != HTTP_METHOD_POST)
+    {   //only server GET and POST requests
+        return (KORE_RESULT_ERROR);
     }
 
-    if(!trylogin(email, password, req))
+    if(!login_parseparams(req, &params))
+    {
+        return (KORE_RESULT_OK);
+    }
+
+    if(!login_trylogin(params.email, params.password, req))
     {   //when not logged in correctly, notify user.
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password.");
         return (KORE_RESULT_OK);    
     }
 
@@ -42,7 +53,25 @@ loginpost(struct http_request *req)
 }
 
 bool
-trylogin(char *email, char *password, struct http_request *req)
+login_parseparams(struct http_request *req, struct login_request_params *params)
+{
+    http_populate_post(req);
+    if(!http_argument_get_string(req, "email", params->email))
+    {
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid email. validator failed");
+        return (KORE_RESULT_ERROR); 
+    }
+    if(!http_argument_get_string(req, "password", params->password))
+    {
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid password. validator failed");
+        return (KORE_RESULT_ERROR); 
+    }
+
+    return (KORE_RESULT_OK);
+}
+
+bool
+login_trylogin(char *email, char *password, struct http_request *req)
 {
     bool success = false; 
 
@@ -57,7 +86,7 @@ trylogin(char *email, char *password, struct http_request *req)
     if (!kore_pgsql_setup(&pgsql, "db", KORE_PGSQL_SYNC)) 
     {   //can't connect to db
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. db_connect");
+        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_connect error)");
         success = false;
         goto out;
     }
@@ -67,14 +96,14 @@ trylogin(char *email, char *password, struct http_request *req)
         email, strlen(email), 0)) 
     {   //error when querying
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. db_query");
+        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_query error)");
         success = false;
         goto out;    
     }
 
     if(kore_pgsql_ntuples(&pgsql) != 1)
     {   //no user found with specified email
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password.");
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:no records.)");
         success = false;
         goto out;
     }
@@ -92,7 +121,7 @@ trylogin(char *email, char *password, struct http_request *req)
     //TODO: db password is hashed
     if(strcmp(password, db_password) != 0)
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password.");
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password.)");
         success = false;
         goto out;
     }
