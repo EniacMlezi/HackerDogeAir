@@ -101,7 +101,7 @@ register_tryregister(user_t *user, struct http_request *req)
         goto out;    
     }
 
-    http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
+    http_response(req, HTTP_STATUS_OK, asset_register_success_html, asset_len_register_success_html);
     success = true;
     
 out:
