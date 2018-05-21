@@ -15,6 +15,7 @@ struct login_request_params
 };
 
 int     login(struct http_request *);
+int     register_user(struct http_request *);
 bool    login_trylogin(char *, char *, struct http_request *);
 bool    login_parseparams(struct http_request *req, struct login_request_params *params);
 void    error_response(struct http_request *, int, const char *);
@@ -50,6 +51,12 @@ login(struct http_request *req)
     http_response(req, HTTP_STATUS_OK, success, strlen(success));
 
     return (KORE_RESULT_OK);
+}
+
+int     
+register_user(struct http_request *req)
+{
+	return (KORE_RESULT_OK);
 }
 
 bool
