@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <limits.h>
+#include <libscrypt.h>
 
 #include <kore/kore.h>
 #include <kore/http.h>
@@ -112,8 +113,7 @@ login_trylogin(user_t *user, struct http_request *req)
     }
     db_password = kore_pgsql_getvalue(&pgsql, 0, 2);
 
-    //TODO: db password is hashed
-    if(strcmp(user->password, db_password) != 0)
+    if(!libscrypt_check(db_password, user->password))
     {
         error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password)");
         success = false;

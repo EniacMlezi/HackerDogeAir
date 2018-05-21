@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <limits.h>
+#include <libscrypt.h>
 
 #include <kore/kore.h>
 #include <kore/http.h>
@@ -81,7 +82,15 @@ register_tryregister(user_t *user, struct http_request *req)
         goto out;
     }
 
-    //TODO: password hashing
+    char outbuf[SCRYPT_MCF_LEN];
+    if(!libscrypt_hash(outbuf, user->password, SCRYPT_N, SCRYPT_r, SCRYPT_p))
+    {
+        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:hash error)");
+        success = false;
+        goto out;
+    }
+    user->password = outbuf;
+
     if (!kore_pgsql_query_params(&pgsql, "INSERT INTO \"user\" (\"email\", \"password\") VALUES ($1, $2);", 0, 2, 
         user->email, strlen(user->email), 0,
         user->password, strlen(user->password), 0))
