@@ -3,7 +3,7 @@ body {
 	margin: 0px;
 	color: #000;
 	overflow: hidden;*/
-	background-image:url('./froggo.gif');
+	background-image:url('/images/froggo.gif');
 	background-size: cover;
 }
 
@@ -67,9 +67,6 @@ body {
 .form .message a {
   color: #4CAF50;
   text-decoration: none;
-}
-.form .register-form {
-  display: none;
 }
 .container {
   position: relative;
