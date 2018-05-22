@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <limits.h>
+#include <time.h>
 #include <libscrypt.h>
 
 #include <kore/kore.h>
@@ -13,7 +14,7 @@
 int     login(struct http_request *);
 bool    login_parseparams(struct http_request *, user_t *);
 bool    login_trylogin(user_t *, struct http_request *);
-void    error_response(struct http_request *, int, const char *);
+bool    login_log_attempt(struct http_request *, struct kore_pgsql *, int, bool);
 
 int 
 login(struct http_request *req)
@@ -116,9 +117,11 @@ login_trylogin(user_t *user, struct http_request *req)
     if(!libscrypt_check(db_password, user->password))
     {
         error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password)");
+        login_log_attempt(req, &pgsql, db_id, false);
         success = false;
         goto out;
     }
+    login_log_attempt(req, &pgsql, db_id, true);
 
     http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
     success = true;
@@ -126,4 +129,21 @@ login_trylogin(user_t *user, struct http_request *req)
 out:
     kore_pgsql_cleanup(&pgsql);
     return success;
+}
+
+bool
+login_log_attempt(struct http_request *req, struct kore_pgsql *pgsql, int userid, bool success)
+{
+    userid = htonl(userid); //userid endianness host to network
+
+    if (!kore_pgsql_query_params(pgsql, "INSERT INTO \"login_attempt\" "\
+        "(\"userid\", \"time\", \"success\") VALUES ($1, \'now\', $2);", 0, 2, 
+        (char *)&userid, sizeof(userid), 1,
+        (char *)&success, sizeof(success), 1)) 
+    {   //error when querying
+        kore_pgsql_logerror(pgsql);
+        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_query error log login attempt)");
+        return false;
+    }
+    return true;
 }
