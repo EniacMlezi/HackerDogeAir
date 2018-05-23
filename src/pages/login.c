@@ -14,6 +14,7 @@
 int     login(struct http_request *);
 bool    login_parseparams(struct http_request *, user_t *);
 bool    login_trylogin(user_t *, struct http_request *);
+bool    login_check_bruteforce(struct kore_pgsql *pgsql, int userid);
 bool    login_log_attempt(struct http_request *, struct kore_pgsql *, int, bool);
 
 int 
@@ -76,9 +77,8 @@ login_trylogin(user_t *user, struct http_request *req)
     kore_pgsql_init(&pgsql);
     int err;
 
-    int db_id;
+    int db_userid;
     char *db_password;
-
     
     if (!kore_pgsql_setup(&pgsql, "db", KORE_PGSQL_SYNC)) 
     {   //can't connect to db
@@ -104,8 +104,8 @@ login_trylogin(user_t *user, struct http_request *req)
         goto out;
     }
 
-    //TODO: if successful, use db_id for session token creation?
-    db_id = kore_strtonum(kore_pgsql_getvalue(&pgsql, 0, 0), 10, 0, UINT_MAX, &err);
+    //TODO: if successful, use db_userid for session token creation?
+    db_userid = kore_strtonum(kore_pgsql_getvalue(&pgsql, 0, 0), 10, 0, UINT_MAX, &err);
     if (err != KORE_RESULT_OK)
     {
         kore_log(LOG_ERR, "Could not translate db_userid str to num.");
@@ -114,14 +114,21 @@ login_trylogin(user_t *user, struct http_request *req)
     }
     db_password = kore_pgsql_getvalue(&pgsql, 0, 2);
 
-    if(!libscrypt_check(db_password, user->password))
+    if(!login_check_bruteforce(&pgsql, db_userid))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password)");
-        login_log_attempt(req, &pgsql, db_id, false);
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Your account has been locked. Please try again in several minutes.");
         success = false;
         goto out;
     }
-    login_log_attempt(req, &pgsql, db_id, true);
+
+    if(!libscrypt_check(db_password, user->password))
+    {
+        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password)");
+        login_log_attempt(req, &pgsql, db_userid, false);
+        success = false;
+        goto out;
+    }
+    login_log_attempt(req, &pgsql, db_userid, true);
 
     http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
     success = true;
@@ -129,6 +136,36 @@ login_trylogin(user_t *user, struct http_request *req)
 out:
     kore_pgsql_cleanup(&pgsql);
     return success;
+}
+
+bool
+login_check_bruteforce(struct kore_pgsql *pgsql, int userid)
+{
+    int recent_attempt_count;
+    int err;
+
+    userid = htonl(userid); //userid endianness host to network
+
+    if (!kore_pgsql_query_params(pgsql, "SELECT count(*), min(time) FROM \"login_attempt\" WHERE \"userid\"=($1) " \
+        " AND time >= CURRENT_TIMESTAMP AT TIME ZONE \'CEST\' - INTERVAL \'5 minutes\';", 0, 1, 
+        (char *)&userid, sizeof(userid), 1)) 
+    {
+        //error_response
+        kore_log(LOG_INFO, "Internal Server Error. attempt log query failed");
+        return false;
+    }  
+    recent_attempt_count = kore_strtonum(kore_pgsql_getvalue(pgsql, 0, 0), 10, 0, UINT_MAX, &err);
+    if (err != KORE_RESULT_OK)
+    {
+        kore_log(LOG_ERR, "Could not translate count str to num");
+        return false;
+    }
+
+    if(recent_attempt_count >= 5)
+    {
+        return false;
+    }
+    return true;
 }
 
 bool
