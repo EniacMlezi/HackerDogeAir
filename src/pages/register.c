@@ -6,18 +6,23 @@
 #include <kore/http.h>
 #include <kore/pgsql.h>
 
-#include "shared/shared_http.h"
+#include "shared/shared_error.h"
 #include "model/user.h"
 #include "assets.h"
 
+#define REGISTER_EMAIL_VALIDATOR_INVALID    202
+#define REGISTER_PASSWORD_VALIDATOR_INVALID 203
+
 int     register_user(struct http_request *);
-bool    register_parseparams(struct http_request *req, user_t *user);
-bool    register_tryregister(user_t *, struct http_request *);
-void    error_response(struct http_request *, int, const char *);
+int     register_parseparams(struct http_request *req, user_t *user);
+int     register_tryregister(user_t *);
+
+void    register_error_handler(struct http_request *req, int errcode);
 
 int 
 register_user(struct http_request *req)
 {
+    int err;
     user_t user = {0, NULL, NULL};
 
     if(req->method == HTTP_METHOD_GET)
@@ -31,13 +36,15 @@ register_user(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if(!register_parseparams(req, &user))
+    if((err = register_parseparams(req, &user)) != (OK)) 
     {
+        register_error_handler(req, err);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit
     }
 
-    if(!register_tryregister(&user, req))
-    {   //when not logged in correctly, notify user
+    if((err = register_tryregister(&user)) != (OK))
+    {
+        register_error_handler(req, err);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
     }
 
@@ -48,28 +55,26 @@ register_user(struct http_request *req)
     return (KORE_RESULT_OK);
 }
 
-bool
+int
 register_parseparams(struct http_request *req, user_t *user)
 {
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid email. validator failed");
-        return (KORE_RESULT_ERROR); 
+        return (REGISTER_EMAIL_VALIDATOR_INVALID); 
     }
     if(!http_argument_get_string(req, "password", &(user->password)))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid password. validator failed");
-        return (KORE_RESULT_ERROR); 
+        return (REGISTER_PASSWORD_VALIDATOR_INVALID); 
     }
 
-    return (KORE_RESULT_OK);
+    return (OK);
 }
 
-bool
-register_tryregister(user_t *user, struct http_request *req)
+int
+register_tryregister(user_t *user)
 {
-    bool success = false; 
+    int returncode;
 
     struct kore_pgsql pgsql;
     kore_pgsql_init(&pgsql);
@@ -77,16 +82,14 @@ register_tryregister(user_t *user, struct http_request *req)
     if (!kore_pgsql_setup(&pgsql, "db", KORE_PGSQL_SYNC)) 
     {   //can't connect to db
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_connect error)");
-        success = false;
+        returncode = (SQL_DB_ERROR);
         goto out;
     }
 
     char outbuf[SCRYPT_MCF_LEN];
     if(!libscrypt_hash(outbuf, user->password, SCRYPT_N, SCRYPT_r, SCRYPT_p))
     {
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:hash error)");
-        success = false;
+        returncode = (HASH_ERROR);
         goto out;
     }
     user->password = outbuf;
@@ -96,15 +99,38 @@ register_tryregister(user_t *user, struct http_request *req)
         user->password, strlen(user->password), 0))
     {   //error when querying
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_query error)");
-        success = false;
+        returncode = (SQL_QUERY_ERROR);
         goto out;    
     }
 
-    http_response(req, HTTP_STATUS_OK, asset_register_success_html, asset_len_register_success_html);
-    success = true;
+    returncode = (OK);
     
 out:
     kore_pgsql_cleanup(&pgsql);
-    return success;
+    return returncode;
+}
+
+void
+register_error_handler(struct http_request *req, int errcode)
+{
+    bool handled = true;
+    switch (errcode)
+    {
+        case (REGISTER_EMAIL_VALIDATOR_INVALID):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
+                "Email format incorrect. Validator failed.");
+            break;
+        case (REGISTER_PASSWORD_VALIDATOR_INVALID):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
+                "Password format incorrect. Validator failed.");
+            break;
+
+        default: 
+            handled = false;
+    }
+
+    if(!handled)
+    {
+        shared_error_handler(req, errcode);
+    }
 }

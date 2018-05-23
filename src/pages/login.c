@@ -7,19 +7,27 @@
 #include <kore/http.h>
 #include <kore/pgsql.h>
 
-#include "shared/shared_http.h"
+#include "shared/shared_error.h"
 #include "model/user.h"
 #include "assets.h"
 
-int     login(struct http_request *);
-bool    login_parseparams(struct http_request *, user_t *);
-bool    login_trylogin(user_t *, struct http_request *);
-bool    login_check_bruteforce(struct kore_pgsql *pgsql, int userid);
-bool    login_log_attempt(struct http_request *, struct kore_pgsql *, int, bool);
+#define LOGIN_BRUTEFORCE_CHECK_INVALID   101
+#define LOGIN_EMAIL_VALIDATOR_INVALID    102
+#define LOGIN_PASSWORD_VALIDATOR_INVALID 103
+#define LOGIN_EMAIL_INCORRECT            104 
+#define LOGIN_PASSWORD_INCORRECT         105  
+
+int    login(struct http_request *);
+int    login_parseparams(struct http_request *, user_t *);
+int    login_trylogin(user_t *);
+int    login_check_bruteforce(struct kore_pgsql *, int);
+int    login_log_attempt(struct kore_pgsql *, int, bool);
+void   login_error_handler(struct http_request *, int);
 
 int 
 login(struct http_request *req)
 {
+    int err;
     user_t user = {0, NULL, NULL};
 
     if(req->method == HTTP_METHOD_GET)
@@ -33,49 +41,46 @@ login(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if(!login_parseparams(req, &user))
+    if((err = login_parseparams(req, &user)) != (OK))
     {
+        login_error_handler(req, err);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit
     }
 
-    if(!login_trylogin(&user, req))
+    if((err = login_trylogin(&user)) != (OK))
     {   //when not logged in correctly, notify user.
+        login_error_handler(req, err);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
     }
 
-    const char *success = "success";
-    http_response_header(req, "content-type", "text/plain");
-    http_response(req, HTTP_STATUS_OK, success, strlen(success));
+    http_response_header(req, "content-type", "text/html");
+    http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
 
     return (KORE_RESULT_OK);
 }
 
-bool
+int
 login_parseparams(struct http_request *req, user_t *user)
 {
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid email. validator failed");
-        return (KORE_RESULT_ERROR); 
+        return (LOGIN_EMAIL_VALIDATOR_INVALID); 
     }
     if(!http_argument_get_string(req, "password", &(user->password)))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Invalid password. validator failed");
-        return (KORE_RESULT_ERROR); 
+        return (LOGIN_PASSWORD_VALIDATOR_INVALID); 
     }
 
-    return (KORE_RESULT_OK);
+    return (OK);
 }
 
-bool
-login_trylogin(user_t *user, struct http_request *req)
+int
+login_trylogin(user_t *user)
 {
-    bool success = false; 
-
     struct kore_pgsql pgsql;
     kore_pgsql_init(&pgsql);
-    int err;
+    int returncode, err;
 
     int db_userid;
     char *db_password;
@@ -83,24 +88,21 @@ login_trylogin(user_t *user, struct http_request *req)
     if (!kore_pgsql_setup(&pgsql, "db", KORE_PGSQL_SYNC)) 
     {   //can't connect to db
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_connect error)");
-        success = false;
+        returncode = (SQL_DB_ERROR);
         goto out;
     }
 
-    if (!kore_pgsql_query_params(&pgsql, "SELECT * FROM \"user\" WHERE \"email\" = ($1);", 0, 1, 
+    if (!kore_pgsql_query_params(&pgsql, "SELECT userid, password FROM \"user\" WHERE \"email\" = ($1);", 0, 1, 
         user->email, strlen(user->email), 0)) 
     {   //error when querying
         kore_pgsql_logerror(&pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_query error)");
-        success = false;
+        returncode = (SQL_QUERY_ERROR);
         goto out;    
     }
 
     if(kore_pgsql_ntuples(&pgsql) != 1)
     {   //no user found with specified email
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:no records)");
-        success = false;
+        returncode = (LOGIN_EMAIL_INCORRECT);
         goto out;
     }
 
@@ -109,36 +111,42 @@ login_trylogin(user_t *user, struct http_request *req)
     if (err != KORE_RESULT_OK)
     {
         kore_log(LOG_ERR, "Could not translate db_userid str to num.");
-        success = false;
+        returncode = (SQL_RESULT_TRANSLATE_ERROR);
         goto out;
     }
-    db_password = kore_pgsql_getvalue(&pgsql, 0, 2);
+    db_password = kore_pgsql_getvalue(&pgsql, 0, 1);
 
-    if(!login_check_bruteforce(&pgsql, db_userid))
+    if((err = login_check_bruteforce(&pgsql, db_userid)) != 0)
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Your account has been locked. Please try again in several minutes.");
-        success = false;
+        returncode = err;
         goto out;
     }
 
-    if(!libscrypt_check(db_password, user->password))
+    if(!(err = libscrypt_check(db_password, user->password)))
     {
-        error_response(req, HTTP_STATUS_BAD_REQUEST, "Incorrect email or password. (DEBUG:incorrect password)");
-        login_log_attempt(req, &pgsql, db_userid, false);
-        success = false;
+        if(err < 0)
+            returncode = (HASH_ERROR); 
+        else if(err == 0)
+            returncode = (LOGIN_PASSWORD_INCORRECT);
+
+        if((err = login_log_attempt(&pgsql, db_userid, false)) != 0)
+        {
+            returncode = (SQL_QUERY_ERROR);
+        }
         goto out;
     }
-    login_log_attempt(req, &pgsql, db_userid, true);
-
-    http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
-    success = true;
+    if((err = login_log_attempt(&pgsql, db_userid, true)) != 0)
+    {
+        returncode = (SQL_QUERY_ERROR);
+    }
+    returncode = (OK);   // all successful
     
 out:
     kore_pgsql_cleanup(&pgsql);
-    return success;
+    return returncode;
 }
 
-bool
+int
 login_check_bruteforce(struct kore_pgsql *pgsql, int userid)
 {
     int recent_attempt_count;
@@ -150,26 +158,25 @@ login_check_bruteforce(struct kore_pgsql *pgsql, int userid)
         " AND time >= CURRENT_TIMESTAMP AT TIME ZONE \'CEST\' - INTERVAL \'5 minutes\';", 0, 1, 
         (char *)&userid, sizeof(userid), 1)) 
     {
-        //error_response
-        kore_log(LOG_INFO, "Internal Server Error. attempt log query failed");
-        return false;
+        kore_pgsql_logerror(pgsql);
+        return (SQL_QUERY_ERROR);
     }  
     recent_attempt_count = kore_strtonum(kore_pgsql_getvalue(pgsql, 0, 0), 10, 0, UINT_MAX, &err);
     if (err != KORE_RESULT_OK)
     {
         kore_log(LOG_ERR, "Could not translate count str to num");
-        return false;
+        return (SQL_RESULT_TRANSLATE_ERROR);
     }
 
     if(recent_attempt_count >= 5)
     {
-        return false;
+        return (LOGIN_BRUTEFORCE_CHECK_INVALID);
     }
-    return true;
+    return (OK);
 }
 
-bool
-login_log_attempt(struct http_request *req, struct kore_pgsql *pgsql, int userid, bool success)
+int
+login_log_attempt(struct kore_pgsql *pgsql, int userid, bool success)
 {
     userid = htonl(userid); //userid endianness host to network
 
@@ -179,8 +186,44 @@ login_log_attempt(struct http_request *req, struct kore_pgsql *pgsql, int userid
         (char *)&success, sizeof(success), 1)) 
     {   //error when querying
         kore_pgsql_logerror(pgsql);
-        error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. (DEBUG:db_query error log login attempt)");
-        return false;
+        return (SQL_QUERY_ERROR);
     }
-    return true;
+    return (OK);
+}
+
+void
+login_error_handler(struct http_request *req, int errcode)
+{
+    bool handled = true;
+    switch (errcode)
+    {
+        case (LOGIN_BRUTEFORCE_CHECK_INVALID):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
+                "Your account has been locked. Please try again in several minutes.");
+            break;
+        case (LOGIN_EMAIL_VALIDATOR_INVALID):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST,
+                "Email format incorrect. Validator failed.");
+            break;
+        case (LOGIN_PASSWORD_VALIDATOR_INVALID):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
+                "Password format incorrect. Validator failed.");
+            break;
+        case (LOGIN_EMAIL_INCORRECT):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST,
+                "Incorrect Email or Password. (DEBUG: EMAIL_INCORRECT)");
+            break;
+        case (LOGIN_PASSWORD_INCORRECT):
+            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
+                "Incorrect Email or Password. (DEBUG: PASSWORD_INCORRECT)");
+            break;
+
+        default: 
+            handled = false;
+    }
+
+    if(!handled)
+    {
+        shared_error_handler(req, errcode);
+    }
 }
