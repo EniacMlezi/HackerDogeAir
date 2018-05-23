@@ -13,19 +13,19 @@ shared_error_handler(struct http_request *req, int errcode)
 {
     switch(errcode)
     {
-        case (SQL_DB_ERROR):
+        case (SHARED_ERROR_SQL_DB_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Database connection failed.");
             break;
-        case (SQL_QUERY_ERROR):
+        case (SHARED_ERROR_SQL_QUERY_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Query failed.");
             break;
-        case (SQL_RESULT_TRANSLATE_ERROR):
+        case (SHARED_ERROR_SQL_RESULT_TRANSLATE_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
                 "Internal Server error. Query result parsing failed.");
             break;
-        case (HASH_ERROR):
+        case (SHARED_ERROR_HASH_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Failed to produce a hash for given password.");
 
