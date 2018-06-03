@@ -23,6 +23,11 @@ body {
   padding: 8% 0 0;
   margin: auto;
 }
+
+.invalid{
+  border: red;
+}
+
 .form {
   position: relative;
   z-index: 1;

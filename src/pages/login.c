@@ -18,8 +18,8 @@
 #define LOGIN_ERROR_PASSWORD_INCORRECT         105  
 
 int    login(struct http_request *);
-int    login_parseparams(struct http_request *, user_t *);
-int    login_trylogin(user_t *);
+int    login_parseparams(struct http_request *, User *);
+int    login_trylogin(User *);
 int    login_check_bruteforce(struct kore_pgsql *, int);
 int    login_log_attempt(struct kore_pgsql *, int, bool);
 void   login_error_handler(struct http_request *, int);
@@ -28,7 +28,7 @@ int
 login(struct http_request *req)
 {
     int err;
-    user_t user = {0, NULL, NULL};
+    User user = {0, NULL, NULL};
 
     if(req->method == HTTP_METHOD_GET)
     {   //a GET receives the login form
@@ -60,7 +60,7 @@ login(struct http_request *req)
 }
 
 int
-login_parseparams(struct http_request *req, user_t *user)
+login_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
@@ -76,7 +76,7 @@ login_parseparams(struct http_request *req, user_t *user)
 }
 
 int
-login_trylogin(user_t *user)
+login_trylogin(User *user)
 {
     struct kore_pgsql pgsql;
     kore_pgsql_init(&pgsql);
