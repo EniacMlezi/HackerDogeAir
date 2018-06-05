@@ -30,7 +30,8 @@ shared_error_handler(struct http_request *req, int errcode)
                 "Internal Server error. Failed to produce a hash for given password.");
 
         default: 
-            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. Generic unhandled error.");
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. " \
+                 "Generic unhandled error.");
     }
 }
 
