@@ -33,7 +33,7 @@ login(struct http_request *req)
     if(req->method == HTTP_METHOD_GET)
     {   //a GET receives the login form
         http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, asset_login_html, asset_len_login_html);
+        http_response(req, HTTP_STATUS_OK, asset_login_chtml, asset_len_login_chtml);
         return (KORE_RESULT_OK);
     }
     else if(req->method != HTTP_METHOD_POST)

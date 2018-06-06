@@ -7,6 +7,7 @@
     <body>
         {{SHARED_HEADER}}
         <div class="content">
+            <p>HackerDogeAir</p>
             <div class="register-page">
                 <div class="form">
                     <form class="register-form" method="post">

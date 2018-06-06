@@ -4,6 +4,7 @@
 #include <kore/kore.h>
 #include <mustache.h>
 
+#include "shared/shared_error.h"
 #include "assets.h"
 
 int header_render(SharedContext *context);
@@ -13,34 +14,33 @@ uintmax_t header_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 int
 header_render(SharedContext *context)
 {   
-    context->src_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
-    context->dst_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
+    int err = 0;
 
-    context->src_context->string = asset_header_chtml;
-    context->src_context->offset = 0;
-    context->dst_context->string = NULL;
-    context->dst_context->offset = 0;
+    if((err = shared_render_create_str_context(context, asset_header_chtml)) != SHARED_ERROR_OK)
+    {
+        return err;
+    }
 
     mustache_api_t api={
-        .read = &mustache_std_strread,  //std read will suffice
+        .read = &shared_strread,  //std read will suffice
         .write = &shared_strwrite,     // need custom write for handling mustache_str_ctx **
         .varget = &header_varget,
         .sectget = &shared_sectget,
         .error = &shared_error,
     };
 
-    mustache_template_t *template = mustache_compile(&api, context->src_context);
-    mustache_render(&api, context, template);
-    mustache_free(&api, template);
+    if((err = shared_render_mustache_render(&api, context)) != SHARED_ERROR_OK)
+    {
+        return err;
+    }
 
-    return 0;
+    return SHARED_ERROR_OK;
 }
 
-void header_render_clean(SharedContext *context)
+void 
+header_render_clean(SharedContext *context)
 {
-    free(context->src_context);
-    free(context->dst_context->string);
-    free(context->dst_context);
+    shared_render_clean(context);
 }
 
 uintmax_t
@@ -49,8 +49,8 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     SharedContext *ctx = (SharedContext *)userdata;
     if(strncmp("session_id", token->text, token->text_length) == 0)
     {
-        char session_id[11];
-        if(snprintf(session_id, 11, "%d", ctx->session_id) <= 0)
+        char session_id[12];
+        if(snprintf(session_id, 12, "%d", ctx->session_id) <= 0)
         {
             return 0; //error
         }

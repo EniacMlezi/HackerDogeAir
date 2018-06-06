@@ -35,7 +35,11 @@ register_user(struct http_request *req)
             .invalid_password = false,
             .user = &user
         };
-        register_render(&context);
+        if((err = register_render(&context)) != SHARED_ERROR_OK)
+        {
+            //handle_error.
+        }
+            //register_render_handle_error
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 

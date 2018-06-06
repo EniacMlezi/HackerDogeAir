@@ -18,69 +18,92 @@ void        register_error(mustache_api_t *, void *, uintmax_t, char const *);
 int
 register_render(RegisterContext *context)
 {
-    SharedContext new_ctx = *((SharedContext *)context); // copy?
-    shared_render(&new_ctx, asset_register_chtml);
+    int err = 0;
 
-    context->shared_context.src_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
-    context->shared_context.dst_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
+    SharedContext new_ctx;
+    shared_render_copy_context(&context->shared_context, &new_ctx);
+    if((err = shared_render(&new_ctx, asset_register_chtml)) != SHARED_ERROR_OK)
+    {
+        return err;
+    }
 
-    context->shared_context.src_context->string = new_ctx.dst_context->string;
-    context->shared_context.src_context->offset = 0;
-    context->shared_context.dst_context->string = NULL;
-    context->shared_context.dst_context->offset = 0;
+    if((err = shared_render_create_str_context(&context->shared_context,
+     new_ctx.dst_context->string)) != SHARED_ERROR_OK)
+    {
+        return err;
+    }
 
     mustache_api_t api={
-        .read = &shared_strread,  //std read will suffice
-        .write = &shared_strwrite,     // need custom write for handling mustache_str_ctx **
+        .read = &shared_strread,
+        .write = &shared_strwrite,
         .varget = &register_varget,
         .sectget = &shared_sectget,
         .error = &shared_error,
     };
 
-    mustache_template_t *template = mustache_compile(&api, context);
-    mustache_render(&api, context, template);
-    mustache_free(&api, template);
+    if((err = shared_render_mustache_render(&api, context)) != SHARED_ERROR_OK)
+    {
+        return err;
+    }
 
     shared_render_clean(&new_ctx);
 
-    return (SHARED_ERROR_OK);
+    return SHARED_ERROR_OK;
 }
 
 void
 register_render_clean(RegisterContext *context)
 {
-    free(context->shared_context.src_context);
-    free(context->shared_context.dst_context->string);
-    free(context->shared_context.dst_context);
+    shared_render_clean(&context->shared_context);
 }
 
 uintmax_t
 register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {   //custom varget works on UserContext.
     RegisterContext *ctx = (RegisterContext *) userdata;
+    const char *output_string = NULL;
     if(strncmp("email", token->text, token->text_length) == 0)
     {
-        if(ctx->user == NULL || ctx->user->email == NULL){
-            return 1;
+        if(ctx->user == NULL || ctx->user->email == NULL)
+        {
+            output_string = SHARED_RENDER_EMPTY_STRING;
         }
-        return api->write(api, userdata, ctx->user->email, strlen(ctx->user->email));
+        else
+        {
+            output_string = ctx->user->email;
+        }
     }
 
-    if (strncmp("invalid_email", token->text, token->text_length) == 0)
+    else if (strncmp("invalid_email", token->text, token->text_length) == 0)
     {
-        char *invalid_email_class = ctx->invalid_email ? "invalid" : NULL;
-        if(invalid_email_class == NULL)
-            return 1;
-        return api->write(api, userdata, invalid_email_class, strlen(invalid_email_class));
+        if(ctx->invalid_email)
+        {
+            output_string = SHARED_RENDER_INVALID_STRING;
+        }
+        else
+        {
+            output_string = SHARED_RENDER_EMPTY_STRING;
+        }
     }
 
-    if(strncmp("invalid_password", token->text, token->text_length) == 0)
+    else if(strncmp("invalid_password", token->text, token->text_length) == 0)
     {
-        char *invalid_password_class = ctx->invalid_password ? "invalid" : NULL;
-        if(invalid_password_class == NULL)
-            return 1;
-        return api->write(api, userdata, invalid_password_class, strlen(invalid_password_class));
+        if(ctx->invalid_password)
+        {
+            output_string = SHARED_RENDER_INVALID_STRING;
+        }
+        else
+        {
+            output_string = SHARED_RENDER_EMPTY_STRING;
+        }
     }
 
-    return 0; // error
+    if(NULL == output_string)
+    {
+        kore_log(LOG_INFO, "failed register render: unknown template variable");
+        return 0;   //FAIL. unknown variable
+    }
+
+    api->write(api, userdata, output_string, strlen(output_string));
+    return 1; //NO FAIL. written data.
 }

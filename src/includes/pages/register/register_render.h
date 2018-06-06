@@ -7,6 +7,8 @@
 #include "pages/shared/shared_render.h"
 #include "model/user.h"
 
+#define REGISTER_RENDER_ERROR_VALIDATE  250
+
 typedef struct RegisterContext{
     SharedContext shared_context;   //RegisterContext inherits from SharedContext (castable)
     bool invalid_email;
