@@ -64,7 +64,7 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
     const char *output_string = NULL;
     if(strncmp("email", token->text, token->text_length) == 0)
     {
-        if(ctx->user == NULL || ctx->user->email == NULL)
+        if(NULL == ctx->user || NULL == ctx->user->email)
         {
             output_string = SHARED_RENDER_EMPTY_STRING;
         }
@@ -74,29 +74,41 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
         }
     }
 
-    else if (strncmp("invalid_email", token->text, token->text_length) == 0)
+    else if (strncmp("error_message", token->text, token->text_length) == 0)
     {
-        if(ctx->invalid_email)
+        if(NULL == ctx->error_message)
         {
-            output_string = SHARED_RENDER_INVALID_STRING;
+            output_string = SHARED_RENDER_EMPTY_STRING;
         }
         else
         {
-            output_string = SHARED_RENDER_EMPTY_STRING;
+            output_string = ctx->error_message;
         }
     }
 
-    else if(strncmp("invalid_password", token->text, token->text_length) == 0)
-    {
-        if(ctx->invalid_password)
-        {
-            output_string = SHARED_RENDER_INVALID_STRING;
-        }
-        else
-        {
-            output_string = SHARED_RENDER_EMPTY_STRING;
-        }
-    }
+    // else if (strncmp("invalid_email", token->text, token->text_length) == 0)
+    // {
+    //     if(ctx->invalid_email)
+    //     {
+    //         output_string = SHARED_RENDER_INVALID_STRING;
+    //     }
+    //     else
+    //     {
+    //         output_string = SHARED_RENDER_EMPTY_STRING;
+    //     }
+    // }
+
+    // else if(strncmp("invalid_password", token->text, token->text_length) == 0)
+    // {
+    //     if(ctx->invalid_password)
+    //     {
+    //         output_string = SHARED_RENDER_INVALID_STRING;
+    //     }
+    //     else
+    //     {
+    //         output_string = SHARED_RENDER_EMPTY_STRING;
+    //     }
+    // }
 
     if(NULL == output_string)
     {

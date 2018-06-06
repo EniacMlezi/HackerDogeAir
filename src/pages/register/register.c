@@ -19,27 +19,26 @@ int     register_user(struct http_request *);
 int     register_parse_params(struct http_request *req, User *user);
 int     register_try_register(User *);
 
-void    register_error_handler(struct http_request *req, int errcode);
+void    register_error_handler(struct http_request *req, int errcode, RegisterContext *context);
 
 int
 register_user(struct http_request *req)
 {
     int err;
     User user = {0, NULL, NULL};
+    RegisterContext context = {
+        .shared_context = { .session_id = 0 },  //TODO: fill from request cookie
+        .invalid_email = false,
+        .invalid_password = false,
+        .user = &user
+    };
 
     if(req->method == HTTP_METHOD_GET)
     {   //a GET request receives the register form
-        RegisterContext context = {
-            .shared_context = { .session_id = 15 },  //TODO: fill from request cookie
-            .invalid_email = true,
-            .invalid_password = false,
-            .user = &user
-        };
         if((err = register_render(&context)) != SHARED_ERROR_OK)
         {
-            //handle_error.
+            register_error_handler(req, err, &context);
         }
-            //register_render_handle_error
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
@@ -54,15 +53,15 @@ register_user(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = register_parse_params(req, &user)) != (SHARED_ERROR_OK)) 
+    if((err = register_parse_params(req, context.user)) != (SHARED_ERROR_OK)) 
     {
-        register_error_handler(req, err);
+        register_error_handler(req, err, &context);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit
     }
 
-    if((err = register_try_register(&user)) != (SHARED_ERROR_OK))
+    if((err = register_try_register(context.user)) != (SHARED_ERROR_OK))
     {
-        register_error_handler(req, err);
+        register_error_handler(req, err, &context);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
     }
 
@@ -130,18 +129,21 @@ out:
 }
 
 void
-register_error_handler(struct http_request *req, int errcode)
+register_error_handler(struct http_request *req, int errcode, RegisterContext *context)
 {
-    bool handled = true;
+    bool handled = false;
+    int err = 0;
     switch (errcode)
     {
         case (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
-                "Email format incorrect. Validator failed.");
+            context->invalid_email = true;
+            context->error_message = "Please use a correct email address (e.g. test@example.com)";
+            handled = true;
             break;
         case (REGISTER_ERROR_PASSWORD_VALIDATOR_INVALID):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
-                "Password format incorrect. Validator failed.");
+            context->invalid_password = true;
+            context->error_message = "Please use a correct password (length: 8-32, may contain: a-zA-Z0-9._%+-@#$^&*() )";
+            handled = true;
             break;
 
         default: 
@@ -151,5 +153,19 @@ register_error_handler(struct http_request *req, int errcode)
     if(!handled)
     {
         shared_error_handler(req, errcode);
+    }
+    else
+    {
+        if((err = register_render(context)) != SHARED_ERROR_OK)
+        {
+            register_error_handler(req, err, context);
+        }
+
+        http_response_header(req, "content-type", "text/html");
+        http_response(req, HTTP_STATUS_OK, 
+            context->shared_context.dst_context->string, 
+            strlen(context->shared_context.dst_context->string));
+
+        register_render_clean(context);
     }
 }

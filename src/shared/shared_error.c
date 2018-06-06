@@ -4,6 +4,7 @@
 #include <kore/http.h>
 
 #include "shared/shared_error.h"
+#include "pages/shared/shared_render.h"
 
 void    shared_error_handler(struct http_request *, int);
 void    shared_error_response(struct http_request *, int, const char *);
@@ -28,9 +29,22 @@ shared_error_handler(struct http_request *req, int errcode)
         case (SHARED_ERROR_HASH_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Failed to produce a hash for given password.");
+        case (SHARED_RENDER_ERROR_TEMPLATE):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
+                "Internal Server error. Bad template.");
+            break;
+        case (SHARED_RENDER_ERROR_RENDER):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
+                "Internal Server error. Failed to render template.");
+            break;
+        case (SHARED_RENDER_ERROR_ALLOC):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
+                "Internal Server error. Render allocation failure.");
+            break;
 
         default: 
-            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, "Internal Server error. Generic unhandled error.");
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. Generic unhandled error.");
     }
 }
 

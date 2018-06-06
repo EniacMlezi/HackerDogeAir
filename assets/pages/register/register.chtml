@@ -10,9 +10,10 @@
             <p>HackerDogeAir</p>
             <div class="register-page">
                 <div class="form">
-                    <form class="register-form" method="post">
-                        <input type="text" name="email" value="{{email}}" placeholder="Enter email" class="{{invalid_email}}" />
-                        <input type="password" name="password" placeholder="Enter password" class="{{invalid_password}}"/>
+                    <form method="post">
+                        <p class="error">{{error_message}}</p>
+                        <input type="email" name="email" value="{{email}}" placeholder="Enter email" required>
+                        <input type="password" name="password" minlength="8" maxlength="32" placeholder="Enter password" required>
                         <button type="submit">Create</button>
                         <p class="message">Already registered? <a href="/login">Sign In</a></p>
                     </form>

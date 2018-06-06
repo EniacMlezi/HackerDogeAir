@@ -173,7 +173,7 @@ shared_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buff
 
 uintmax_t
 shared_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
-{
+{   //TODO: xss prevention by html encoding
     mustache_str_ctx *ctx = ((SharedContext *)userdata)->dst_context; 
 
     ctx->string = (char *)realloc(ctx->string, ctx->offset + buffer_size + 1);
