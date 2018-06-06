@@ -28,8 +28,6 @@ register_user(struct http_request *req)
     User user = {0, NULL, NULL};
     RegisterContext context = {
         .shared_context = { .session_id = 0 },  //TODO: fill from request cookie
-        .invalid_email = false,
-        .invalid_password = false,
         .user = &user
     };
 
@@ -131,19 +129,15 @@ out:
 void
 register_error_handler(struct http_request *req, int errcode, RegisterContext *context)
 {
-    bool handled = false;
+    bool handled = true;
     int err = 0;
     switch (errcode)
     {
         case (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID):
-            context->invalid_email = true;
             context->error_message = "Please use a correct email address (e.g. test@example.com)";
-            handled = true;
             break;
         case (REGISTER_ERROR_PASSWORD_VALIDATOR_INVALID):
-            context->invalid_password = true;
             context->error_message = "Please use a correct password (length: 8-32, may contain: a-zA-Z0-9._%+-@#$^&*() )";
-            handled = true;
             break;
 
         default: 

@@ -86,30 +86,6 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
         }
     }
 
-    // else if (strncmp("invalid_email", token->text, token->text_length) == 0)
-    // {
-    //     if(ctx->invalid_email)
-    //     {
-    //         output_string = SHARED_RENDER_INVALID_STRING;
-    //     }
-    //     else
-    //     {
-    //         output_string = SHARED_RENDER_EMPTY_STRING;
-    //     }
-    // }
-
-    // else if(strncmp("invalid_password", token->text, token->text_length) == 0)
-    // {
-    //     if(ctx->invalid_password)
-    //     {
-    //         output_string = SHARED_RENDER_INVALID_STRING;
-    //     }
-    //     else
-    //     {
-    //         output_string = SHARED_RENDER_EMPTY_STRING;
-    //     }
-    // }
-
     if(NULL == output_string)
     {
         kore_log(LOG_INFO, "failed register render: unknown template variable");

@@ -9,8 +9,6 @@
 
 typedef struct RegisterContext{
     SharedContext shared_context;   //RegisterContext inherits from SharedContext (castable)
-    bool invalid_email;
-    bool invalid_password;
     char *error_message;
     User *user;
 } RegisterContext;

@@ -10,9 +10,10 @@
 			<p>HackerDogeAir</p>	
     		<div class="login-page">
     			<div class="form">
-    				<form class="login-form" method="post">
-    			    	<input type="text" name="email" placeholder="email address"/>
-    		      		<input type="password" name="password" placeholder="password"/>
+    				<form method="post">
+                        <p class="error">{{error_message}}</p>
+    			    	<input type="email" name="email" value="{{email}}" placeholder="Enter email"required>
+    		      		<input type="password" name="password" placeholder="Enter password" required>
     		      		<button type="submit">Login</button>
     		      		<p class="message">Not registered? <a href="/register">Create an account</a></p>
     				</form>
