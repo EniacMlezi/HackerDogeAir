@@ -16,7 +16,7 @@ header_render(SharedContext *context)
 {   
     int err = 0;
 
-    if((err = shared_render_create_str_context(context, asset_header_chtml)) != SHARED_ERROR_OK)
+    if((err = shared_render_create_str_context(context, asset_header_chtml)) != (SHARED_ERROR_OK))
     {
         return err;
     }
@@ -29,12 +29,12 @@ header_render(SharedContext *context)
         .error = &shared_error,
     };
 
-    if((err = shared_render_mustache_render(&api, context)) != SHARED_ERROR_OK)
+    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
-    return SHARED_ERROR_OK;
+    return (SHARED_ERROR_OK);
 }
 
 void 

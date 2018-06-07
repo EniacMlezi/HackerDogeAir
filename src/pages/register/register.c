@@ -33,7 +33,7 @@ register_user(struct http_request *req)
 
     if(req->method == HTTP_METHOD_GET)
     {   //a GET request receives the register form
-        if((err = register_render(&context)) != SHARED_ERROR_OK)
+        if((err = register_render(&context)) != (SHARED_ERROR_OK))
         {
             register_error_handler(req, err, &context);
         }
@@ -150,7 +150,7 @@ register_error_handler(struct http_request *req, int errcode, RegisterContext *c
     }
     else
     {
-        if((err = register_render(context)) != SHARED_ERROR_OK)
+        if((err = register_render(context)) != (SHARED_ERROR_OK))
         {
             register_error_handler(req, err, context);
         }

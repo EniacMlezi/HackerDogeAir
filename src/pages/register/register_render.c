@@ -22,13 +22,13 @@ register_render(RegisterContext *context)
 
     SharedContext new_ctx;
     shared_render_copy_context(&context->shared_context, &new_ctx);
-    if((err = shared_render(&new_ctx, asset_register_chtml)) != SHARED_ERROR_OK)
+    if((err = shared_render(&new_ctx, asset_register_chtml)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
     if((err = shared_render_create_str_context(&context->shared_context,
-     new_ctx.dst_context->string)) != SHARED_ERROR_OK)
+     new_ctx.dst_context->string)) != (SHARED_ERROR_OK))
     {
         return err;
     }
@@ -41,14 +41,14 @@ register_render(RegisterContext *context)
         .error = &shared_error,
     };
 
-    if((err = shared_render_mustache_render(&api, context)) != SHARED_ERROR_OK)
+    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
     shared_render_clean(&new_ctx);
 
-    return SHARED_ERROR_OK;
+    return (SHARED_ERROR_OK);
 }
 
 void
@@ -66,7 +66,7 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
     {
         if(NULL == ctx->user || NULL == ctx->user->email)
         {
-            output_string = SHARED_RENDER_EMPTY_STRING;
+            output_string = (SHARED_RENDER_EMPTY_STRING);
         }
         else
         {
@@ -78,7 +78,7 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
     {
         if(NULL == ctx->error_message)
         {
-            output_string = SHARED_RENDER_EMPTY_STRING;
+            output_string = (SHARED_RENDER_EMPTY_STRING);
         }
         else
         {

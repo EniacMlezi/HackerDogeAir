@@ -7,7 +7,7 @@
 #include "shared/shared_error.h"
 #include "pages/shared/header/header_render.h"
 
-int shared_render(SharedContext *, char *);
+int shared_render(SharedContext *, const char *);
 int shared_render_mustache_render(mustache_api_t *api, void *context);
 void shared_render_clean(SharedContext *context);
 void shared_render_copy_context(SharedContext *, SharedContext *);
@@ -22,11 +22,11 @@ const char *SHARED_RENDER_EMPTY_STRING = "";
 const char *SHARED_RENDER_INVALID_STRING = "invalid";
 
 int
-shared_render(SharedContext *context, char *template_string)
+shared_render(SharedContext *context, const char *template_string)
 {
     int err;
 
-    if((err = shared_render_create_str_context(context, template_string)) != SHARED_ERROR_OK)
+    if((err = shared_render_create_str_context(context, template_string)) != (SHARED_ERROR_OK))
     {
         return err;
     }
@@ -39,12 +39,12 @@ shared_render(SharedContext *context, char *template_string)
         .error = &shared_error,
     };
 
-    if((err = shared_render_mustache_render(&api, context)) != SHARED_ERROR_OK)
+    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
-    return SHARED_ERROR_OK;
+    return (SHARED_ERROR_OK);
 }
 
 int
@@ -55,15 +55,15 @@ shared_render_mustache_render(mustache_api_t *api, void *context)
     mustache_template_t *template = mustache_compile(api, context);
     if(NULL == template)
     {
-        return SHARED_RENDER_ERROR_TEMPLATE;
+        return (SHARED_RENDER_ERROR_TEMPLATE);
     }
     if((err = mustache_render(api, context, template)) == 0) //mustache ERROR==0
     {
-        return SHARED_RENDER_ERROR_RENDER;
+        return (SHARED_RENDER_ERROR_RENDER);
     }
     mustache_free(api, template);
 
-    return SHARED_ERROR_OK;
+    return (SHARED_ERROR_OK);
 }
 
 void
@@ -94,7 +94,7 @@ shared_render_create_str_context(SharedContext *context, char *template)
 
     if(NULL == context->src_context || NULL == context->dst_context)
     {
-        return SHARED_RENDER_ERROR_ALLOC;
+        return (SHARED_RENDER_ERROR_ALLOC);
     }
 
     context->src_context->string = template;
@@ -102,7 +102,7 @@ shared_render_create_str_context(SharedContext *context, char *template)
     context->dst_context->string = NULL;
     context->dst_context->offset = 0;
 
-    return SHARED_ERROR_OK;
+    return (SHARED_ERROR_OK);
 }
 
 uintmax_t
@@ -116,7 +116,7 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
     if(strncmp("SHARED_HEADER", token->text, token->text_length) == 0)
     {
-        if((err = header_render(&new_ctx)) != SHARED_ERROR_OK)
+        if((err = header_render(&new_ctx)) != (SHARED_ERROR_OK))
         {
             return 0; //FAIL
         }
