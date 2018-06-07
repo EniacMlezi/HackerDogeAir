@@ -52,9 +52,15 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         char session_id[12];
         if(snprintf(session_id, 12, "%d", ctx->session_id) <= 0)
         {
-            return 0; //error
+            return (SHARED_RENDER_MUSTACHE_FAIL); //error
         }
-        return api->write(api, userdata, session_id, strlen(session_id));
+        size_t session_id_len = strlen(session_id);
+        uintmax_t ret = api->write(api, userdata, session_id, session_id_len);
+        if(ret != session_id_len)
+        {
+            return (SHARED_RENDER_MUSTACHE_FAIL);
+        }
+        return (SHARED_RENDER_MUSTACHE_OK);
     }
-    return 0; //error
+    return (SHARED_RENDER_MUSTACHE_FAIL);
 }

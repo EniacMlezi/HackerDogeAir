@@ -7,8 +7,9 @@
 #include "pages/shared/shared_render.h"
 #include "model/user.h"
 
-typedef struct RegisterContext{
-    SharedContext shared_context;   //RegisterContext inherits from SharedContext (castable)
+typedef struct RegisterContext
+{
+    SharedContext shared_context;
     char *error_message;
     User *user;
 } RegisterContext;

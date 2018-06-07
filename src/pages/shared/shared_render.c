@@ -7,7 +7,7 @@
 #include "shared/shared_error.h"
 #include "pages/shared/header/header_render.h"
 
-int shared_render(SharedContext *, const char *);
+int shared_render(SharedContext *, char *);
 int shared_render_mustache_render(mustache_api_t *api, void *context);
 void shared_render_clean(SharedContext *context);
 void shared_render_copy_context(SharedContext *, SharedContext *);
@@ -22,7 +22,7 @@ const char *SHARED_RENDER_EMPTY_STRING = "";
 const char *SHARED_RENDER_INVALID_STRING = "invalid";
 
 int
-shared_render(SharedContext *context, const char *template_string)
+shared_render(SharedContext *context, char *template_string)
 {
     int err;
 
@@ -57,7 +57,7 @@ shared_render_mustache_render(mustache_api_t *api, void *context)
     {
         return (SHARED_RENDER_ERROR_TEMPLATE);
     }
-    if((err = mustache_render(api, context, template)) == 0) //mustache ERROR==0
+    if((err = mustache_render(api, context, template)) == (SHARED_RENDER_MUSTACHE_FAIL))
     {
         return (SHARED_RENDER_ERROR_RENDER);
     }
@@ -108,7 +108,7 @@ shared_render_create_str_context(SharedContext *context, char *template)
 uintmax_t
 shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    int ret = 0;
+    uintmax_t ret = 0;
     int err = 0;
     SharedContext *ctx = (SharedContext *) userdata;
     SharedContext new_ctx;
@@ -118,7 +118,7 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     {
         if((err = header_render(&new_ctx)) != (SHARED_ERROR_OK))
         {
-            return 0; //FAIL
+            return (SHARED_RENDER_MUSTACHE_FAIL);
         }
         ret = api->write(api, 
             userdata, 
@@ -128,24 +128,27 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         return ret;
     }
 
-    //the found variable was not a shared partial view. rewrite the found var.
-    //TODO: errors
+    //the found variable was not a shared partial view. rewrite the found variable.
     size_t length = token->text_length + 4 + 1; // +4 => curly braces, +1 => \0
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
         kore_log(LOG_INFO, "failed malloc for non-shared token.");
-        return 0; //FAIL
+        return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_INFO, 
             "failed snprintf for non-shared token: printed: %d - expected: %ld", err, length);
-        return 0; //FAIL
+        return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
+    if(ret != length-1)
+    {
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
     free(buffer);
-    return ret;
+    return (SHARED_RENDER_MUSTACHE_OK);
 }
 
 uintmax_t
@@ -163,7 +166,10 @@ shared_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buff
     
     string     = ctx->string + ctx->offset;
     string_len = strlen(string);
-    string_len = (string_len < buffer_size) ? string_len : buffer_size;
+    if(string_len >= buffer_size)
+    {
+        string_len = buffer_size;
+    }
     
     memcpy(buffer, string, string_len);
     

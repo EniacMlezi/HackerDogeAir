@@ -7,6 +7,9 @@
 #define SHARED_RENDER_ERROR_TEMPLATE    1001
 #define SHARED_RENDER_ERROR_RENDER      1002
 
+#define SHARED_RENDER_MUSTACHE_FAIL     0
+#define SHARED_RENDER_MUSTACHE_OK       !SHARED_RENDER_MUSTACHE_FAIL
+
 extern const char *SHARED_RENDER_EMPTY_STRING;
 extern const char *SHARED_RENDER_INVALID_STRING;
 
@@ -21,7 +24,7 @@ typedef struct SharedContext
 Renders all shared elements for a given template.
 */
 int
-shared_render(SharedContext *context, const char *template);
+shared_render(SharedContext *context, char *template);
 
 /*
 Calls the actual mustache functions for creating and rendering a template.

@@ -59,7 +59,7 @@ register_render_clean(RegisterContext *context)
 
 uintmax_t
 register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
-{   //custom varget works on UserContext.
+{
     RegisterContext *ctx = (RegisterContext *) userdata;
     const char *output_string = NULL;
     if(strncmp("email", token->text, token->text_length) == 0)
@@ -89,9 +89,14 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
     if(NULL == output_string)
     {
         kore_log(LOG_INFO, "failed register render: unknown template variable");
-        return 0;   //FAIL. unknown variable
+        return (SHARED_RENDER_MUSTACHE_FAIL); // unknown variable
     }
 
-    api->write(api, userdata, output_string, strlen(output_string));
-    return 1; //NO FAIL. written data.
+    size_t output_string_len = strlen(output_string);
+    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
+    if(ret != output_string_len)
+    {
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    return (SHARED_RENDER_MUSTACHE_OK);
 }
