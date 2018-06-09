@@ -10,7 +10,7 @@
 typedef struct RegisterContext
 {
     SharedContext shared_context;
-    char *error_message;
+    const char *error_message;
     User *user;
 } RegisterContext;
 

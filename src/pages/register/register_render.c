@@ -22,13 +22,13 @@ register_render(RegisterContext *context)
 
     SharedContext new_ctx;
     shared_render_copy_context(&context->shared_context, &new_ctx);
-    if((err = shared_render(&new_ctx, asset_register_chtml)) != (SHARED_ERROR_OK))
+    if((err = shared_render(&new_ctx, (const char* const)asset_register_chtml)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
     if((err = shared_render_create_str_context(&context->shared_context,
-     new_ctx.dst_context->string)) != (SHARED_ERROR_OK))
+     (const char* const)new_ctx.dst_context->string)) != (SHARED_ERROR_OK))
     {
         return err;
     }

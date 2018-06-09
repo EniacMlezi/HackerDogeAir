@@ -7,22 +7,22 @@
 #include "shared/shared_error.h"
 #include "pages/shared/header/header_render.h"
 
-int shared_render(SharedContext *, char *);
+int shared_render(SharedContext *, const char* const);
 int shared_render_mustache_render(mustache_api_t *api, void *context);
 void shared_render_clean(SharedContext *context);
 void shared_render_copy_context(SharedContext *, SharedContext *);
-int shared_render_create_str_context(SharedContext *, char *);
+int shared_render_create_str_context(SharedContext *, const char* const);
 uintmax_t shared_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 uintmax_t shared_sectget(mustache_api_t *, void *, mustache_token_section_t *);
 uintmax_t shared_strread(mustache_api_t *, void *, char *, uintmax_t);
 uintmax_t shared_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
 void shared_error(mustache_api_t *, void *, uintmax_t, char const *);
 
-const char *SHARED_RENDER_EMPTY_STRING = "";
-const char *SHARED_RENDER_INVALID_STRING = "invalid";
+const char* const SHARED_RENDER_EMPTY_STRING = "";
+const char* const SHARED_RENDER_INVALID_STRING = "invalid";
 
 int
-shared_render(SharedContext *context, char *template_string)
+shared_render(SharedContext *context, const char* const template_string)
 {
     int err;
 
@@ -86,7 +86,7 @@ shared_render_copy_context(SharedContext *src, SharedContext *dst)
 }
 
 int 
-shared_render_create_str_context(SharedContext *context, char *template)
+shared_render_create_str_context(SharedContext *context, const char* const template)
 {
     //TODO: benefits of using kore_alloc ?
     context->src_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
@@ -96,8 +96,10 @@ shared_render_create_str_context(SharedContext *context, char *template)
     {
         return (SHARED_RENDER_ERROR_ALLOC);
     }
-
-    context->src_context->string = template;
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wcast-qual"
+    context->src_context->string = (char *)template;
+#pragma GCC diagnostic pop
     context->src_context->offset = 0;
     context->dst_context->string = NULL;
     context->dst_context->offset = 0;
@@ -129,7 +131,7 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     }
 
     //the found variable was not a shared partial view. rewrite the found variable.
-    size_t length = token->text_length + 4 + 1; // +4 => curly braces, +1 => \0
+    int length = token->text_length + 4 + 1; // +4 => curly braces, +1 => \0
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
@@ -139,12 +141,14 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_INFO, 
-            "failed snprintf for non-shared token: printed: %d - expected: %ld", err, length);
+            "failed snprintf for non-shared token: printed: %d - expected: %d", err, length);
+        free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
-    if(ret != length-1)
+    if(ret != (uintmax_t)length-1)
     {
+        free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     free(buffer);
