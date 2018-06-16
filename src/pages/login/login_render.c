@@ -13,25 +13,11 @@
 int         login_render(LoginContext *);
 void        login_render_clean(LoginContext *);
 uintmax_t   login_varget(mustache_api_t *, void *, mustache_token_variable_t *);
-void        login_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 int
 login_render(LoginContext *context)
 {
     int err = 0;
-
-    SharedContext new_ctx;
-    shared_render_copy_context(&context->shared_context, &new_ctx);
-    if((err = shared_render(&new_ctx, (const char* const)asset_login_chtml)) != (SHARED_ERROR_OK))
-    {
-        return err;
-    }
-
-    if((err = shared_render_create_str_context(&context->shared_context,
-     (const char* const)new_ctx.dst_context->string)) != (SHARED_ERROR_OK))
-    {
-        return err;
-    }
 
     mustache_api_t api={
         .read = &shared_strread,
@@ -41,12 +27,11 @@ login_render(LoginContext *context)
         .error = &shared_error,
     };
 
-    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
+    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_login_chtml))
+     != (SHARED_ERROR_OK))
     {
         return err;
     }
-
-    shared_render_clean(&new_ctx);
 
     return (SHARED_ERROR_OK);
 }
@@ -89,9 +74,9 @@ login_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *tok
     if(NULL == output_string)
     {
         kore_log(LOG_INFO, "failed login render: unknown template variable");
-        return 0;   //FAIL. unknown variable
+        return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
     api->write(api, userdata, output_string, strlen(output_string));
-    return 1; //NO FAIL. written data.
+    return (SHARED_RENDER_MUSTACHE_OK);
 }

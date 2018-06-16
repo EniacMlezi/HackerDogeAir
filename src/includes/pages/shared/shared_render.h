@@ -21,10 +21,11 @@ typedef struct SharedContext
 } SharedContext;
 
 /*
-Renders all shared elements for a given template.
+Shared function for rendering a page. First renders all shared partials for a template, then renders
+the page specific elements for said tempalte using the supplied api.
 */
 int
-shared_render(SharedContext *context, const char* const template);
+shared_render(SharedContext *context, mustache_api_t *api, const char* const template);
 
 /*
 Calls the actual mustache functions for creating and rendering a template.
