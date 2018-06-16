@@ -25,9 +25,14 @@ body {
   margin: auto;
 }
 
-.users-page{
+.users-page {
   width: 500px;
-  margin: auto;
+  text-align: left;
+}
+
+.user-page {
+  width: 500px;
+  text-align: left;
 }
 
 .form {

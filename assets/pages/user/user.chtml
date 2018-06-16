@@ -1,0 +1,16 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="content">
+            <div class="user-page">
+                id: {{id}}. <br />
+                email: {{email}}.
+            </div>
+        </div>
+    </body>
+</html>

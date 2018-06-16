@@ -18,11 +18,11 @@ void    users_error_handler(struct http_request *req, int errcode);
 int
 users(struct http_request *req)
 {
-    int err;
-
+    int err = 0;
     UsersContext context = {
         .shared_context = {.session_id = 0}
     };
+    //TODO: get from query
     SLIST_INIT(&context.userlist);
     char *email0 = "larsgardien@live.nl";
     char *email1 = "DennisSmith@live.nl";
@@ -32,7 +32,7 @@ users(struct http_request *req)
     SLIST_INSERT_HEAD(&context.userlist, &user_node1, users);
 
     if(req->method == HTTP_METHOD_GET)
-    {   //a GET request receives the register form
+    {
         if((err = users_render(&context)) != (SHARED_ERROR_OK))
         {
             users_error_handler(req, err);
@@ -46,6 +46,8 @@ users(struct http_request *req)
         users_render_clean(&context);
         return (KORE_RESULT_OK);
     }
+
+    return (KORE_RESULT_ERROR);
 }
 
 void
