@@ -31,7 +31,7 @@ login(struct http_request *req)
     int err;
     User user = {0, NULL, NULL};
     LoginContext context = {
-        .shared_context = { .session_id = 0 },  //TODO: fill from request cookie
+        .shared_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
     if(req->method == HTTP_METHOD_GET)
@@ -108,7 +108,7 @@ login_trylogin(User *user)
 
     const char *query = "SELECT userid, password FROM \"user\" WHERE \"email\" = ($1);";
     if (!kore_pgsql_query_params(&pgsql, query, 0, 1, 
-        user->email, strlen(user->email), 0)) 
+        user->email, strlen(user->email), 0))
     {   //error when querying
         kore_pgsql_logerror(&pgsql);
         return_code = (SHARED_ERROR_SQL_QUERY_ERROR);

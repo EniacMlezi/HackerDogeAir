@@ -1,7 +1,6 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <libscrypt.h>
-#include <mustache.h>
 
 #include <kore/kore.h>
 #include <kore/http.h>
@@ -27,7 +26,7 @@ register_user(struct http_request *req)
     int err;
     User user = {0, NULL, NULL};
     RegisterContext context = {
-        .shared_context = { .session_id = 0 },  //TODO: fill from request cookie
+        .shared_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
 
@@ -76,7 +75,7 @@ register_parse_params(struct http_request *req, User *user)
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
-        return (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID); 
+        return (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID);
     }
     if(!http_argument_get_string(req, "password", &(user->password)))
     {

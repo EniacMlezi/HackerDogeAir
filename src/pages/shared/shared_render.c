@@ -7,7 +7,7 @@
 #include "shared/shared_error.h"
 #include "pages/shared/header/header_render.h"
 
-int shared_render(SharedContext *, const char* const);
+int shared_render(SharedContext *, mustache_api_t *, const char* const);
 int shared_render_mustache_render(mustache_api_t *api, void *context);
 void shared_render_clean(SharedContext *context);
 void shared_render_copy_context(SharedContext *, SharedContext *);
@@ -22,29 +22,50 @@ const char* const SHARED_RENDER_EMPTY_STRING = "";
 const char* const SHARED_RENDER_INVALID_STRING = "invalid";
 
 int
-shared_render(SharedContext *context, const char* const template_string)
+shared_render(SharedContext *context, mustache_api_t *api, const char* const template_string)
 {
-    int err;
+    int err = 0; 
 
-    if((err = shared_render_create_str_context(context, template_string)) != (SHARED_ERROR_OK))
+    //render all shared partials
+    SharedContext copy_context;
+    shared_render_copy_context(context, &copy_context);
+    if((err = shared_render_create_str_context(&copy_context, template_string)) 
+        != (SHARED_ERROR_OK))
     {
-        return err;
+        if(err == SHARED_RENDER_ERROR_ALLOC)
+        {   // do not clean up when allocation failed.
+            return err;
+        }
+        goto exit;
     }
-
-    mustache_api_t api={
+    mustache_api_t shared_api={
         .read = &shared_strread,
         .write = &shared_strwrite,
         .varget = &shared_varget,
         .sectget = &shared_sectget,
         .error = &shared_error,
     };
-
-    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
+    if((err = shared_render_mustache_render(&shared_api, &copy_context)) != (SHARED_ERROR_OK))
     {
-        return err;
+        goto exit;
     }
 
-    return (SHARED_ERROR_OK);
+    //render all page specifics using supplied api
+    if((err = shared_render_create_str_context(context,
+     (const char* const)copy_context.dst_context->string)) != (SHARED_ERROR_OK))
+    {
+        goto exit;
+    }
+    if((err = shared_render_mustache_render(api, context)) != (SHARED_ERROR_OK))
+    {
+        goto exit;
+    }
+
+    err = (SHARED_ERROR_OK);
+
+exit:
+    shared_render_clean(&copy_context);
+    return err;
 }
 
 int
