@@ -8,6 +8,7 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "pages/login/login_render.h"
 #include "model/user.h"
 #include "assets.h"
 
@@ -18,22 +19,34 @@
 #define LOGIN_ERROR_PASSWORD_INCORRECT         105  
 
 int    login(struct http_request *);
-int    login_parseparams(struct http_request *, user_t *);
-int    login_trylogin(user_t *);
+int    login_parseparams(struct http_request *, User *);
+int    login_trylogin(User *);
 int    login_check_bruteforce(struct kore_pgsql *, int);
 int    login_log_attempt(struct kore_pgsql *, int, bool);
-void   login_error_handler(struct http_request *, int);
+void   login_error_handler(struct http_request *, int, LoginContext *);
 
 int 
 login(struct http_request *req)
 {
     int err;
-    user_t user = {0, NULL, NULL};
-
+    User user = {0, NULL, NULL};
+    LoginContext context = {
+        .shared_context = { .session_id = 0 },  //TODO: fill from request cookie
+        .user = &user
+    };
     if(req->method == HTTP_METHOD_GET)
     {   //a GET receives the login form
+        if((err = login_render(&context)) != (SHARED_ERROR_OK))
+        {
+            login_error_handler(req, err, &context);
+        }
+
         http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, asset_login_html, asset_len_login_html);
+        http_response(req, HTTP_STATUS_OK, 
+            context.shared_context.dst_context->string, 
+            strlen(context.shared_context.dst_context->string));
+
+        login_render_clean(&context);
         return (KORE_RESULT_OK);
     }
     else if(req->method != HTTP_METHOD_POST)
@@ -41,15 +54,15 @@ login(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = login_parseparams(req, &user)) != (SHARED_ERROR_OK))
+    if((err = login_parseparams(req, context.user)) != (SHARED_ERROR_OK))
     {
-        login_error_handler(req, err);
+        login_error_handler(req, err, &context);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit
     }
 
-    if((err = login_trylogin(&user)) != (SHARED_ERROR_OK))
+    if((err = login_trylogin(context.user)) != (SHARED_ERROR_OK))
     {   //when not logged in correctly, notify user.
-        login_error_handler(req, err);
+        login_error_handler(req, err, &context);
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
     }
 
@@ -60,7 +73,7 @@ login(struct http_request *req)
 }
 
 int
-login_parseparams(struct http_request *req, user_t *user)
+login_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
@@ -76,7 +89,7 @@ login_parseparams(struct http_request *req, user_t *user)
 }
 
 int
-login_trylogin(user_t *user)
+login_trylogin(User *user)
 {
     struct kore_pgsql pgsql;
     kore_pgsql_init(&pgsql);
@@ -202,30 +215,28 @@ login_log_attempt(struct kore_pgsql *pgsql, int userid, bool success)
 }
 
 void
-login_error_handler(struct http_request *req, int errcode)
+login_error_handler(struct http_request *req, int errcode, LoginContext *context)
 {
     bool handled = true;
+    int err = 0;
     switch (errcode)
     {
         case (LOGIN_ERROR_BRUTEFORCE_CHECK_INVALID):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
-                "Your account has been locked. Please try again in several minutes.");
+                context->error_message = 
+                "Your account has been locked. Please try again in several minutes.";
             break;
         case (LOGIN_ERROR_EMAIL_VALIDATOR_INVALID):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST,
-                "Email format incorrect. Validator failed.");
+                context->error_message = 
+                "Please use a correct email address (e.g. test@example.com)";
             break;
         case (LOGIN_ERROR_PASSWORD_VALIDATOR_INVALID):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
-                "Password format incorrect. Validator failed.");
+                context->error_message = 
+                "Please use a correct password (length: 8-32, may contain: a-zA-Z0-9._%+-@#$^&*() )";
             break;
         case (LOGIN_ERROR_EMAIL_INCORRECT):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST,
-                "Incorrect Email or Password. (DEBUG: EMAIL_INCORRECT)");
-            break;
         case (LOGIN_ERROR_PASSWORD_INCORRECT):
-            shared_error_response(req, HTTP_STATUS_BAD_REQUEST, 
-                "Incorrect Email or Password. (DEBUG: PASSWORD_INCORRECT)");
+                context->error_message = 
+                "Incorrect Email or Password.";
             break;
 
         default: 
@@ -235,5 +246,19 @@ login_error_handler(struct http_request *req, int errcode)
     if(!handled)
     {
         shared_error_handler(req, errcode);
+    }
+    else
+    {
+        if((err = login_render(context)) != (SHARED_ERROR_OK))
+        {
+            login_error_handler(req, err, context);
+        }
+
+        http_response_header(req, "content-type", "text/html");
+        http_response(req, HTTP_STATUS_OK, 
+            context->shared_context.dst_context->string, 
+            strlen(context->shared_context.dst_context->string));
+
+        login_render_clean(context);
     }
 }

@@ -1,0 +1,24 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Register - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="content">
+            <p>HackerDogeAir</p>
+            <div class="register-page">
+                <div class="form">
+                    <form method="post">
+                        <p class="error">{{error_message}}</p>
+                        <input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" required>
+                        <input type="password" name="password" placeholder="Enter password" minlength="8" maxlength="32" required>
+                        <button type="submit">Create</button>
+                        <p class="message">Already registered? <a href="/login">Sign In</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

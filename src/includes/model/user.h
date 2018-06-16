@@ -1,11 +1,11 @@
 #ifndef USER_H
 #define USER_H
 
-typedef struct user_t
+typedef struct User
 {
     int id;
     char *email;
     char *password;
-} user_t;
+} User;
 
 #endif
