@@ -3,79 +3,38 @@ body {
 	background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
+  font-size: 14px;
+  font-family: "Roboto", sans-serif;
 }
 
 .content {
-	width: 800px;
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 100px;
-	font-size: 50px;
-	text-align: center;
-}
-.login-page{
-  width: 360px;
-  padding: 8% 0 0;
-  margin: auto;
-}
-.register-page {
-  width: 360px;
-  padding: 8% 0 0;
-  margin: auto;
-}
-
-.form {
-  display: flex;
-  overflow-y: scroll;
-  padding-bottom: 1.25rem;
-  position: relative;
-  z-index: 1;
-  background: #FFFFFF;
-  max-width: 360px;
-  margin: 0 auto 100px;
+  width: 800px;
   padding: 45px;
   text-align: center;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
 }
-.form input {
-  font-family: "Roboto", sans-serif;
-  background: #f2f2f2;
-  margin: 0 0 15px;
-  padding: 15px;
-  width: 100%;
-  border: 1px solid #eee;
-  border-left: 3px solid;
-  border-radius: 5px;
-  box-shadow: none;
-  transition: border-color .5s ease-out;
+.login-page{
+  width: 360px;
+  margin: auto;
+}
+.register-page {
+  width: 360px;
+  margin: auto;
 }
 
-.form input:valid{
-  border-left-color: palegreen;
-}
-.form input:invalid{
-  border-left-color: salmon;
-}
-.form input:focus{
-  border-left-color: #999;
+.users-page{
+  width: 500px;
+  margin: auto;
 }
 
-.form button {
-  font-family: "Roboto", sans-serif;
-  text-transform: uppercase;
-  outline: 0;
-  background: #4CAF50;
-  width: 100%;
-  border: 0;
-  padding: 15px;
-  color: #FFFFFF;
-  font-size: 14px;
-  -webkit-transition: all 0.3 ease;
-  transition: all 0.3 ease;
-  cursor: pointer;
-}
-.form button:hover,.form button:active,.form button:focus {
-  background: #43A047;
+.form {
+  margin: auto;
+  display: flex;
+  position: relative;
+  z-index: 1;
 }
 .form .message {
   margin: 15px 0 0;
@@ -89,7 +48,49 @@ body {
   font-size: 12px;
 }
 
-.form .message a {
+h1 {
+  font-size: 38px;
+}
+
+a {
   color: #4CAF50;
   text-decoration: none;
+}
+
+input {
+  background: #f2f2f2;
+  margin: 0 0 15px;
+  padding: 15px;
+  width: 100%;
+  border: 1px solid #eee;
+  border-left: 3px solid;
+  border-radius: 5px;
+  box-shadow: none;
+  transition: border-color .5s ease-out;
+}
+
+input:valid{
+  border-left-color: palegreen;
+}
+input:invalid{
+  border-left-color: salmon;
+}
+input:focus{
+  border-left-color: #999;
+}
+
+button {
+  text-transform: uppercase;
+  outline: 0;
+  background: #4CAF50;
+  width: 100%;
+  border: 0;
+  padding: 15px;
+  color: #FFFFFF;
+  -webkit-transition: all 0.3 ease;
+  transition: all 0.3 ease;
+  cursor: pointer;
+}
+button:hover, button:active, button:focus {
+  background: #43A047;
 }

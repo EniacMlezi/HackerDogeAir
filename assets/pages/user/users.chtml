@@ -1,0 +1,17 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Users - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="content">
+            <div class="users-page">
+                {{#users}}
+                    email: {{email}}. <a href="/user?">Edit</a> <br />
+                {{/users}} 
+            </div>
+        </div>
+    </body>
+</html>
