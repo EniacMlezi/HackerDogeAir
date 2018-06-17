@@ -5,22 +5,22 @@
 #include <sys/queue.h>
 #include <time.h>
 
-typedef struct _Flight
+typedef struct
 {
     uint32_t    flight_identifier;
     uint32_t    departure_airport_identifier;
     uint32_t    arrival_airport_identifier;
-    tm          departure_time;
-    tm          arrival_time;
+    char        *departure_time;
+    char        *arrival_time;
     double      distance;
     uint32_t    seats_available; 
 } Flight;
 
-typedef struct
+typedef struct FlightCollection
 {
     Flight flight;
-    LIST_ENTRY(_Flight) list;
-} FlightList;
+    LIST_ENTRY(_Flight) flight_collection;
+} FlightCollection;
 
 Flight *
 flight_create(
@@ -30,7 +30,8 @@ flight_create(
     tm departure_time,
     tm arrival_time,
     double distance,
-    uint32_t seats_available
+    uint32_t seats_available,
+    uint32_t *error
     );
 
 uint32_t
@@ -55,23 +56,45 @@ flight_delete(
 
 Flight *
 flight_find_by_identifier(
-    uint32_t flight_identifier
+    uint32_t flight_identifier,
+    uint32_t *error
     );
 
-FlightList *
-flight_list_create(
-    void *source_location
+Flight *
+flight_find_by_departure_airport(
+    uint32_t departure_airport_identifier,
+    uint32_t *error
+    );
+
+Flight *
+flight_find_by_arrival_airport(
+    uint32_t arrival_airport_identifier,
+    uint32_t *error
+    );
+
+Flight *
+flight_find_by_arrival_airport_and_departure_time(
+    uint32_t arrival_airport_identifier,
+    const char *departure_time,
+    uint32_t *error
+    );
+
+FlightCollection *
+flight_collection_create(
+    void *source_location,
+    uint32_t *error
     );
 
 uint32_t
-flight_list_destroy(
-    FlightList *flight_list
+flight_collection_destroy(
+    FlightCollection *flight_collection
     );
 
-FlightList *
-flight_list_find_by_path(
+FlightCollection *
+flight_collection_find_by_path(
     uint32_t departure_airport_identifier,
-    uint32_t arrival_airport_identifier
+    uint32_t arrival_airport_identifier,
+    uint32_t *error
     );
 
 #endif

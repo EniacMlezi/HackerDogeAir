@@ -5,18 +5,18 @@
 #include <sys/queue.h>
 #include <time.h>
 
-typedef struct _LoginAttempt
+typedef struct
 {
     uint32_t    user_identifier;
     char        *login_time;
     bool        login_result;
 } LoginAttempt;
 
-typedef struct
+typedef struct LoginAttemptCollection
 {
     LoginAttempt login_attempt;
-    LIST_ENTRY(_LoginAttempt) list;
-} LoginAttemptList;
+    LIST_ENTRY(LoginAttemptCollection) login_attempt_collection;
+} LoginAttemptCollection;
 
 LoginAttempt *
 login_attempt_create(
@@ -28,6 +28,11 @@ login_attempt_create(
 uint32_t
 login_attempt_destroy(
     LoginAttempt *login_attempt
+    );
+
+uint32_t
+login_attempt_collection_destroy(
+    LoginAttempt *LoginAttemptCollection
     );
 
 uint32_t
@@ -45,19 +50,16 @@ login_attempt_delete(
     LoginAttempt *login_attempt
     );
 
-LoginAttemptList *
-login_attempt_list_create(
-    void *source_location
+LoginAttemptCollection *
+login_attempt_collection_create(
+    void *source_location,
+    uint32_t *error
     );
 
-uint32_t
-login_attempt_list_destroy(
-    LoginAttempt *login_attempt_list
-    );
-
-LoginAttemptList *
-login_attempt_list_find_by_identifier(
-    uint32_t user_identifier
+LoginAttemptCollection *
+login_attempt_collection_find_by_identifier(
+    uint32_t user_identifier,
+    uint32_t *error
     );
 
 #endif

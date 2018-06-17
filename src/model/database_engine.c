@@ -51,26 +51,30 @@ database_engine_close_connection(struct kore_pgsql *pgsql)
 }
 
 uint32_t
-database_engine_execute_mutation_query(char *sql_query, 
-    uint32_t count, va_list argument_list)
+database_engine_execute_write(const char *sql_query, uint32_t count, ...)
 {
+    va_list parameters;
+    va_start(parameters, count);
+
     uint32_t return_code = (DATABASE_ENGINE_OK);
     struct kore_pgsql database_connection;
     
     if(database_engine_initialize(&database_connection, DATABASE_NAME) != DATABASE_ENGINE_OK)
     {
-        perror("database_engine_execute_mutation_query: Could not initialize the database.\n");
+        perror("database_engine_execute_write: Could not initialize the database.\n");
         return_code = (DATABASE_ENGINE_ERROR_INITIALIZATION);
         goto error_exit; 
     }    
 
     /* Execute the query on the connected database. */
-    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, argument_list))
+    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, parameters))
     {
         kore_pgsql_logerror(&database_connection);
         return_code = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
         goto error_exit;
     }
+
+    va_end(parameters);
 
     error_exit:
     database_engine_close_connection(&database_connection);
@@ -78,43 +82,59 @@ database_engine_execute_mutation_query(char *sql_query,
 }
 
 void *
-database_engine_execute_select_query(char *sql_query, 
-    void *(*model_build_from_query)(void *source_location), uint32_t count,
-    va_list argument_list)
+database_engine_execute_read(const char *sql_query, 
+    void *(*model_build_from_query)(void *source_location, uint32_t *error), uint32_t *error,
+    uint32_t count, ...)
 {
+    va_list parameters;
+    va_start(parameters, count);
+
     void *return_value;
     struct kore_pgsql database_connection;
 
     if(database_engine_initialize(&database_connection, DATABASE_NAME) != DATABASE_ENGINE_OK)
     {
-        perror("database_engine_execute_select_query: Could not initialize database.\n");
-        return_value = (void *) (DATABASE_ENGINE_ERROR_INITIALIZATION);
+        perror("database_engine_execute_read: Could not initialize database.\n");
+        *error = (DATABASE_ENGINE_ERROR_INITIALIZATION);
+        return_value = NULL;
         goto error_exit;
     }
 
-    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, argument_list)) 
+    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, parameters)) 
     {
         kore_pgsql_logerror(&database_connection);
-        return_value = (void *) (DATABASE_ENGINE_ERROR_QUERY_ERROR);
+        *error = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
+        return_value = NULL;
         goto error_exit; 
     }
 
     if(kore_pgsql_ntuples(&database_connection) == 0)
     {
-        perror("database_engine_execute_select_query: No results found.");
-        return_value = (void *) (DATABASE_ENGINE_ERROR_NO_RESULTS); 
+        perror("database_engine_execute_read: No results found.");
+        *error = (DATABASE_ENGINE_ERROR_INITIALIZATION);
+        return_value = NULL;
         goto error_exit;
     }
 
-    if((return_value = model_build_from_query(&database_connection))
-     == (void *) (DATABASE_ENGINE_ERROR_RESULT_PARSE))
+    uint32_t err;
+    if((return_value = model_build_from_query(&database_connection, &err))
+     == NULL) 
     {
-        perror("database_engine_execute_select_query: Could not interpret the " \
-            "query result.\n");
-        return_value = (void *) (DATABASE_ENGINE_ERROR_INVALLID_RESULT);
+        switch(err)
+        {
+            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            default:
+                perror("database_engine_execute_read: Could not interpret the " \
+                    "query result.\n");
+                *error = (DATABASE_ENGINE_ERROR_INVALLID_RESULT);
+                return_value = NULL;
+            break;
+        }
     }
-     
+
     error_exit:
+    va_end(parameters);
     database_engine_close_connection(&database_connection);
     return return_value;
 }

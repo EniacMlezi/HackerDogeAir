@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <sys/queue.h>
 
-typedef struct _Ticket
+typedef struct 
 {
     uint32_t    ticket_identifier;
     uint32_t    flight_identifier;
@@ -12,18 +12,19 @@ typedef struct _Ticket
     double      cost;
 } Ticket;
 
-typedef struct
+typedef struct TicketCollection
 {
     Ticket ticket;
-    LIST_ENTRY(_Ticket) list;
-} TicketList;
+    LIST_ENTRY(TicketCollection) ticket_collection;
+} TicketCollection;
 
 Ticket *
 ticket_create(
     uint32_t ticket_identifier,
     uint32_t flight_identifier,
     uint32_t user_identifier,
-    double cost
+    double cost,
+    uint32_t *error
     );
 
 uint32_t
@@ -48,27 +49,31 @@ ticket_delete(
 
 Ticket *
 ticket_find_by_user_identifier(
-    uint32_t user_identifier
+    uint32_t user_identifier,
+    uint32_t *error
     );
 
-TicketList *
-ticket_list_create(
-    void *source_location
+TicketCollection *
+ticket_collection_create(
+    void *source_location,
+    uint32_t *error
     );
 
 uint32_t
-ticket_list_destroy(
-    TicketList *ticket_list
+ticket_collection_destroy(
+    TicketCollection *ticket_collection
     );
 
-TicketList *
-ticket_list_find_by_flight_identifier(
-    uint32_t flight_identifier
+TicketCollection *
+ticket_collection_find_by_flight_identifier(
+    uint32_t flight_identifier,
+    uint32_t *error
     );
 
-TicketList *
-ticket_list_find_by_user_identifier(
-    uint32_t user_identifier
+TicketCollection *
+ticket_collection_find_by_user_identifier(
+    uint32_t user_identifier,
+    uint32_t *error
     );
 
 #endif
