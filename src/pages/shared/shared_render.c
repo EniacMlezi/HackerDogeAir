@@ -16,6 +16,7 @@ uintmax_t shared_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 uintmax_t shared_sectget(mustache_api_t *, void *, mustache_token_section_t *);
 uintmax_t shared_strread(mustache_api_t *, void *, char *, uintmax_t);
 uintmax_t shared_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
+uintmax_t shared_mustache_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
 void shared_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 const char* const SHARED_RENDER_EMPTY_STRING = "";
@@ -156,12 +157,12 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
-        kore_log(LOG_INFO, "failed malloc for non-shared token.");
+        kore_log(LOG_ERR, "failed malloc for non-shared token.");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
-        kore_log(LOG_INFO, 
+        kore_log(LOG_ERR, 
             "failed snprintf for non-shared token: printed: %d - expected: %d", err, length);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
@@ -178,8 +179,50 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
 uintmax_t
 shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
-{
-    return mustache_render(api, userdata, token->section);
+{   // the shared sectget does nothing but rewriting the section tags and format
+    int err = 0;
+    uintmax_t ret = 0;
+    int length = strlen(token->name) + 4 + 1 + 1; // +4 => curly braces, +1 => '#' OR '/', +1 => \0
+    
+    char *buffer = (char *)malloc(length);
+    if(NULL == buffer)
+    {
+        kore_log(LOG_ERR, "failed malloc for section.");
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+
+    if((err = snprintf(buffer, length, "{{#%s}}", token->name)) != length-1) //-1 => exclude \0
+    {
+        kore_log(LOG_ERR, 
+            "failed snprintf for section: printed: %d - expected: %d", err, length);
+        free(buffer);
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
+    if(ret != (uintmax_t)length-1)
+    {
+        free(buffer);
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    ret = mustache_render(api, userdata, token->section);
+    if(ret != (SHARED_RENDER_MUSTACHE_OK))
+    {
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    if((err = snprintf(buffer, length, "{{/%s}}", token->name)) != length-1) //-1 => exclude \0
+    {
+        kore_log(LOG_ERR, 
+            "failed snprintf for section: printed: %d - expected: %d", err, length);
+        free(buffer);
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
+    if(ret != (uintmax_t)length-1)
+    {
+        free(buffer);
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    return (SHARED_RENDER_MUSTACHE_OK);
 }
 
 uintmax_t
@@ -216,8 +259,22 @@ shared_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax
     return buffer_size;
 }
 
+uintmax_t
+shared_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
+{
+    mustache_str_ctx *ctx = *(mustache_str_ctx **)userdata; 
+    
+    ctx->string = realloc(ctx->string, ctx->offset + buffer_size + 1);
+    
+    memcpy(ctx->string + ctx->offset, buffer, buffer_size);
+    ctx->string[ctx->offset + buffer_size] = '\0';
+    
+    ctx->offset += buffer_size;
+    return buffer_size;
+}
+
 void
 shared_error(mustache_api_t *api, void *userdata, uintmax_t lineno, char const *error)
 {
-    fprintf(stderr, "error: %d: %s\n", (int)lineno, error);
+    kore_log(LOG_ERR, "mustache error: %d: %s\n", (int)lineno, error);
 }

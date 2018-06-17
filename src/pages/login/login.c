@@ -28,7 +28,7 @@ void   login_error_handler(struct http_request *, int, LoginContext *);
 int 
 login(struct http_request *req)
 {
-    int err;
+    int err = 0;
     User user = {0, NULL, NULL};
     LoginContext context = {
         .shared_context = { .session_id = 0 }, //TODO: fill from request cookie
