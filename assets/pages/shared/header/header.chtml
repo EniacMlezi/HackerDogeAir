@@ -1,3 +1,10 @@
 <div class="header">
-    HEADER {{session_id}}
+    <header>
+        <h2>HackerDogeAir</h2>
+            <nav>
+                <a href="">test1</a>
+                <a href="">test2</a>
+            </nav>
+        <p><a href="">login/register</a></p>
+    </header>
 </div>

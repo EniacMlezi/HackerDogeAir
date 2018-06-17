@@ -1,0 +1,14 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Home - HackerDogeAir</title>
+        <link rel="stylesheet" href="/css/style.css" type="text/css">
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="wrapper">
+            <h1>HackerDogeAir Homepage</h1>
+            <a href="login"><img src="/images/island.jpg"></a>
+        </div>
+    </body>
+</html>
