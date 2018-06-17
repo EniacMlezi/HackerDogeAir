@@ -1,5 +1,7 @@
 body {
   padding-top: 50px;
+  font-size: 14px;
+  font-family: "Roboto", sans-serif;
 }
 
 body .failed-login {
@@ -7,8 +9,6 @@ body .failed-login {
   background-size: cover;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  font-size: 14px;
-  font-family: "Roboto", sans-serif;
 }
 
 .content {
