@@ -54,6 +54,9 @@ int
 shared_render_create_str_context(SharedContext *context, const char* const template);
 
 uintmax_t
+shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token);
+
+uintmax_t
 shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token);
 
 uintmax_t 
