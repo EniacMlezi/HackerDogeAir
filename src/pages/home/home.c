@@ -23,8 +23,10 @@ home(struct http_request *req)
         .session_id = 0  //TODO: fill from request cookie
     };
 
-    if(req->method != HTTP_METHOD_GET)  
-        return(KORE_RESULT_ERROR); //all methodes besides GET don't exist on the home page
+    if(req->method != HTTP_METHOD_GET)
+    {
+        return(KORE_RESULT_ERROR); //No methods besides GET exist on the home page
+    }
     
     //a GET receives the home form and renders the page
     if((err = home_render(&context)) != (SHARED_ERROR_OK))
