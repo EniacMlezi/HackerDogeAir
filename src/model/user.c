@@ -11,7 +11,8 @@
 
 #include "includes/model/user.h"
 #include "includes/model/role.h"
-#include <includes/model/database_engine.h>
+#include "includes/model/database_engine.h"
+#include "shared/shared_error.h"
 
 static const char user_insert_query[] = 
     "INSERT INTO User (useridentifier,role,emailaddress,username,password,dogecoin," \
@@ -105,6 +106,7 @@ user_create_from_query(void *source_location, uint32_t *error)
         return NULL; 
     }
 
+/*
     uint8_t user_name_length;
     uint8_t email_length;
     uint8_t password_length;
@@ -127,6 +129,17 @@ user_create_from_query(void *source_location, uint32_t *error)
         password_length);
     strncpy(regristration_time, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 6),
         regristration_time_length);
+*/
+
+    char *user_name;
+    char *email;
+    char *password;
+    char *regristration_time;
+
+    user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+    email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
+    password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
+    regristration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 6);
 
     /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
     proper behaviour of the following code segment. */
@@ -197,6 +210,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
     {
         User *temp_user = NULL;
 
+/*
         uint8_t user_name_length;
         uint8_t email_length;
         uint8_t password_length;
@@ -207,21 +221,17 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         password_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, i, 4);
         regristration_time_length = kore_pgsql_getlength((struct kore_pgsql *) 
             source_location, i, 6);
+*/
 
-        char user_name[user_name_length];
-        char email[email_length];
-        char password[password_length];
-        char regristration_time[regristration_time_length];
+        char *user_name;
+        char *email;
+        char *password;
+        char *regristration_time;
 
-        strncpy(user_name, kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3), 
-            user_name_length);
-        strncpy(email, kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2), 
-            email_length);
-        strncpy(password, kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4), 
-            password_length);
-        strncpy(regristration_time, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 
-            i, 6),
-            regristration_time_length);
+        user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3);
+        email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2);
+        password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4);
+        regristration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 6);
 
         /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
         proper behaviour of the following code segment. */
@@ -271,7 +281,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         UserCollection *temp_collection = malloc(sizeof(UserCollection));
         temp_collection->user = temp_user;
 
-        TAILQ_INSERT_TAIL(user_collection, temp_collection, users);
+        TAILQ_INSERT_TAIL(user_collection, temp_collection, user_collection);
         temp_collection = NULL;
     }
 
@@ -295,7 +305,7 @@ user_collection_destroy(UserCollection *user_collection)
     while(!TAILQ_EMPTY(&head))
     {
         UserCollection *temp = TAILQ_FIRST(&head);
-        TAILQ_REMOVE(&head, temp, users);
+        TAILQ_REMOVE(&head, temp, user_collection);
 
         free(temp->user);
         free(temp);
@@ -315,7 +325,7 @@ user_insert(const User *user)
         user->user_name,
         user->password,
         user->doge_coin,
-        user->regristration_time); 
+        user->regristration_datetime); 
 
     switch(error)
     {
@@ -342,7 +352,7 @@ user_update(const User *user)
         user->user_name,
         user->password,
         user->doge_coin,
-        user->regristration_time,
+        user->regristration_datetime,
         user->identifier); 
 
     switch(error)

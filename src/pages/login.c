@@ -1,4 +1,4 @@
-#include <stdbool.h>
+include <stdbool.h>
 #include <limits.h>
 #include <time.h>
 #include <libscrypt.h>
