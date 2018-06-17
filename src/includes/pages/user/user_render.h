@@ -11,6 +11,7 @@
 typedef struct UserContext
 {
     SharedContext shared_context;
+    const char *error_message;
     User *user;
 } UserContext;
 

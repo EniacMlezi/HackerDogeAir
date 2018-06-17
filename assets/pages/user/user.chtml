@@ -8,6 +8,8 @@
         {{SHARED_HEADER}}
         <div class="content">
             <div class="user-page">
+                <h1>User Details</h1>
+                <p class="error">{{error_message}}</p> <br />
                 id: {{id}}. <br />
                 email: {{email}}.
             </div>

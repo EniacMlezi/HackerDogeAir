@@ -22,12 +22,13 @@ users(struct http_request *req)
     UsersContext context = {
         .shared_context = {.session_id = 0}
     };
-    //TODO: get from query
+
+    //TODO: get Users from DataAccess layer
     SLIST_INIT(&context.userlist);
     char *email0 = "larsgardien@live.nl";
     char *email1 = "DennisSmith@live.nl";
-    UserNode user_node0 = {.user = {.email = email0}};
-    UserNode user_node1 = {.user = {.email = email1}};
+    UserNode user_node0 = {.user = {.id = 1, .email = email0}};
+    UserNode user_node1 = {.user = {.id = 2, .email = email1}};
     SLIST_INSERT_HEAD(&context.userlist, &user_node0, users);
     SLIST_INSERT_HEAD(&context.userlist, &user_node1, users);
 
@@ -53,5 +54,6 @@ users(struct http_request *req)
 void
 users_error_handler(struct http_request *req, int errcode)
 {
-    kore_log(LOG_INFO, "users render error");
+    // Users currently has no specific errors. Use generic handler.
+    shared_error_handler(req, errcode);
 }

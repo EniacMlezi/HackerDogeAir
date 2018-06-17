@@ -54,8 +54,8 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
         }
         else
         {
-            char id_string[12];
-            if(snprintf(id_string, 12, "%d", ctx->user->id) <= 0)
+            char id_string[11];
+            if(snprintf(id_string, 11, "%d", ctx->user->id) <= 0)
             {
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
@@ -72,6 +72,18 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
         else
         {
             output_string = ctx->user->email;
+        }
+    }
+
+    else if(strncmp("error_message", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->error_message)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            output_string = ctx->error_message;
         }
     }
 

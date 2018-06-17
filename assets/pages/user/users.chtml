@@ -8,9 +8,21 @@
         {{SHARED_HEADER}}
         <div class="content">
             <div class="users-page">
+                <h1>All Users</h1>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
                 {{#users}}
-                    email: {{email}}. <a href="/user?">Edit</a> <br />
-                {{/users}} 
+                    <tr>
+                        <td>{{id}}</td> 
+                        <td>{{email}}</td>
+                        <td><a href="/user?id={{id}}">Edit</a></td>
+                    </tr>
+                {{/users}}
+                </table> 
             </div>
         </div>
     </body>

@@ -47,7 +47,25 @@ users_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *tok
 {
     UserContext *ctx = (UserContext *) userdata;
     const char *output_string = NULL;
-    if(strncmp("email", token->text, token->text_length) == 0)
+    
+    if(strncmp("id", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->user)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            char id_string[11];
+            if(snprintf(id_string, 11, "%d", ctx->user->id) <= 0)
+            {
+                return (SHARED_RENDER_MUSTACHE_FAIL);
+            }
+            output_string = id_string;
+        }
+    }
+
+    else if(strncmp("email", token->text, token->text_length) == 0)
     {
         if(NULL == ctx->user || NULL == ctx->user->email)
         {
