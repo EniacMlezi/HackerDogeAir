@@ -179,7 +179,7 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
 uintmax_t
 shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
-{
+{   // the shared sectget does nothing but rewriting the section tags and format
     int err = 0;
     uintmax_t ret = 0;
     int length = strlen(token->name) + 4 + 1 + 1; // +4 => curly braces, +1 => '#' OR '/', +1 => \0
@@ -276,5 +276,5 @@ shared_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer
 void
 shared_error(mustache_api_t *api, void *userdata, uintmax_t lineno, char const *error)
 {
-    fprintf(stderr, "error: %d: %s\n", (int)lineno, error);
+    kore_log(LOG_ERR, "mustache error: %d: %s\n", (int)lineno, error);
 }
