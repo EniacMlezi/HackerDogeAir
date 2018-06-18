@@ -1,0 +1,29 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User List - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="content">
+            <div class="users-page">
+                <h1>All Users</h1>
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Email</th>
+                        <th></th>
+                    </tr>
+                {{#users}}
+                    <tr>
+                        <td>{{id}}</td> 
+                        <td>{{email}}</td>
+                        <td><a href="/userdetail?id={{id}}">Edit</a></td>
+                    </tr>
+                {{/users}}
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
