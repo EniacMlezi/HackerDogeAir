@@ -8,21 +8,21 @@
 #include "assets.h"
 #include "shared/shared_error.h"
 #include "pages/partial/partial_render.h"
+#include "pages/shared/shared_user_render.h"
 #include "model/user.h"
 
-int         register_render(RegisterContext *);
-void        register_render_clean(RegisterContext *);
-uintmax_t   register_varget(mustache_api_t *, void *, mustache_token_variable_t *);
+int         register_render(UserContext *);
+void        register_render_clean(UserContext *);
 
 int
-register_render(RegisterContext *context)
+register_render(UserContext *context)
 {
     int err = 0;
 
     mustache_api_t api={
         .read = &partial_strread,
         .write = &partial_strwrite,
-        .varget = &register_varget,
+        .varget = &user_varget,
         .sectget = &partial_sectget,
         .error = &partial_error,
     };
@@ -37,95 +37,7 @@ register_render(RegisterContext *context)
 }
 
 void
-register_render_clean(RegisterContext *context)
+register_render_clean(UserContext *context)
 {
     partial_render_clean(&context->partial_context);
-}
-
-uintmax_t
-register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
-{
-    RegisterContext *ctx = (RegisterContext *) userdata;
-    const char *output_string = NULL;
-    if(strncmp("email", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->user || NULL == ctx->user->email)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->user->email;
-        }
-    }
-    else if (strncmp("firstname", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->user || NULL == ctx->user->firstname)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->user->firstname;
-        }
-    }
-    else if (strncmp("lastname", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->user || NULL == ctx->user->lastname)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->user->lastname;
-        }
-    }
-    else if (strncmp("username", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->user || NULL == ctx->user->username)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->user->username;
-        }
-    }
-    else if (strncmp("telnumber", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->user || NULL == ctx->user->telnumber)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->user->telnumber;
-        }
-    }
-
-    else if (strncmp("error_message", token->text, token->text_length) == 0)
-    {
-        if(NULL == ctx->error_message)
-        {
-            output_string = (SHARED_RENDER_EMPTY_STRING);
-        }
-        else
-        {
-            output_string = ctx->error_message;
-        }
-    }
-
-    if(NULL == output_string)
-    {
-        kore_log(LOG_INFO, "failed register render: unknown template variable");
-        return (SHARED_RENDER_MUSTACHE_FAIL); // unknown variable
-    }
-
-    size_t output_string_len = strlen(output_string);
-    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
-    if(ret != output_string_len)
-    {
-        return (SHARED_RENDER_MUSTACHE_FAIL);
-    }
-    return (SHARED_RENDER_MUSTACHE_OK);
 }

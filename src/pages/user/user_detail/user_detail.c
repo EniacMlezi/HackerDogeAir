@@ -18,7 +18,7 @@ int     user_detail(struct http_request *);
 int     user_detail_parseparams(struct http_request *, int *);
 int     user_detail_query(int, User *);
 
-void    user_detail_error_handler(struct http_request *req, int errcode, UserDetailContext *);
+void    user_detail_error_handler(struct http_request *req, int errcode, UserContext *);
 
 int
 user_detail(struct http_request *req)
@@ -26,7 +26,7 @@ user_detail(struct http_request *req)
     int err = 0;
     char *email = "larsgardien@live.nl";
     User user = {25, email, NULL};
-    UserDetailContext context = {
+    UserContext context = {
         .partial_context = {.session_id = 0},
         .user = &user
     };
@@ -71,7 +71,7 @@ user_detail_parseparams(struct http_request *req, int *userid)
 }
 
 void
-user_detail_error_handler(struct http_request *req, int errcode, UserDetailContext *context)
+user_detail_error_handler(struct http_request *req, int errcode, UserContext *context)
 {
     bool handled = true;
     int err = 0;

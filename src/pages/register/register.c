@@ -18,14 +18,14 @@ int     register_user(struct http_request *);
 int     register_parse_params(struct http_request *req, User *user);
 int     register_try_register(User *);
 
-void    register_error_handler(struct http_request *req, int errcode, RegisterContext *context);
+void    register_error_handler(struct http_request *req, int errcode, UserContext *context);
 
 int
 register_user(struct http_request *req)
 {
     int err;
     User user = {0, NULL, NULL, NULL, NULL, NULL, NULL};
-    RegisterContext context = {
+    UserContext context = {
         .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
@@ -126,7 +126,7 @@ out:
 }
 
 void
-register_error_handler(struct http_request *req, int errcode, RegisterContext *context)
+register_error_handler(struct http_request *req, int errcode, UserContext *context)
 {
     bool handled = true;
     int err = 0;

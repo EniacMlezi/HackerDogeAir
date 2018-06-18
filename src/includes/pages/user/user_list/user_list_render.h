@@ -14,12 +14,6 @@ typedef struct UserListNode
     SLIST_ENTRY(UserListNode) users;
 } UserListNode;
 
-typedef struct UserContext
-{   //UserContext type that can be written using mustache_std_strwrite
-    mustache_str_ctx *dst_context;
-    User *user;
-} UserContext;
-
 typedef struct UserListContext
 {
     PartialContext partial_context; //UserListContext inherits from PartialContext (castable)

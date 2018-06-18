@@ -5,19 +5,12 @@
 #include <stdbool.h>
 
 #include "pages/partial/partial_render.h"
-#include "model/user.h"
-
-typedef struct LoginContext
-{
-    PartialContext partial_context; //LoginContext inherits from PartialContext (castable)
-    const char *error_message;
-    User *user;
-} LoginContext;
+#include "pages/shared/shared_user_render.h"
 
 int
-login_render(LoginContext *context);
+login_render(UserContext *context);
 
 void         
-login_render_clean(LoginContext *context);
+login_render_clean(UserContext *context);
 
 #endif
