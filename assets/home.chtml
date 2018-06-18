@@ -7,7 +7,7 @@
     <body>
         {{PARTIAL_HEADER}}
         <div class="wrapper">
-            <h1>HackerDogeAir Homepage</h1>
+            <img src="/images/logo.jpg" style="position: relative;left: 12%;padding-bottom: 60px;width: 600px;padding-top: 40px;">
             <a href="login"><img src="/images/island.jpg"></a>
         </div>
     </body>

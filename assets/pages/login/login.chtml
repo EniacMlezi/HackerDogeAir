@@ -6,7 +6,7 @@
     </head>
     <body>
         {{PARTIAL_HEADER}}
-		<div class="content">
+		<div class="content" style="width: 360px;">
     		<div class="login-page">
                 <h1>HackerDogeAir</h1>  
     			<div class="form">

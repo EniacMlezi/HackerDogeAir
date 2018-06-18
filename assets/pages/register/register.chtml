@@ -8,13 +8,37 @@
         {{PARTIAL_HEADER}}
         <div class="content">
             <div class="register-page">
-                <h1>HackerDogeAir</h1>
+                <h1>HackerDogeAir account creation</h1>
                 <div class="form">
-                    <form method="post">
+                    <form method="post" style="width: 100%;">
                         <p class="error">{{error_message}}</p>
-                        <input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" title="Please enter a valid email address" required>
-                        <input type="password" name="password" placeholder="Enter password" pattern="[a-zA-Z0-9._%+-@#$^&*()]{8,32}" title="Please enter a password between 8 and 32 characters long. May contain any of: a-zA-Z0-9._%+-@#$^&*()" required>
-                        <button type="submit">Create</button>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td style="padding-right: 10px;">
+                                    <input type="text" name="firstname" value="{{firstname}}" placeholder="Enter first name" maxlength="255" title="Enter your first name" pattern="[a-zA-Z ]{1,255}" required>
+                                </td>
+                                <td style="padding-left: 10px;">
+                                    <input type="text" name="lastname" value="{{lastname}}" placeholder="Enter last name" title="Enter your last name" pattern="[a-zA-Z ]{1,255}" required>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-right: 10px;">
+                                    <input type="tel" name="telnumber" value="{{telnumber}}" placeholder="Enter telephone number" title="Enter your telephone number" required>
+                                </td>
+                                <td style="padding-left: 10px;">
+                                    <input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" title="Please enter a valid email address" required>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding-right: 10px;">
+                                    <input type="text" name="username" value="{{username}}" placeholder="Enter username" maxlength="255" title="Please enter a valid username" pattern="[a-zA-Z0-9]{1,255}" required>
+                                </td>
+                                <td style="padding-left: 10px;">
+                                    <input type="password" name="password" placeholder="Enter password" pattern="[a-zA-Z0-9._%+-@#$^&*()]{8,32}" title="Please enter a password between 8 and 32 characters long. May contain any of: a-zA-Z0-9._%+-@#$^&*()" required>
+                                </td>
+                            </tr>
+                        </table>
+                        <button type="submit">Create Account</button>
                         <p class="message">Already registered? <a href="/login">Sign In</a></p>
                     </form>
                 </div>

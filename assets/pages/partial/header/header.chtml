@@ -2,8 +2,8 @@
     <header>
         <h2>HackerDogeAir</h2>
             <nav>
-                <a href="">test1</a>
-                <a href="">test2</a>
+                <a href="/">Home</a>
+                <a href="">Flights</a>
             </nav>
         <p><a href="">login/register</a></p>
     </header>
