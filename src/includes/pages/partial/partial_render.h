@@ -22,7 +22,7 @@ typedef struct SharedContext
 } SharedContext;
 
 /*
-Shared function for rendering a page. First renders all shared partials for a template, then renders
+Shared function for rendering a page. First renders all partial partials for a template, then renders
 the page specific elements for said tempalte using the supplied api.
 */
 int

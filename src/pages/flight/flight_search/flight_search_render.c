@@ -8,7 +8,7 @@
 #include "assets.h"
 #include "shared/shared_error.h"
 #include "shared/shared_time.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 int         flight_search_render(FlightSearchContext *);
 uintmax_t   flight_search_varget(mustache_api_t *, void *, mustache_token_variable_t *);

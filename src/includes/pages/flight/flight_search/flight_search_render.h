@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <time.h>
 
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
 typedef struct Flight

@@ -5,7 +5,7 @@
 #include <sys/queue.h>
 #include <stdbool.h>
 
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
 typedef struct UserListNode

@@ -1,7 +1,7 @@
 #ifndef HEADER_RENDER_H
 #define HEADER_RENDER_H
 
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 int
 header_render(SharedContext *context);

@@ -1,11 +1,11 @@
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 #include <stdio.h>
 #include <kore/kore.h>
 #include <mustache.h>
 
 #include "shared/shared_error.h"
-#include "pages/shared/header/header_render.h"
+#include "pages/partial/header/header_render.h"
 
 int shared_render(SharedContext *, mustache_api_t *, const char* const);
 int shared_render_mustache_render(mustache_api_t *api, void *context);
@@ -28,7 +28,7 @@ shared_render(SharedContext *context, mustache_api_t *api, const char* const tem
 {
     int err = 0; 
 
-    //render all shared partials
+    //render all partials
     SharedContext copy_context;
     shared_render_copy_context(context, &copy_context);
     if((err = shared_render_create_str_context(&copy_context, template_string)) 
@@ -154,18 +154,18 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         return ret;
     }
 
-    //the found variable was not a shared partial view. rewrite the found variable.
+    //the found variable was not a partial view. rewrite the found variable.
     int length = token->text_length + 4 + 1; // +4 => curly braces, +1 => \0
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
-        kore_log(LOG_ERR, "failed malloc for non-shared token.");
+        kore_log(LOG_ERR, "failed malloc for non-partial token.");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_ERR, 
-            "failed snprintf for non-shared token: printed: %d - expected: %d", err, length);
+            "failed snprintf for non-partial token: printed: %d - expected: %d", err, length);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
@@ -181,7 +181,7 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
 uintmax_t
 shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
-{   // the shared sectget does nothing but rewriting the section tags and format
+{   // the partial sectget does nothing but rewriting the section tags and format
     int err = 0;
     uintmax_t ret = 0;
     int length = strlen(token->name) + 4 + 1 + 1; // +4 => curly braces, +1 => '#' OR '/', +1 => \0

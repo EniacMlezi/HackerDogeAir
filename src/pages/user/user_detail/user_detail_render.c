@@ -6,7 +6,7 @@
 
 #include "assets.h"
 #include "shared/shared_error.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
 int         user_detail_render(UserDetailContext *);
