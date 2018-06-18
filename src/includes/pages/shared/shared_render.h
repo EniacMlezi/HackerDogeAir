@@ -12,6 +12,7 @@
 
 extern const char* const SHARED_RENDER_EMPTY_STRING;
 extern const char* const SHARED_RENDER_INVALID_STRING;
+extern const char* const SHARED_RENDER_HIDDEN_STRING;
 
 typedef struct SharedContext
 {

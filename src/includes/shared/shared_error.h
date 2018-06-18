@@ -1,6 +1,8 @@
 #ifndef SHARED_ERROR_H
 #define SHARED_ERROR_H
 
+#include <kore/http.h>
+
 #define SHARED_ERROR_OK                             0
 #define SHARED_ERROR_SQL_DB_ERROR                   10
 #define SHARED_ERROR_SQL_QUERY_ERROR                11
