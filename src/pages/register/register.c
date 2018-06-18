@@ -26,7 +26,7 @@ register_user(struct http_request *req)
     int err;
     User user = {0, NULL, NULL, NULL, NULL, NULL, NULL};
     RegisterContext context = {
-        .shared_context = { .session_id = 0 }, //TODO: fill from request cookie
+        .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
 
@@ -39,8 +39,8 @@ register_user(struct http_request *req)
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context.shared_context.dst_context->string, 
-            strlen(context.shared_context.dst_context->string));
+            context.partial_context.dst_context->string, 
+            strlen(context.partial_context.dst_context->string));
 
         register_render_clean(&context);
         return (KORE_RESULT_OK);
@@ -156,8 +156,8 @@ register_error_handler(struct http_request *req, int errcode, RegisterContext *c
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context->shared_context.dst_context->string, 
-            strlen(context->shared_context.dst_context->string));
+            context->partial_context.dst_context->string, 
+            strlen(context->partial_context.dst_context->string));
 
         register_render_clean(context);
     }

@@ -3,12 +3,12 @@
 
 #include <mustache.h>
 
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 int
-home_render(SharedContext *context);
+home_render(PartialContext *context);
 
 void         
-home_render_clean(SharedContext *context);
+home_render_clean(PartialContext *context);
 
 #endif

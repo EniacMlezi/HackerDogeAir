@@ -1,4 +1,4 @@
-#include "pages/shared/header/header_render.h"
+#include "pages/partial/header/header_render.h"
 
 #include <stdio.h>
 #include <kore/kore.h>
@@ -7,30 +7,30 @@
 #include "shared/shared_error.h"
 #include "assets.h"
 
-int header_render(SharedContext *context);
-void header_render_clean(SharedContext *context);
+int header_render(PartialContext *context);
+void header_render_clean(PartialContext *context);
 uintmax_t header_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 
 int
-header_render(SharedContext *context)
+header_render(PartialContext *context)
 {   
     int err = 0;
 
-    if((err = shared_render_create_str_context(context, 
+    if((err = partial_render_create_str_context(context, 
         (const char* const)asset_header_chtml)) != (SHARED_ERROR_OK))
     {
         return err;
     }
 
     mustache_api_t api={
-        .read = &shared_strread,  //std read will suffice
-        .write = &shared_strwrite,     // need custom write for handling mustache_str_ctx **
+        .read = &partial_strread,  //std read will suffice
+        .write = &partial_strwrite,     // need custom write for handling mustache_str_ctx **
         .varget = &header_varget,
-        .sectget = &shared_sectget,
-        .error = &shared_error,
+        .sectget = &partial_sectget,
+        .error = &partial_error,
     };
 
-    if((err = shared_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
     {
         return err;
     }
@@ -39,15 +39,15 @@ header_render(SharedContext *context)
 }
 
 void 
-header_render_clean(SharedContext *context)
+header_render_clean(PartialContext *context)
 {
-    shared_render_clean(context);
+    partial_render_clean(context);
 }
 
 uintmax_t
 header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    SharedContext *ctx = (SharedContext *)userdata;
+    PartialContext *ctx = (PartialContext *)userdata;
     if(strncmp("session_id", token->text, token->text_length) == 0)
     {
         char session_id[12];

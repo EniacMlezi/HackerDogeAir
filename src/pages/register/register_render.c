@@ -7,7 +7,7 @@
 
 #include "assets.h"
 #include "shared/shared_error.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
 int         register_render(RegisterContext *);
@@ -20,14 +20,14 @@ register_render(RegisterContext *context)
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &register_varget,
-        .sectget = &shared_sectget,
-        .error = &shared_error,
+        .sectget = &partial_sectget,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_register_chtml)) 
+    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_register_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -39,7 +39,7 @@ register_render(RegisterContext *context)
 void
 register_render_clean(RegisterContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t

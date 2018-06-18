@@ -7,52 +7,52 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
-#include "pages/user/user_render.h"
+#include "pages/user/user_detail/user_detail_render.h"
 #include "model/user.h"
 #include "assets.h"
 
 #define USER_ERROR_ID_VALIDATOR_INVALID 300
 #define USER_ERROR_ID_INCORRECT         301
 
-int     user(struct http_request *);
-int     user_parseparams(struct http_request *, int *);
-int     user_query(int, User *);
+int     user_detail(struct http_request *);
+int     user_detail_parseparams(struct http_request *, int *);
+int     user_detail_query(int, User *);
 
-void    user_error_handler(struct http_request *req, int errcode, UserContext *);
+void    user_detail_error_handler(struct http_request *req, int errcode, UserDetailContext *);
 
 int
-user(struct http_request *req)
+user_detail(struct http_request *req)
 {
     int err = 0;
     char *email = "larsgardien@live.nl";
     User user = {25, email, NULL};
-    UserContext context = {
-        .shared_context = {.session_id = 0},
+    UserDetailContext context = {
+        .partial_context = {.session_id = 0},
         .user = &user
     };
     if(req->method == HTTP_METHOD_GET)
     {
         int userid;
-        if((err = user_parseparams(req, &userid)) != (SHARED_ERROR_OK))
+        if((err = user_detail_parseparams(req, &userid)) != (SHARED_ERROR_OK))
         {
-            user_error_handler(req, err, &context);
+            user_detail_error_handler(req, err, &context);
             return (KORE_RESULT_OK);
         }
 
         //TODO: fill context.user with DataAccess Layer
 
-        if((err = user_render(&context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(&context)) != (SHARED_ERROR_OK))
         {
-            user_error_handler(req, err, &context);
+            user_detail_error_handler(req, err, &context);
             return (KORE_RESULT_OK);
         }
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context.shared_context.dst_context->string, 
-            strlen(context.shared_context.dst_context->string));
+            context.partial_context.dst_context->string, 
+            strlen(context.partial_context.dst_context->string));
 
-        user_render_clean(&context);
+        user_detail_render_clean(&context);
         return (KORE_RESULT_OK);
     }
     
@@ -60,7 +60,7 @@ user(struct http_request *req)
 }
 
 int    
-user_parseparams(struct http_request *req, int *userid)
+user_detail_parseparams(struct http_request *req, int *userid)
 {
     http_populate_get(req);
     if(!http_argument_get_uint32(req, "id", userid))
@@ -71,7 +71,7 @@ user_parseparams(struct http_request *req, int *userid)
 }
 
 void
-user_error_handler(struct http_request *req, int errcode, UserContext *context)
+user_detail_error_handler(struct http_request *req, int errcode, UserDetailContext *context)
 {
     bool handled = true;
     int err = 0;
@@ -96,16 +96,16 @@ user_error_handler(struct http_request *req, int errcode, UserContext *context)
     }
     else
     {
-        if((err = user_render(context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(context)) != (SHARED_ERROR_OK))
         {
-            user_error_handler(req, err, context);
+            user_detail_error_handler(req, err, context);
         }
 
         http_response_header(req, "context-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context->shared_context.dst_context->string,
-            strlen(context->shared_context.dst_context->string));
+            context->partial_context.dst_context->string,
+            strlen(context->partial_context.dst_context->string));
         
-        user_render_clean(context);
+        user_detail_render_clean(context);
     }
 }

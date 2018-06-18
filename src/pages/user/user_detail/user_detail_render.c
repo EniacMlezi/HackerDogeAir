@@ -1,4 +1,4 @@
-#include "pages/user/user_render.h"
+#include "pages/user/user_detail/user_detail_render.h"
 
 #include <stdbool.h>
 #include <kore/kore.h>
@@ -6,27 +6,27 @@
 
 #include "assets.h"
 #include "shared/shared_error.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
-int         user_render(UserContext *);
-void        user_render_clean(UserContext *);
-uintmax_t   user_varget(mustache_api_t *, void *, mustache_token_variable_t *);
+int         user_detail_render(UserDetailContext *);
+void        user_detail_render_clean(UserDetailContext *);
+uintmax_t   user_detail_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 
 int
-user_render(UserContext *context)
+user_detail_render(UserDetailContext *context)
 {
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
-        .varget = &user_varget,
-        .sectget = &shared_sectget,
-        .error = &shared_error,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
+        .varget = &user_detail_varget,
+        .sectget = &partial_sectget,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_user_chtml)) 
+    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_user_detail_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -36,15 +36,15 @@ user_render(UserContext *context)
 }
 
 void         
-user_render_clean(UserContext *context)
+user_detail_render_clean(UserDetailContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t
-user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
+user_detail_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    UserContext *ctx = (UserContext *) userdata;
+    UserDetailContext *ctx = (UserDetailContext *) userdata;
     const char *output_string = NULL;
     if(strncmp("id", token->text, token->text_length) == 0)
     {
@@ -89,7 +89,7 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "failed user render: unknown template variable");
+        kore_log(LOG_INFO, "failed user list render: unknown template variable");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 

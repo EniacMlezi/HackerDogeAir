@@ -1,4 +1,4 @@
-#include "pages/user/users_render.h"
+#include "pages/user/user_list/user_list_render.h"
 
 #include <stdbool.h>
 #include <kore/kore.h>
@@ -6,28 +6,28 @@
 
 #include "assets.h"
 #include "shared/shared_error.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
-int         users_render(UsersContext *);
-void        users_render_clean(UsersContext *);
-uintmax_t   users_varget(mustache_api_t *, void *, mustache_token_variable_t *);
-uintmax_t   users_sectget(mustache_api_t *, void *, mustache_token_section_t *);
+int         user_list_render(UserListContext *);
+void        user_list_render_clean(UserListContext *);
+uintmax_t   user_list_varget(mustache_api_t *, void *, mustache_token_variable_t *);
+uintmax_t   user_list_sectget(mustache_api_t *, void *, mustache_token_section_t *);
 
 int
-users_render(UsersContext *context)
+user_list_render(UserListContext *context)
 {
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
-        .varget = &users_varget,
-        .sectget = &users_sectget,
-        .error = &shared_error,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
+        .varget = &user_list_varget,
+        .sectget = &user_list_sectget,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_users_chtml)) 
+    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_user_list_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -37,13 +37,13 @@ users_render(UsersContext *context)
 }
 
 void         
-users_render_clean(UsersContext *context)
+user_list_render_clean(UserListContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t
-users_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
+user_list_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
     UserContext *ctx = (UserContext *) userdata;
     const char *output_string = NULL;
@@ -79,7 +79,7 @@ users_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *tok
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "failed users render: unknown template variable");
+        kore_log(LOG_INFO, "failed user list render: unknown template variable");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
@@ -93,28 +93,28 @@ users_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *tok
 }
 
 uintmax_t
-users_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
+user_list_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
 {
-    UsersContext *ctx = (UsersContext *)userdata;
+    UserListContext *ctx = (UserListContext *)userdata;
 
     if(strcmp("users", token->name) == 0)
     {
-        UserNode *user_node = NULL;
-        api->write = &shared_mustache_strwrite;
+        UserListNode *user_node = NULL;
+        api->write = &partial_mustache_strwrite;
         SLIST_FOREACH(user_node, &ctx->userlist, users)
         {
             // build a single user context foreach user.
             UserContext usercontext = {
-                .dst_context = ctx->shared_context.dst_context,
+                .dst_context = ctx->partial_context.dst_context,
                 .user = &user_node->user
             };           
             if(!mustache_render(api, &usercontext, token->section))
             {
-                // api->write = &shared_strwrite;
+                api->write = &partial_strwrite;
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
         }
-        api->write = &shared_strwrite;
+        api->write = &partial_strwrite;
         return (SHARED_RENDER_MUSTACHE_OK);
     }
     return (SHARED_RENDER_MUSTACHE_FAIL);

@@ -4,12 +4,12 @@
 #include <mustache.h>
 #include <stdbool.h>
 
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 #include "model/user.h"
 
 typedef struct LoginContext
 {
-    SharedContext shared_context;   //LoginContext inherits from SharedContext (castable)
+    PartialContext partial_context; //LoginContext inherits from PartialContext (castable)
     const char *error_message;
     User *user;
 } LoginContext;
