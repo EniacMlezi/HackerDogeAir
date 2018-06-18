@@ -1,0 +1,18 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User Detail - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{SHARED_HEADER}}
+        <div class="content">
+            <div class="user-page">
+                <h1>User Details</h1>
+                <p class="error">{{error_message}}</p> <br />
+                id: {{id}}. <br />
+                email: {{email}}.
+            </div>
+        </div>
+    </body>
+</html>
