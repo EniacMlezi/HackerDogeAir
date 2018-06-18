@@ -1,37 +1,37 @@
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 #include <stdio.h>
 #include <kore/kore.h>
 #include <mustache.h>
 
 #include "shared/shared_error.h"
-#include "pages/shared/header/header_render.h"
+#include "pages/partial/header/header_render.h"
 
-int shared_render(SharedContext *, mustache_api_t *, const char* const);
-int shared_render_mustache_render(mustache_api_t *api, void *context);
-void shared_render_clean(SharedContext *context);
-void shared_render_copy_context(SharedContext *, SharedContext *);
-int shared_render_create_str_context(SharedContext *, const char* const);
-uintmax_t shared_varget(mustache_api_t *, void *, mustache_token_variable_t *);
-uintmax_t shared_sectget(mustache_api_t *, void *, mustache_token_section_t *);
-uintmax_t shared_strread(mustache_api_t *, void *, char *, uintmax_t);
-uintmax_t shared_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
-uintmax_t shared_mustache_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
-void shared_error(mustache_api_t *, void *, uintmax_t, char const *);
+int full_render(PartialContext *, mustache_api_t *, const char* const);
+int partial_render_mustache_render(mustache_api_t *api, void *context);
+void partial_render_clean(PartialContext *context);
+void partial_render_copy_context(PartialContext *, PartialContext *);
+int partial_render_create_str_context(PartialContext *, const char* const);
+uintmax_t partial_varget(mustache_api_t *, void *, mustache_token_variable_t *);
+uintmax_t partial_sectget(mustache_api_t *, void *, mustache_token_section_t *);
+uintmax_t partial_strread(mustache_api_t *, void *, char *, uintmax_t);
+uintmax_t partial_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
+uintmax_t partial_mustache_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
+void partial_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 const char* const SHARED_RENDER_EMPTY_STRING = "";
 const char* const SHARED_RENDER_INVALID_STRING = "invalid";
 const char* const SHARED_RENDER_HIDDEN_STRING = "hidden";
 
 int
-shared_render(SharedContext *context, mustache_api_t *api, const char* const template_string)
+full_render(PartialContext *context, mustache_api_t *api, const char* const template_string)
 {
-    int err = 0; 
+    int err = 0;
 
-    //render all shared partials
-    SharedContext copy_context;
-    shared_render_copy_context(context, &copy_context);
-    if((err = shared_render_create_str_context(&copy_context, template_string)) 
+    //render all partials
+    PartialContext copy_context;
+    partial_render_copy_context(context, &copy_context);
+    if((err = partial_render_create_str_context(&copy_context, template_string)) 
         != (SHARED_ERROR_OK))
     {
         if(err == SHARED_RENDER_ERROR_ALLOC)
@@ -40,39 +40,38 @@ shared_render(SharedContext *context, mustache_api_t *api, const char* const tem
         }
         goto exit;
     }
-    mustache_api_t shared_api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
-        .varget = &shared_varget,
-        .sectget = &shared_sectget,
-        .error = &shared_error,
+    mustache_api_t partial_api={
+        .read = &partial_strread,
+        .write = &partial_strwrite,
+        .varget = &partial_varget,
+        .sectget = &partial_sectget,
+        .error = &partial_error,
     };
-    if((err = shared_render_mustache_render(&shared_api, &copy_context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(&partial_api, &copy_context)) != (SHARED_ERROR_OK))
     {
         goto exit;
     }
 
     //render all page specifics using supplied api
-    if((err = shared_render_create_str_context(context,
+    if((err = partial_render_create_str_context(context,
      (const char* const)copy_context.dst_context->string)) != (SHARED_ERROR_OK))
     {
         goto exit;
     }
-    if((err = shared_render_mustache_render(api, context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(api, context)) != (SHARED_ERROR_OK))
     {
-        kore_log(LOG_INFO, "shared_render mustache_render specific");
         goto exit;
     }
 
     err = (SHARED_ERROR_OK);
 
 exit:
-    shared_render_clean(&copy_context);
+    partial_render_clean(&copy_context);
     return err;
 }
 
 int
-shared_render_mustache_render(mustache_api_t *api, void *context) 
+partial_render_mustache_render(mustache_api_t *api, void *context) 
 {
     int err;
 
@@ -91,7 +90,7 @@ shared_render_mustache_render(mustache_api_t *api, void *context)
 }
 
 void
-shared_render_clean(SharedContext *context)
+partial_render_clean(PartialContext *context)
 {
     free(context->src_context);
     free(context->dst_context->string);
@@ -102,7 +101,7 @@ shared_render_clean(SharedContext *context)
 }
 
 void
-shared_render_copy_context(SharedContext *src, SharedContext *dst)
+partial_render_copy_context(PartialContext *src, PartialContext *dst)
 {
     dst->session_id = src->session_id;
     dst->src_context = NULL;
@@ -110,7 +109,7 @@ shared_render_copy_context(SharedContext *src, SharedContext *dst)
 }
 
 int 
-shared_render_create_str_context(SharedContext *context, const char* const template)
+partial_render_create_str_context(PartialContext *context, const char* const template)
 {
     //TODO: benefits of using kore_alloc ?
     context->src_context = (mustache_str_ctx *)malloc(sizeof(mustache_str_ctx));
@@ -132,15 +131,15 @@ shared_render_create_str_context(SharedContext *context, const char* const templ
 }
 
 uintmax_t
-shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
+partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
     uintmax_t ret = 0;
     int err = 0;
-    SharedContext *ctx = (SharedContext *) userdata;
-    SharedContext new_ctx;
-    shared_render_copy_context(ctx, &new_ctx);
+    PartialContext *ctx = (PartialContext *) userdata;
+    PartialContext new_ctx;
+    partial_render_copy_context(ctx, &new_ctx);
 
-    if(strncmp("SHARED_HEADER", token->text, token->text_length) == 0)
+    if(strncmp("PARTIAL_HEADER", token->text, token->text_length) == 0)
     {
         if((err = header_render(&new_ctx)) != (SHARED_ERROR_OK))
         {
@@ -154,18 +153,18 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         return ret;
     }
 
-    //the found variable was not a shared partial view. rewrite the found variable.
+    //the found variable was not a partial view. rewrite the found variable.
     int length = token->text_length + 4 + 1; // +4 => curly braces, +1 => \0
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
-        kore_log(LOG_ERR, "failed malloc for non-shared token.");
+        kore_log(LOG_ERR, "failed malloc for non-partial token.");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_ERR, 
-            "failed snprintf for non-shared token: printed: %d - expected: %d", err, length);
+            "failed snprintf for non-partial token: printed: %d - expected: %d", err, length);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
@@ -180,8 +179,8 @@ shared_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 }
 
 uintmax_t
-shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
-{   // the shared sectget does nothing but rewriting the section tags and format
+partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
+{   // the partial sectget does nothing but rewriting the section tags and format
     int err = 0;
     uintmax_t ret = 0;
     int length = strlen(token->name) + 4 + 1 + 1; // +4 => curly braces, +1 => '#' OR '/', +1 => \0
@@ -228,11 +227,11 @@ shared_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *to
 }
 
 uintmax_t
-shared_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buffer_size)
+partial_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buffer_size)
 {
     char *string;
     uintmax_t string_len;
-    mustache_str_ctx *ctx = ((SharedContext *)userdata)->src_context; 
+    mustache_str_ctx *ctx = ((PartialContext *)userdata)->src_context; 
     
     string     = ctx->string + ctx->offset;
     string_len = strlen(string);
@@ -248,9 +247,9 @@ shared_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buff
 }
 
 uintmax_t
-shared_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
+partial_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
 {   //TODO: xss prevention by html encoding
-    mustache_str_ctx *ctx = ((SharedContext *)userdata)->dst_context; 
+    mustache_str_ctx *ctx = ((PartialContext *)userdata)->dst_context; 
 
     ctx->string = (char *)realloc(ctx->string, ctx->offset + buffer_size + 1);
     
@@ -262,7 +261,7 @@ shared_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax
 }
 
 uintmax_t
-shared_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
+partial_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
 {
     mustache_str_ctx *ctx = *(mustache_str_ctx **)userdata; 
     
@@ -276,7 +275,7 @@ shared_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer
 }
 
 void
-shared_error(mustache_api_t *api, void *userdata, uintmax_t lineno, char const *error)
+partial_error(mustache_api_t *api, void *userdata, uintmax_t lineno, char const *error)
 {
     kore_log(LOG_ERR, "mustache error: %d: %s\n", (int)lineno, error);
 }

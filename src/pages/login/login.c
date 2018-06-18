@@ -31,7 +31,7 @@ login(struct http_request *req)
     int err = 0;
     User user = {0, NULL, NULL};
     LoginContext context = {
-        .shared_context = { .session_id = 0 }, //TODO: fill from request cookie
+        .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
     if(req->method == HTTP_METHOD_GET)
@@ -43,8 +43,8 @@ login(struct http_request *req)
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context.shared_context.dst_context->string, 
-            strlen(context.shared_context.dst_context->string));
+            context.partial_context.dst_context->string, 
+            strlen(context.partial_context.dst_context->string));
 
         login_render_clean(&context);
         return (KORE_RESULT_OK);
@@ -256,8 +256,8 @@ login_error_handler(struct http_request *req, int errcode, LoginContext *context
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context->shared_context.dst_context->string, 
-            strlen(context->shared_context.dst_context->string));
+            context->partial_context.dst_context->string, 
+            strlen(context->partial_context.dst_context->string));
 
         login_render_clean(context);
     }

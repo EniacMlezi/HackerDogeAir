@@ -27,7 +27,7 @@ user_detail(struct http_request *req)
     char *email = "larsgardien@live.nl";
     User user = {25, email, NULL};
     UserDetailContext context = {
-        .shared_context = {.session_id = 0},
+        .partial_context = {.session_id = 0},
         .user = &user
     };
     if(req->method == HTTP_METHOD_GET)
@@ -49,8 +49,8 @@ user_detail(struct http_request *req)
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context.shared_context.dst_context->string, 
-            strlen(context.shared_context.dst_context->string));
+            context.partial_context.dst_context->string, 
+            strlen(context.partial_context.dst_context->string));
 
         user_detail_render_clean(&context);
         return (KORE_RESULT_OK);
@@ -103,8 +103,8 @@ user_detail_error_handler(struct http_request *req, int errcode, UserDetailConte
 
         http_response_header(req, "context-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context->shared_context.dst_context->string,
-            strlen(context->shared_context.dst_context->string));
+            context->partial_context.dst_context->string,
+            strlen(context->partial_context.dst_context->string));
         
         user_detail_render_clean(context);
     }
