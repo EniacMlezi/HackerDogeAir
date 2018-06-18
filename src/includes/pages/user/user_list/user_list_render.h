@@ -22,7 +22,7 @@ typedef struct UserContext
 
 typedef struct UserListContext
 {
-    SharedContext shared_context;   //UsersContext inherits from SharedContext (castable)
+    PartialContext partial_context; //UserListContext inherits from PartialContext (castable)
     SLIST_HEAD(head_s, UserListNode) userlist;
 } UserListContext;
 

@@ -37,7 +37,7 @@ typedef struct FlightSearchListNode
 
 typedef struct FlightSearchContext
 {
-    SharedContext shared_context;
+    PartialContext partial_context;
     const char *error_message;
     FlightSearchParams params;
     SLIST_HEAD(head_s, FlightSearchListNode) flightlist;

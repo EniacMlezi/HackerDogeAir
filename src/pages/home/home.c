@@ -19,7 +19,7 @@ int
 home(struct http_request *req)
 {
     int err;
-    SharedContext context = {
+    PartialContext context = {
         .session_id = 0  //TODO: fill from request cookie
     };
 

@@ -23,14 +23,14 @@ flight_search_render(FlightSearchContext *context)
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &flight_search_varget,
         .sectget = &flight_search_sectget,
-        .error = &shared_error,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api,
+    if((err = full_render((PartialContext *)context, &api,
         (const char* const)asset_flight_search_chtml)) != (SHARED_ERROR_OK))
     {
         return err;
@@ -42,7 +42,7 @@ flight_search_render(FlightSearchContext *context)
 void         
 flight_search_render_clean(FlightSearchContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t
@@ -234,22 +234,22 @@ flight_search_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
         }
 
         FlightSearchListNode *flight_node = NULL;
-        api->write = &shared_mustache_strwrite;
+        api->write = &partial_mustache_strwrite;
         api->varget = &flight_search_varget_flights;
         SLIST_FOREACH(flight_node, &ctx->flightlist, flights)
         {
             FlightContext flightcontext = {
-                .dst_context = ctx->shared_context.dst_context,
+                .dst_context = ctx->partial_context.dst_context,
                 .flight = &flight_node->flight
             };
             if(!mustache_render(api, &flightcontext, token->section))
             {
-                api->write = &shared_strwrite;
+                api->write = &partial_strwrite;
                 api->varget = &flight_search_varget;
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
         }
-        api->write = &shared_strwrite;
+        api->write = &partial_strwrite;
         api->varget = &flight_search_varget;
         return (SHARED_RENDER_MUSTACHE_OK);
     }

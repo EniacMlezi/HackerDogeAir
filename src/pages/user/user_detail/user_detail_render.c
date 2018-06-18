@@ -19,14 +19,14 @@ user_detail_render(UserDetailContext *context)
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &user_detail_varget,
-        .sectget = &shared_sectget,
-        .error = &shared_error,
+        .sectget = &partial_sectget,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_user_detail_chtml)) 
+    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_user_detail_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -38,7 +38,7 @@ user_detail_render(UserDetailContext *context)
 void         
 user_detail_render_clean(UserDetailContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t

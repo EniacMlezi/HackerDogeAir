@@ -20,7 +20,7 @@ user_list(struct http_request *req)
 {
     int err = 0;
     UserListContext context = {
-        .shared_context = {.session_id = 0}
+        .partial_context = {.session_id = 0}
     };
 
     //TODO: get Users from DataAccess layer
@@ -41,8 +41,8 @@ user_list(struct http_request *req)
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context.shared_context.dst_context->string, 
-            strlen(context.shared_context.dst_context->string));
+            context.partial_context.dst_context->string, 
+            strlen(context.partial_context.dst_context->string));
 
         user_list_render_clean(&context);
         return (KORE_RESULT_OK);

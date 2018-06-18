@@ -10,7 +10,7 @@
 
 typedef struct UserDetailContext
 {
-    SharedContext shared_context;
+    PartialContext partial_context;
     const char *error_message;
     User *user;
 } UserDetailContext;

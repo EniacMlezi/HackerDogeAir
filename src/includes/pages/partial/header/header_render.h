@@ -4,9 +4,9 @@
 #include "pages/partial/partial_render.h"
 
 int
-header_render(SharedContext *context);
+header_render(PartialContext *context);
 
 void
-header_render_clean(SharedContext *context);
+header_render_clean(PartialContext *context);
 
 #endif

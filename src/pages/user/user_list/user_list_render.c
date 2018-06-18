@@ -20,14 +20,14 @@ user_list_render(UserListContext *context)
     int err = 0;
 
     mustache_api_t api={
-        .read = &shared_strread,
-        .write = &shared_strwrite,
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &user_list_varget,
         .sectget = &user_list_sectget,
-        .error = &shared_error,
+        .error = &partial_error,
     };
 
-    if((err = shared_render((SharedContext *)context, &api, (const char* const)asset_user_list_chtml)) 
+    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_user_list_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -39,7 +39,7 @@ user_list_render(UserListContext *context)
 void         
 user_list_render_clean(UserListContext *context)
 {
-    shared_render_clean(&context->shared_context);
+    partial_render_clean(&context->partial_context);
 }
 
 uintmax_t
@@ -100,21 +100,21 @@ user_list_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t 
     if(strcmp("users", token->name) == 0)
     {
         UserListNode *user_node = NULL;
-        api->write = &shared_mustache_strwrite;
+        api->write = &partial_mustache_strwrite;
         SLIST_FOREACH(user_node, &ctx->userlist, users)
         {
             // build a single user context foreach user.
             UserContext usercontext = {
-                .dst_context = ctx->shared_context.dst_context,
+                .dst_context = ctx->partial_context.dst_context,
                 .user = &user_node->user
             };           
             if(!mustache_render(api, &usercontext, token->section))
             {
-                api->write = &shared_strwrite;
+                api->write = &partial_strwrite;
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
         }
-        api->write = &shared_strwrite;
+        api->write = &partial_strwrite;
         return (SHARED_RENDER_MUSTACHE_OK);
     }
     return (SHARED_RENDER_MUSTACHE_FAIL);

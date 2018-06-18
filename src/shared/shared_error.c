@@ -4,7 +4,7 @@
 #include <kore/http.h>
 
 #include "shared/shared_error.h"
-#include "pages/shared/shared_render.h"
+#include "pages/partial/partial_render.h"
 
 void    shared_error_handler(struct http_request *, int);
 void    shared_error_response(struct http_request *, int, const char *);
