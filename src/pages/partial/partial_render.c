@@ -16,7 +16,6 @@ uintmax_t partial_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 uintmax_t partial_sectget(mustache_api_t *, void *, mustache_token_section_t *);
 uintmax_t partial_strread(mustache_api_t *, void *, char *, uintmax_t);
 uintmax_t partial_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
-uintmax_t partial_mustache_strwrite(mustache_api_t *, void *, char const *, uintmax_t);
 void partial_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 const char* const SHARED_RENDER_EMPTY_STRING = "";
@@ -252,20 +251,6 @@ partial_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintma
     mustache_str_ctx *ctx = ((PartialContext *)userdata)->dst_context; 
 
     ctx->string = (char *)realloc(ctx->string, ctx->offset + buffer_size + 1);
-    
-    memcpy(ctx->string + ctx->offset, buffer, buffer_size);
-    ctx->string[ctx->offset + buffer_size] = '\0';
-    
-    ctx->offset += buffer_size;
-    return buffer_size;
-}
-
-uintmax_t
-partial_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
-{
-    mustache_str_ctx *ctx = *(mustache_str_ctx **)userdata; 
-    
-    ctx->string = realloc(ctx->string, ctx->offset + buffer_size + 1);
     
     memcpy(ctx->string + ctx->offset, buffer, buffer_size);
     ctx->string[ctx->offset + buffer_size] = '\0';

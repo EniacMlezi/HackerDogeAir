@@ -7,22 +7,7 @@
 #include <time.h>
 
 #include "pages/partial/partial_render.h"
-#include "model/user.h"
-
-typedef struct Flight
-{   //TODO: should move to model with introduction of DataAccess layer
-    int id;
-    time_t arrival_datetime;
-    time_t departure_datetime;
-    char *arrival_location;
-    char *departure_location;
-} Flight;
-
-typedef struct FlightContext
-{   //FlightContext type that can be written to using shared_mustache_strwrite
-    mustache_str_ctx *dst_context;
-    Flight *flight;
-} FlightContext;
+#include "model/flight.h"
 
 typedef struct FlightSearchParams
 {

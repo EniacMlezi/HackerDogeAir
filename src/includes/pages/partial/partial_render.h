@@ -83,13 +83,6 @@ uintmax_t
 partial_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size);
 
 /*
-Alternative Partial mustache write function.
-Writes to a mustache_str_context without the use of a PartialContext.
-*/
-uintmax_t 
-partial_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size);
-
-/*
 Partial mustache error handler.
 Prints out any errors encountered by mustache.
 */
