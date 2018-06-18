@@ -58,6 +58,50 @@ register_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *
             output_string = ctx->user->email;
         }
     }
+    else if (strncmp("firstname", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->user || NULL == ctx->user->firstname)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            output_string = ctx->user->firstname;
+        }
+    }
+    else if (strncmp("lastname", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->user || NULL == ctx->user->lastname)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            output_string = ctx->user->lastname;
+        }
+    }
+    else if (strncmp("username", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->user || NULL == ctx->user->username)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            output_string = ctx->user->username;
+        }
+    }
+    else if (strncmp("telnumber", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->user || NULL == ctx->user->telnumber)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            output_string = ctx->user->telnumber;
+        }
+    }
 
     else if (strncmp("error_message", token->text, token->text_length) == 0)
     {
