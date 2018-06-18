@@ -21,6 +21,7 @@ void shared_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 const char* const SHARED_RENDER_EMPTY_STRING = "";
 const char* const SHARED_RENDER_INVALID_STRING = "invalid";
+const char* const SHARED_RENDER_HIDDEN_STRING = "hidden";
 
 int
 shared_render(SharedContext *context, mustache_api_t *api, const char* const template_string)
@@ -59,6 +60,7 @@ shared_render(SharedContext *context, mustache_api_t *api, const char* const tem
     }
     if((err = shared_render_mustache_render(api, context)) != (SHARED_ERROR_OK))
     {
+        kore_log(LOG_INFO, "shared_render mustache_render specific");
         goto exit;
     }
 

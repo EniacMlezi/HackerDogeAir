@@ -89,13 +89,27 @@ nav a {
   text-align: left;
 }
 
+.search-flight-page {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-flight-page table th {
+  text-align: left;
+  padding-right: 2px;
+}
+
+.search-flight-page table td {
+  text-align: left;
+  padding-right: 2px;
+}
+
 .error {
   color: salmon;
 }
 
 .form {
   margin: auto;
-  display: flex;
   position: relative;
   z-index: 1;
 }
