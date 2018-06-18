@@ -3,22 +3,14 @@
 
 #include <mustache.h>
 #include <sys/queue.h>
-#include <stdbool.h>
 
 #include "pages/partial/partial_render.h"
-#include "model/user.h"
-
-typedef struct UserDetailContext
-{
-    PartialContext partial_context;
-    const char *error_message;
-    User *user;
-} UserDetailContext;
+#include "pages/shared/shared_user_render.h"
 
 int
-user_detail_render(UserDetailContext *context);
+user_detail_render(UserContext *context);
 
 void         
-user_detail_render_clean(UserDetailContext *context);
+user_detail_render_clean(UserContext *context);
 
 #endif
