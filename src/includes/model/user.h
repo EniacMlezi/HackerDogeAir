@@ -12,10 +12,13 @@ typedef struct
     uint32_t    identifier;
     Role        role; 
     char        *email;
-    char        *user_name;
+    char        *username;
+    char        *user_first_name;
+    char        *user_last_name;
+    char        *telephone_number;
     char        *password;
-    double      doge_coin;
-    char        *regristration_datetime; 
+    uint32_t     doge_coin;
+    char        *registration_datetime; 
 } User;
 
 typedef struct UserCollection
@@ -28,11 +31,14 @@ User *
 user_create(
     uint32_t identifier,
     Role    role,
-    char    *user_name,
-    char    *email,
-    char    *password,
-    double  doge_coin,
-    char    *regristration_time,
+    const char    *user_name,
+    const char    *email,
+    const char    *user_first_name,
+    const char    *user_last_name,
+    const char    *telephone_number,
+    const char    *password,
+    uint32_t       doge_coin,
+    const char    *registration_datetime,
     uint32_t *error
     );
 
@@ -48,7 +54,7 @@ user_collection_create_from_query(
     uint32_t *error
      );
 
-uint32_t 
+void
 user_destroy(
     User *user
     );
@@ -57,7 +63,6 @@ uint32_t
 user_collection_destroy(
     UserCollection *user_collection
     );
-
 
 uint32_t 
 user_insert(
@@ -77,6 +82,13 @@ user_delete(
 User *
 user_find_by_email(
     const char *email,
+    uint32_t *error
+    );
+
+User *
+user_find_by_username_and_email(
+    const char *email,
+    const char *username,
     uint32_t *error
     );
 

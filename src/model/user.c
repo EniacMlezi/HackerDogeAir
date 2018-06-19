@@ -16,47 +16,63 @@
 
 static const char user_insert_query[] = 
     "INSERT INTO User (useridentifier,role,emailaddress,username,password,dogecoin," \
-    "regristrationtime) VALUES ($1, $2, $3, $4, $5, $6, $7);";
+    "registrationtime,userfirstname,userlastname,telephonenumber) " \
+    " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);";
 
 static const char user_update_query[] =
     "UPDATE User " \
     "SET " \
     "useridentifier = $1, " \
     "role = $2, " \
-    "emailaddress = $3 " \
-    "username = $4" \
-    "password = $5" \
-    "dogecoin = $6" \
-    "regristrationtime = $7" \
-    "WHERE Identifier = $ 8;";
+    "emailaddress = $3," \
+    "username = $4," \
+    "password = $5," \
+    "dogecoin = $6," \
+    "registrationtime = $7," \
+    "userfirstname = $8," \
+    "userlastname = $9," \
+    "telephonenumber = $10" \
+    "WHERE useridentifier = $ 11;";
 
 static const char user_delete_query[] = "DELETE FROM User WHERE useridentifier = $1;";
 
 static const char user_select_by_email_query[] = 
-    "SELECT (useridentifier, role, emailaddress, username, password ,dogecoin, regristrationtime) " \
+    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
+    "userfirstname,userlastname,telephonenumber) " \
     "FROM User " \
     "WHERE emailaddress = $1;";
 
+/*
 static const char user_select_by_username_query[] = 
-    "SELECT (useridentifier, role, emailaddress, username, password ,dogecoin, regristrationtime) " \
+    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime" \
+    "userfirstname,userlastname,telephonenumber) " \
     "FROM User " \
     "WHERE username = $1;";
+*/
 
 static const char user_select_by_identifier_query[] = 
-    "SELECT (useridentifier, role, emailaddress, username, password ,dogecoin, regristrationtime) " \
+    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
+    "userfirstname,userlastname,telephonenumber) " \
     "FROM User " \
     "WHERE useridentifier = $1;";
 
+static const char user_select_by_email_and_username[] =
+    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
+    "userfirstname,userlastname,telephonenumber) " \
+    "FROM User " \
+    "WHERE emailaddress = $1 AND username = $2;";
+
 User *
-user_create(uint32_t identifier, Role role, char *user_name, char *email, char *password, 
-    double coins, char *regristration_time, uint32_t *error)
+user_create(uint32_t identifier, Role role, const char *username, const char *user_first_name, 
+    const char *user_last_name, const char *telephone, const char *email, const char *password, 
+    uint32_t coins, const char *registration_datetime, uint32_t *error)
 {
-    uint8_t name_size = strlen(user_name);
+    uint8_t name_size = strlen(username);
     uint8_t email_size = strlen(email);
     uint8_t password_size = strlen(password);
-    uint8_t regristration_time_size = strlen(regristration_time);
+    uint8_t registration_datetime_size = strlen(registration_datetime);
 
-    uint32_t user_size = name_size + email_size + password_size + regristration_time_size;
+    uint32_t user_size = name_size + email_size + password_size + registration_datetime_size;
 
     /* Allocating space for the structure and the strings appended to it. */
     User *user = malloc(sizeof(User) + user_size); 
@@ -69,26 +85,31 @@ user_create(uint32_t identifier, Role role, char *user_name, char *email, char *
 
     uint32_t user_memory_offset = sizeof(User);
 
+    #pragma GCC diagnostic push  // require GCC 4.6
+    #pragma GCC diagnostic ignored "-Wpointer-arith"
+ 
     /* Performing memory administration for the user structure. */
-    user->user_name = (void *) user + user_memory_offset;
+    user->username = (void *) user + user_memory_offset;
     user_memory_offset += name_size; 
     user->email = (void *) user + user_memory_offset;
     user_memory_offset += email_size;
     user->password = (void *) user + user_memory_offset;
     user_memory_offset += password_size; 
-    user->regristration_datetime = (void *) user + user_memory_offset; 
+    user->registration_datetime= (void *) user + user_memory_offset; 
+
+    #pragma GCC diagnostic pop
 
     /* Initializing the user structure. */
     user->identifier = identifier; 
     user->role = role;
     user->doge_coin = coins;
     strncpy(user->email, email, email_size);
-    strncpy(user->user_name, user_name, name_size);
+    strncpy(user->username, username, name_size);
     strncpy(user->password, password, password_size);
 
-    if(regristration_time != NULL)
+    if(registration_datetime != NULL)
     {
-        strncpy(user->regristration_datetime, regristration_time, regristration_time_size); 
+        strncpy(user->registration_datetime, registration_datetime, registration_datetime_size); 
     }
 
     return user;
@@ -106,40 +127,13 @@ user_create_from_query(void *source_location, uint32_t *error)
         return NULL; 
     }
 
-/*
-    uint8_t user_name_length;
-    uint8_t email_length;
-    uint8_t password_length;
-    uint8_t regristration_time_length;
-
-    user_name_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, 0, 3);
-    email_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, 0, 2);
-    password_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, 0, 4);
-    regristration_time_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, 0, 6);
-
-    char user_name[user_name_length];
-    char email[email_length];
-    char password[password_length];
-    char regristration_time[regristration_time_length];
-
-    strncpy(user_name, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3), 
-        user_name_length);
-    strncpy(email, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2), email_length);
-    strncpy(password, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4), 
-        password_length);
-    strncpy(regristration_time, kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 6),
-        regristration_time_length);
-*/
-
-    char *user_name;
-    char *email;
-    char *password;
-    char *regristration_time;
-
-    user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
-    email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
-    password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
-    regristration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 6);
+    char *user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+    char *email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
+    char *password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
+    char *registration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 6);
+    char *user_first_name = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 7);
+    char *user_last_name = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 8);
+    char *telephone_number = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 9);
 
     /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
     proper behaviour of the following code segment. */
@@ -165,19 +159,20 @@ user_create_from_query(void *source_location, uint32_t *error)
         return NULL; 
     }
 
-    double doge_coin = kore_strtodouble(
-        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 5), 0, UINT_MAX, &err);
+    uint32_t doge_coin = kore_strtonum64(
+        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 5), 0, &err);
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "user_create_from_query: Could not translate db_user_coins string to " \
-            "double.\n"); 
+            "uint64_t.\n"); 
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
 
     uint32_t create_user_result;
-    void *temp_user = user_create(identifier, role, email, user_name, password, doge_coin, 
-        regristration_time, &create_user_result);
+    void *temp_user = user_create(identifier, role, email, user_name, user_first_name, 
+        user_last_name, telephone_number, password, doge_coin, registration_time, 
+        &create_user_result);
 
     if(temp_user == NULL)
     {
@@ -193,6 +188,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
+/*
     if(number_of_results <= 0)
     {
         perror("user_collection_create_from_query: Invallid number of record. Must be more " \
@@ -200,6 +196,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
         return NULL;
     }
+*/
 
     TAILQ_HEAD(user_collection_s, UserCollection) *user_collection = malloc(sizeof(UserCollection));
     TAILQ_INIT(user_collection);
@@ -210,31 +207,14 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
     {
         User *temp_user = NULL;
 
-/*
-        uint8_t user_name_length;
-        uint8_t email_length;
-        uint8_t password_length;
-        uint8_t regristration_time_length;
+        char *user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3);
+        char *email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2);
+        char *password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4);
+        char *registration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 6);
+        char *user_first_name = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 7);
+        char *user_last_name = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 8);
+        char *telephone_number = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 9);
 
-        user_name_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, i, 3);
-        email_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, i, 2);
-        password_length = kore_pgsql_getlength((struct kore_pgsql *) source_location, i, 4);
-        regristration_time_length = kore_pgsql_getlength((struct kore_pgsql *) 
-            source_location, i, 6);
-*/
-
-        char *user_name;
-        char *email;
-        char *password;
-        char *regristration_time;
-
-        user_name   = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3);
-        email       = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2);
-        password    = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4);
-        regristration_time = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 6);
-
-        /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
-        proper behaviour of the following code segment. */
         int err;
 
         uint32_t identifier = kore_strtonum64(
@@ -257,8 +237,8 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
             return NULL; 
         }
 
-        double doge_coin = kore_strtodouble(
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 5), 0, UINT_MAX, &err);
+        double doge_coin = kore_strtonum64(
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 5), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "user_collection_create_from_query: Could not translate " \
@@ -268,8 +248,8 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         }
 
         uint32_t create_user_result;
-        temp_user = user_create(identifier, role, user_name, email, password, doge_coin, 
-            regristration_time, &create_user_result);
+        temp_user = user_create(identifier, role, user_name, email, user_first_name, user_last_name, 
+            telephone_number, password, doge_coin, registration_time, &create_user_result);
 
         if(temp_user == NULL)
         {
@@ -288,13 +268,11 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
     return (void *) user_collection;
 }
 
-uint32_t
+void
 user_destroy(User *user)
 {
     free(user);
     user = NULL;
-
-    return 0;
 }
 
 uint32_t
@@ -307,7 +285,7 @@ user_collection_destroy(UserCollection *user_collection)
         UserCollection *temp = TAILQ_FIRST(&head);
         TAILQ_REMOVE(&head, temp, user_collection);
 
-        free(temp->user);
+        user_destroy(temp->user);
         free(temp);
         temp = NULL;
     }
@@ -318,14 +296,21 @@ user_collection_destroy(UserCollection *user_collection)
 uint32_t
 user_insert(const User *user)
 {
+    uint32_t identifier = htonl(user->identifier);
+    uint32_t role = htonl(user->role);
+    uint32_t doge_coin = htonl(user->doge_coin);
+
     uint32_t error = database_engine_execute_write(user_insert_query, 7, 
-        user->identifier,
-        user->role,
-        user->email,
-        user->user_name,
-        user->password,
-        user->doge_coin,
-        user->regristration_datetime); 
+        &identifier, 1, sizeof(identifier),
+        &role, 1, sizeof(role),
+        user->email, 0, strlen(user->email),
+        user->username, 0, strlen(user->username),
+        user->password, 0, strlen(user->password),
+        &doge_coin, 1, sizeof(doge_coin),
+        user->registration_datetime, 0, strlen(user->registration_datetime),
+        user->user_first_name, 0, strlen(user->user_first_name),
+        user->user_last_name, 0, strlen(user->user_last_name),
+        user->telephone_number, 0, strlen(user->telephone_number));
 
     switch(error)
     {
@@ -345,15 +330,22 @@ user_insert(const User *user)
 uint32_t
 user_update(const User *user)
 {
+    uint32_t identifier = htonl(user->identifier);
+    uint32_t role = htonl(user->role);
+    uint32_t doge_coin = htonl(user->doge_coin);
+
     uint32_t error = database_engine_execute_write(user_update_query, 7, 
-        user->identifier,
-        user->role,
-        user->email,
-        user->user_name,
-        user->password,
-        user->doge_coin,
-        user->regristration_datetime,
-        user->identifier); 
+        &identifier, 1, sizeof(identifier),
+        &role, 1, sizeof(role),
+        user->email, 0, strlen(user->email),
+        user->username, 0, strlen(user->username),
+        user->password, 0, strlen(user->password),
+        &doge_coin, 1, sizeof(doge_coin),
+        user->registration_datetime, 0, strlen(user->registration_datetime),
+        user->user_first_name, 0, strlen(user->user_first_name),
+        user->user_last_name, 0, strlen(user->user_last_name),
+        user->telephone_number, 0, strlen(user->telephone_number),
+        &user->identifier, 1, sizeof(user->identifier));  
 
     switch(error)
     {
@@ -373,8 +365,10 @@ user_update(const User *user)
 uint32_t
 user_delete(User *user)
 {
-    uint32_t error = database_engine_execute_write(user_update_query, 7, 
-        user->identifier);
+    uint32_t identifier = htonl(user->identifier);
+
+    uint32_t error = database_engine_execute_write(user_delete_query, 1, 
+        &identifier, 1, sizeof(identifier));
 
     switch(error)
     {
@@ -398,7 +392,8 @@ user_find_by_email(const char *email, uint32_t *error)
     void *result;
 
     result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
-        &query_error, 1, email);
+        &query_error, 1, 
+        email, 0, strlen(email));
 
     if(result == NULL)
     {
@@ -424,13 +419,46 @@ user_find_by_email(const char *email, uint32_t *error)
 }
 
 User *
+user_find_by_username_and_email(const char *email, const char *username, uint32_t *error)
+{
+    uint32_t query_error;
+    void *result;
+
+    result = database_engine_execute_read(user_select_by_email_and_username, 
+        user_create_from_query, &query_error, 1, email, 0, strlen(email), 
+        username, 0, strlen(username));
+
+    if(result == NULL)
+    {
+        switch(query_error)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                perror("user_find_by_username_and_email: Could not find a user with the " \
+                    "corresponding email or username address.\n");
+                *error = query_error;
+            break;
+
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+            default:
+                perror("user_find_by_username_and_email: Could not find user.\n");
+                *error = query_error;
+            break;
+        }
+    }
+
+    return result; 
+}
+
+User *
 user_find_by_user_name(const char *user_name, uint32_t *error)
 {
     uint32_t query_error;
     void *result;
 
     result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
-        &query_error, 1, user_name);
+        &query_error, 1, user_name, 0, strlen(user_name));
 
     if(result == NULL)
     {
@@ -461,8 +489,10 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     uint32_t query_error;
     void *result;
 
-    result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
-        &query_error, 1, identifier);
+    uint32_t cast_identifier = htonl(identifier);
+
+    result = database_engine_execute_read(user_select_by_identifier_query, user_create_from_query, 
+        &query_error, 1, &cast_identifier, 1, sizeof(cast_identifier));
 
     if(result == NULL)
     {

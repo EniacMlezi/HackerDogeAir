@@ -3,31 +3,41 @@
 
 #include <stdint.h>
 #include <sys/queue.h>
-#include <time.h>
 
 typedef struct
 {
     uint32_t    user_identifier;
-    char        *login_time;
     bool        login_result;
 } LoginAttempt;
 
 typedef struct LoginAttemptCollection
 {
-    LoginAttempt login_attempt;
-    LIST_ENTRY(LoginAttemptCollection) login_attempt_collection;
+    LoginAttempt *login_attempt;
+    TAILQ_ENTRY(LoginAttemptCollection) login_attempt_collection;
 } LoginAttemptCollection;
 
 LoginAttempt *
 login_attempt_create(
     uint32_t user_identifier,
-    tm login_time,
-    bool login_result
+    bool login_result,
+    uint32_t *error
     );
 
-uint32_t
+void
 login_attempt_destroy(
     LoginAttempt *login_attempt
+    );
+
+void *
+login_attempt_create_from_query(
+    void *source_location, 
+    uint32_t *error
+    );
+
+void *
+login_attempt_get_amount_of_attempts(
+    void *source_location, 
+    uint32_t *error
     );
 
 uint32_t
@@ -50,16 +60,18 @@ login_attempt_delete(
     LoginAttempt *login_attempt
     );
 
-LoginAttemptCollection *
-login_attempt_collection_create(
-    void *source_location,
-    uint32_t *error
+uint32_t
+login_attempt_amount_of_logins_in_x_minutes(
+    uint32_t user_identifier,
+    uint32_t number_of_minutes
     );
 
+/*
 LoginAttemptCollection *
 login_attempt_collection_find_by_identifier(
     uint32_t user_identifier,
     uint32_t *error
     );
+*/
 
 #endif

@@ -19,7 +19,7 @@ typedef struct
 typedef struct FlightCollection
 {
     Flight flight;
-    LIST_ENTRY(_Flight) flight_collection;
+    TAILQ_ENTRY(_Flight) flight_collection;
 } FlightCollection;
 
 Flight *
@@ -27,8 +27,8 @@ flight_create(
     uint32_t flight_identifier,
     uint32_t departure_airport_identifier,
     uint32_t arrival_airport_identifier,
-    tm departure_time,
-    tm arrival_time,
+    char *departure_time,
+    char *arrival_time,
     double distance,
     uint32_t seats_available,
     uint32_t *error

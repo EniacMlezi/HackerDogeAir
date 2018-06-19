@@ -10,20 +10,17 @@
 #include "model/user.h"
 #include "assets.h"
 
-#define REGISTER_ERROR_EMAIL_VALIDATOR_INVALID    202
-#define REGISTER_ERROR_PASSWORD_VALIDATOR_INVALID 203
+int register_user(struct http_request *reg);
+int register_parse_params(struct http_request *req, User *user);
+int register_try_register(User *user);
+void register_error_handler(struct http_request *req, int errcode);
 
-int     register_user(struct http_request *);
-int     register_parse_params(struct http_request *req, user_t *user);
-int     register_try_register(user_t *);
-
-void    register_error_handler(struct http_request *req, int errcode);
-
-int 
+int
 register_user(struct http_request *req)
 {
     int err;
-    user_t user = {0, NULL, NULL};
+    //user_t user = {0, NULL, NULL};
+    User user = {0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL};
 
     if(req->method == HTTP_METHOD_GET)
     {   //a GET request receives the register form
@@ -56,7 +53,7 @@ register_user(struct http_request *req)
 }
 
 int
-register_parse_params(struct http_request *req, user_t *user)
+register_parse_params(struct http_request *req, User *user)
 {
     http_populate_post(req);
     if(!http_argument_get_string(req, "email", &(user->email)))
@@ -71,15 +68,16 @@ register_parse_params(struct http_request *req, user_t *user)
     return (SHARED_ERROR_OK);
 }
 
+/* Change this to valid database interfacing code. */
 int
-register_try_register(user_t *user)
+register_try_register(User *user)
 {
     int return_code;
 
     struct kore_pgsql pgsql;
     kore_pgsql_init(&pgsql);
     
-    if (!kore_pgsql_setup(&pgsql, "db", KORE_PGSQL_SYNC)) 
+    if (!kore_pgsql_setup(&pgsql, "DogeAir", KORE_PGSQL_SYNC)) 
     {   //can't connect to db
         kore_pgsql_logerror(&pgsql);
         return_code = (SHARED_ERROR_SQL_DB_ERROR);
