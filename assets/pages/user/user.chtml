@@ -6,7 +6,7 @@
     </head>
     <body>
         {{PARTIAL_HEADER}}
-        <div class="content">
+        <div class="content" style="width: 400px;">
             <div class="user-page">
                 <h1>User Page</h1>
                 <table>

@@ -87,19 +87,18 @@ nav a {
 }
 
 .user-detail-page {
-  text-align: left;
+  margin: auto;
 }
 
 .user-page{
-  text-align: center;
   margin: auto;
 }
 
-.search-flight-page {
+.flight-search-page {
   margin: auto;
 }
 
-.user-booking-page {
+.user-bookings-page {
   margin: auto;
 }
 
@@ -126,6 +125,10 @@ nav a {
 
 h1 {
   font-size: 38px;
+}
+
+table{
+  margin: auto;
 }
 
 table th {

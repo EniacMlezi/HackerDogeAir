@@ -63,10 +63,8 @@ int
 user_detail_parseparams(struct http_request *req, int *userid)
 {
     http_populate_get(req);
-    if(!http_argument_get_uint32(req, "id", userid))
-    {
-        return (USER_ERROR_ID_VALIDATOR_INVALID); 
-    }
+    
+    
     return (SHARED_ERROR_OK);
 }
 
