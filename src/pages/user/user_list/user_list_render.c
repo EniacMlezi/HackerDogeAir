@@ -51,13 +51,11 @@ user_list_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t 
     {
         UserListNode *user_node = NULL;
         api->varget = &user_varget;
+        UserContext usercontext;
+        memcpy(&usercontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
         SLIST_FOREACH(user_node, &ctx->userlist, users)
         {
-            // build a single user context foreach user.
-            UserContext usercontext = {
-                .user = &user_node->user
-            };
-            memcpy(&usercontext.partial_context, &ctx->partial_context, sizeof(PartialContext));          
+            usercontext.user = &user_node->user;
             if(!mustache_render(api, &usercontext, token->section))
             {
                 api->varget = &partial_varget;

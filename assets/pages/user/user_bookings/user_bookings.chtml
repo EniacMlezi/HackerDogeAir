@@ -1,0 +1,34 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User Bookings- HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+            <div class="user-bookings-page">
+                <h1>My Bookings</h1>
+                 <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Departure Location</th>
+                        <th>Departure Time</th>
+                        <th>Arrival Location</th>
+                        <th>Arrival Time</th>
+                        <th></th>
+                    </tr>
+                    {{#userbookings}}
+                    <tr>
+                        <td>{{id}}</td>
+                        <td>{{departurelocation}}</td>
+                        <td>{{departuredatetime}}</td>
+                        <td>{{arrivallocation}}</td>
+                        <td>{{arrivaldatetime}}</td>
+                    </tr>
+                    {{/userbookings}}
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

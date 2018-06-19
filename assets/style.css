@@ -112,6 +112,21 @@ nav a {
   padding-right: 2px;
 }
 
+.user-booking-page {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.user-booking-page table th {
+  text-align: left;
+  padding-right: 2px;
+}
+
+.user-booking-page table td {
+  text-align: left;
+  padding-right: 2px;
+}
+
 .error {
   color: salmon;
 }
