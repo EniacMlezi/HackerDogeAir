@@ -61,24 +61,15 @@ user_detail(struct http_request *req)
     }
 
     //TODO: Save edits to database with DataAccess layer
-
-    if((err = user_detail_render(&context)) != (SHARED_ERROR_OK))
-    {
-        user_detail_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);
-    }
-
+    //on error: call user detail error handler 
+    kore_log(LOG_INFO, "success return");
     http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, 
-        context.partial_context.dst_context->string, 
-        strlen(context.partial_context.dst_context->string));
-
-    user_detail_render_clean(&context);
+    http_response(req, HTTP_STATUS_OK, asset_user_detail_success_html, asset_len_user_detail_success_html);
     
     return (KORE_RESULT_OK);
 }
 
-int    
+int
 user_detail_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
