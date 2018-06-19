@@ -7,7 +7,7 @@
     <body>
         {{PARTIAL_HEADER}}
         <div class="content">
-            <div class="user-page">
+            <div class="user-detail-page">
                 <h1>User Details</h1>
                 <p class="error">{{error_message}}</p> <br />
                 id: {{id}}. <br />

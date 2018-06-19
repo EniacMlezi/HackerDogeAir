@@ -80,51 +80,27 @@ nav a {
 }
 
 .login-page{
-  width: 360px;
   margin: auto;
 }
 .register-page {
   margin: auto;
 }
 
-.users-page {
-  width: 500px;
+.user-detail-page {
   text-align: left;
 }
 
-.user-page {
-  width: 500px;
-  text-align: left;
+.user-page{
+  text-align: center;
+  margin: auto;
 }
 
 .search-flight-page {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.search-flight-page table th {
-  text-align: left;
-  padding-right: 2px;
-}
-
-.search-flight-page table td {
-  text-align: left;
-  padding-right: 2px;
+  margin: auto;
 }
 
 .user-booking-page {
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.user-booking-page table th {
-  text-align: left;
-  padding-right: 2px;
-}
-
-.user-booking-page table td {
-  text-align: left;
-  padding-right: 2px;
+  margin: auto;
 }
 
 .error {
@@ -150,6 +126,16 @@ nav a {
 
 h1 {
   font-size: 38px;
+}
+
+table th {
+  text-align: left;
+  padding-right: 10px;
+}
+
+table td {
+  text-align: left;
+  padding-right: 10px;
 }
 
 a {

@@ -1,0 +1,25 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User - HackerDogeAir</title>
+        <link rel="stylesheet" href="/css/style.css" type="text/css">
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+            <div class="user-page">
+                <h1>User Page</h1>
+                <table>
+                    <tr>
+                        <td>Edit your details:</td> 
+                        <td><a href="/user/detail">User Details</a></td>
+                    </tr>
+                    <tr>
+                        <td>View your bookings:</td>
+                        <td><a href="/user/bookings">User Bookings</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
