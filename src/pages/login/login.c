@@ -245,7 +245,7 @@ login_error_handler(struct http_request *req, int errcode, UserContext *context)
 
     if(!handled)
     {
-        shared_error_handler(req, errcode);
+        shared_error_handler(req, errcode, "/login");
     }
     else
     {

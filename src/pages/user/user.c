@@ -44,5 +44,5 @@ user(struct http_request *req)
 void
 user_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode);
+    shared_error_handler(req, errcode, "/user");
 }

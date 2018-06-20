@@ -120,5 +120,5 @@ void
 flight_search_error_handler(struct http_request *req, int errcode, FlightSearchContext *context)
 {
     kore_log(LOG_INFO, "flight search error: %d", errcode);
-    shared_error_response(req, 500, "flight search error handler");
+    shared_error_response(req, 500, "flight search error handler", "/flight/search");
 }

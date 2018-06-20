@@ -135,7 +135,7 @@ user_detail_error_handler(struct http_request *req, int errcode, UserContext *co
 
     if(!handled)
     {
-        shared_error_handler(req, errcode);
+        shared_error_handler(req, errcode, "/user/detail");
     }
     else
     {

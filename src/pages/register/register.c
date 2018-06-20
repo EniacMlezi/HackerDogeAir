@@ -144,7 +144,7 @@ register_error_handler(struct http_request *req, int errcode, UserContext *conte
 
     if(!handled)
     {
-        shared_error_handler(req, errcode);
+        shared_error_handler(req, errcode, "/register");
     }
     else
     {

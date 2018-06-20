@@ -35,7 +35,7 @@
                             <td>{{departuredatetime}}</td>
                             <td>{{arrivallocation}}</td>
                             <td>{{arrivaldatetime}}</td>
-                            <td><a href="/flightbook?id={{id}}">Book Now!</a></td>
+                            <td><a href="/flight/book?id={{id}}">Book Now!</a></td>
                         </tr>
                         {{/flights}}
                     </table>
