@@ -133,6 +133,7 @@ uintmax_t
 partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
     uintmax_t ret = 0;
+    uintmax_t output_string_len = 0;
     int err = 0;
     PartialContext *ctx = (PartialContext *) userdata;
     PartialContext new_ctx;
@@ -144,12 +145,16 @@ partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *t
         {
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
-        ret = api->write(api, 
-            userdata, 
-            new_ctx.dst_context->string, 
-            strlen(new_ctx.dst_context->string));
+        output_string_len = strlen(new_ctx.dst_context->string);
+        ret = api->write(api, userdata, new_ctx.dst_context->string, output_string_len);
         header_render_clean(&new_ctx);
-        return ret;
+        if (ret != output_string_len)
+        {
+            kore_log(LOG_ERR, "partial_varget: failed to write. wrote: %ld, expected: %ld", 
+                ret, output_string_len);
+            return (SHARED_RENDER_MUSTACHE_FAIL);
+        }
+        return (SHARED_RENDER_MUSTACHE_OK);
     }
 
     //the found variable was not a partial view. rewrite the found variable.
@@ -157,19 +162,22 @@ partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *t
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
-        kore_log(LOG_ERR, "failed malloc for non-partial token.");
+        kore_log(LOG_ERR, "partial_varget: failed malloc for non-partial token");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{%s}}", token->text)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_ERR, 
-            "failed snprintf for non-partial token: printed: %d - expected: %d", err, length);
+            "partial_varget: failed snprintf for non-partial token. wrote: %d - expected: %d",
+             err, length);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
     if(ret != (uintmax_t)length-1)
     {
+        kore_log(LOG_ERR, "partial_varget: failed to write. wrote: %ld, expected: %ld", 
+            ret, (uintmax_t)length-1);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
@@ -187,7 +195,7 @@ partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *t
     char *buffer = (char *)malloc(length);
     if(NULL == buffer)
     {
-        kore_log(LOG_ERR, "failed malloc for section.");
+        kore_log(LOG_ERR, "partial_sectget: failed malloc for section");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
@@ -201,24 +209,29 @@ partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *t
     ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
     if(ret != (uintmax_t)length-1)
     {
+        kore_log(LOG_ERR, "partial_sectget: failed to write. wrote: %ld, expected: %ld", 
+            ret, (uintmax_t)length-1);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     ret = mustache_render(api, userdata, token->section);
     if(ret != (SHARED_RENDER_MUSTACHE_OK))
     {
+        kore_log(LOG_ERR, "partial_sectget: failed render of section.");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     if((err = snprintf(buffer, length, "{{/%s}}", token->name)) != length-1) //-1 => exclude \0
     {
         kore_log(LOG_ERR, 
-            "failed snprintf for section: printed: %d - expected: %d", err, length);
+            "partial_sectget: failed snprintf for section: wrote: %d - expected: %d", err, length);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
     if(ret != (uintmax_t)length-1)
     {
+        kore_log(LOG_ERR, "partial_sectget: failed to write. wrote: %ld, expected: %ld", 
+            ret, (uintmax_t)length-1);
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }

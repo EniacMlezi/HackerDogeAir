@@ -66,6 +66,7 @@ user_bookings_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
             flightcontext.flight = &user_booking_node->flight;
             if(!mustache_render(api, &flightcontext, token->section))
             {
+                kore_log(LOG_ERR, "user_bookings_sectget: failed to render a userbooking");
                 api->varget = &partial_varget;
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
@@ -73,5 +74,6 @@ user_bookings_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
         api->varget = &partial_varget;
         return (SHARED_RENDER_MUSTACHE_OK);
     }
+    kore_log(LOG_ERR, "user_bookings_sectget: unknown template section '%s'", token->name);
     return (SHARED_RENDER_MUSTACHE_FAIL);
 }

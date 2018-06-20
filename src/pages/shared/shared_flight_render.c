@@ -25,7 +25,8 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
             char id_string[12];
             if(snprintf(id_string, 12, "%d", ctx->flight->id) <= 0)
             {
-                kore_log(LOG_INFO, "flights id failed");
+                kore_log(LOG_ERR, "flight_varget: failed int to string conversion for flightid."\
+                    " input: %d", ctx->flight->id);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = id_string;
@@ -46,7 +47,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
                 "%d-%m-%Y %T",
                 sizeof(date_conversion_ouput)) != (SHARED_ERROR_OK)))
             {
-                kore_log(LOG_INFO, "time conversion error %d", err);
+                kore_log(LOG_ERR, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = date_conversion_ouput;
@@ -67,7 +68,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
                 "%d-%m-%Y %T",
                 sizeof(date_conversion_ouput)) != (SHARED_ERROR_OK)))
             {
-                kore_log(LOG_INFO, "time conversion error %d", err);
+                kore_log(LOG_INFO, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = date_conversion_ouput;
@@ -100,7 +101,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "failed flight_search flights render: unknown template variable: %s", token->text);
+        kore_log(LOG_INFO, "flight varget: unknown template variable: '%s'", token->text);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 

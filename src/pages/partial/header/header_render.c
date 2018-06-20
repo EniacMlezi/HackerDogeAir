@@ -53,15 +53,21 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         char session_id[12];
         if(snprintf(session_id, 12, "%d", ctx->session_id) <= 0)
         {
-            return (SHARED_RENDER_MUSTACHE_FAIL); //error
+            kore_log(LOG_ERR, 
+                "header_varget: failed int to string conversion for session_id. input: %d", 
+                ctx->session_id);
+            return (SHARED_RENDER_MUSTACHE_FAIL);
         }
-        size_t session_id_len = strlen(session_id);
+        uintmax_t session_id_len = strlen(session_id);
         uintmax_t ret = api->write(api, userdata, session_id, session_id_len);
         if(ret != session_id_len)
         {
+            kore_log(LOG_ERR, "header_varget: failed to write. wrote: %ld, expected: %ld", 
+            ret, session_id_len);
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
         return (SHARED_RENDER_MUSTACHE_OK);
     }
+    kore_log(LOG_ERR, "header_varget: unknown template variable '%s'", token->text);
     return (SHARED_RENDER_MUSTACHE_FAIL);
 }

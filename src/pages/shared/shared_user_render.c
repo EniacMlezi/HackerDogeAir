@@ -19,6 +19,9 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
             char id_string[12];
             if(snprintf(id_string, 12, "%d", ctx->user->id) <= 0)
             {
+                kore_log(LOG_ERR, 
+                    "user_varget: failed int to string conversion for timeout. input: %d",
+                    ctx->user->id);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = id_string;
@@ -93,14 +96,16 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "failed user list render: unknown template variable");
+        kore_log(LOG_INFO, "user_varget: unknown template variable '%s'", token->text);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
-    size_t output_string_len = strlen(output_string);
+    uintmax_t output_string_len = strlen(output_string);
     uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
     if(ret != output_string_len)
     {
+        kore_log(LOG_ERR, "user_varget: failed to write. wrote: %ld, expected: %ld", 
+            ret, output_string_len);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);

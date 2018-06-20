@@ -67,7 +67,7 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
                 "%d-%m-%Y",
                 sizeof(date_conversion_ouput)) != (SHARED_ERROR_OK)))
             {
-                kore_log(LOG_INFO, "time conversion error %d", err);
+                kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
 
@@ -101,7 +101,7 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "failed flight_search render: unknown template variable: %s", token->text);
+        kore_log(LOG_INFO, "flight_search_varget: unknown template variable: %s", token->text);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
@@ -109,6 +109,8 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
     uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
     if(ret != output_string_len)
     {
+        kore_log(LOG_ERR, "flight_search_varget: failed to write. wrote: %ld, expected: %ld",
+            ret, output_string_len);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);
@@ -135,6 +137,7 @@ flight_search_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
             flightcontext.flight = &flight_node->flight;
             if(!mustache_render(api, &flightcontext, token->section))
             {
+                kore_log(LOG_ERR, "flight_search_sectget: failed to render a flight");
                 api->varget = &flight_search_varget;
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
@@ -142,5 +145,6 @@ flight_search_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
         api->varget = &flight_search_varget;
         return (SHARED_RENDER_MUSTACHE_OK);
     }
+    kore_log(LOG_ERR, "flight_search_sectget: unknown template section '%s'", token->name);
     return (SHARED_RENDER_MUSTACHE_FAIL);
 }
