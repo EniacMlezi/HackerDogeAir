@@ -71,10 +71,10 @@ login_try_login(User *input_user)
     uint32_t return_code;               /* Result variable for the result of this functoin. */
     User *database_user;
 
-    database_user = user_find_by_username_and_email(input_user->email, input_user->username, 
+    database_user = user_find_by_username_or_email(input_user->email, 
         &operation_result_code);
 
-    if(operation_result_code != USER_CREATE_SUCCESS)
+    if(database_user == NULL)
     {
         switch(operation_result_code)
         {
@@ -82,7 +82,7 @@ login_try_login(User *input_user)
                 perror("login_try_login: Could not find a user with the " \
                     "corresponding email or username address.\n");
                 return_code = operation_result_code;
-            break;
+                break;
 
             case (USER_CREATE_ERROR):
                 perror("login_try_login: Could not handle user data.\n");
@@ -90,18 +90,29 @@ login_try_login(User *input_user)
                 break; 
 
             case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+                perror("login_try_login: The database could not be reached.\n");
+                return_code = operation_result_code;
+                break;
+
             case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+                perror("login_try_login: The database Encountered an error when executing the " \
+                    "the query.\n");
+
             case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+                perror("login_try_login: Could not parse the database's information.\n");
+                return_code = operation_result_code;
+                break; 
+
             default:
                 perror("login_try_login: Could not execute query.\n");
                 return_code = operation_result_code;
-            break;
+                break;
         } 
 
         return return_code;
     }
 
-    bool login_attempt_result;
+    bool login_attempt_result = false;
     if(login_check_bruteforce(database_user->identifier) != LOGIN_ERROR_BRUTEFORCE_CHECK_INVALID)
     {
         if(login_validate_user_credentials(input_user, database_user) != 
@@ -109,7 +120,6 @@ login_try_login(User *input_user)
         {
             perror("login_try_login: Invalid user credentials have been detected.\n");
             return_code = LOGIN_ERROR_INVALLID_CREDENTIALS;
-            login_attempt_result = false;
         }
         else
         {
@@ -153,7 +163,7 @@ login_validate_user_credentials(const User *input_user, const User *database_use
 uint32_t
 login_check_bruteforce(uint32_t user_identifier)
 {
-    if(login_attempt_amount_of_logins_in_x_minutes(user_identifier, 5) >= 5)
+    if(login_attempt_amount_of_logins_in_five_minutes(user_identifier) >= 5)
     {
         return (LOGIN_ERROR_BRUTEFORCE_CHECK_INVALID);
     }

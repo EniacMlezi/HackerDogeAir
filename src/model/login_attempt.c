@@ -15,24 +15,24 @@
 #include "shared/shared_error.h"
 
 static const char login_attempt_insert_query[] = 
-    "INSERT INTO LoginAttempt (useridentifier,datetime,success)" \
-    "VALUES ($1, NOW, $2);";
+    "INSERT INTO \"LoginAttempt\" (useridentifier,datetime,success) " \
+    "VALUES ($1, now(), $2);";
 
 static const char login_attempt_delete_query[] = 
-    "DELETE FROM LoginAttempt WHERE useridentifier = $1;";
+    "DELETE FROM \"LoginAttempt\" WHERE useridentifier = $1;";
 
 static const char login_attempt_update_query[] = 
-    "UPDATE LoginAttempt " \
+    "UPDATE \"LoginAttempt\" " \
     "SET " \
     "useridentifier = $1, " \
     "datetime = NOW, " \
-    "success = $3 " \
-    "WHERE useridentifier = $3;";
+    "success = $2 " \
+    "WHERE useridentifier = $1;";
 
 static const char login_attempt_retrieve_attempts_query[] = 
-    "SELECT (*) FROM LoginAttempt " \
+    "SELECT * FROM \"LoginAttempt\" " \
     "WHERE useridentifier = $1 " \
-    "AND datetime - INTERVAL \'5 minutes\';";
+    "AND datetime >= CURRENT_TIMESTAMP AT TIME ZONE \'CEST\' - INTERVAL \'5 minutes\';";
 
 //static const char login_attempt_select_by_identifier[] = "";
 
@@ -129,21 +129,25 @@ login_attempt_collection_destroy(LoginAttempt *login_attempt_collection)
 uint32_t
 login_attempt_insert(const LoginAttempt *login_attempt)
 {
-    uint32_t result = (DATABASE_ENGINE_OK);
+    uint32_t result = (LOGIN_LOG_ATTEMPT_SUCCESS);
+
     uint32_t user_identifier = htonl(login_attempt->user_identifier);
     uint32_t login_result = htonl(login_attempt->login_result);
 
     uint32_t error = database_engine_execute_write(login_attempt_insert_query, 2,
-    user_identifier, 1, sizeof(user_identifier),
-    login_result, 1, sizeof(login_result));
+    &user_identifier, sizeof(user_identifier), 1,
+    &login_result, sizeof(login_result), 1);
 
-    switch(error)
+    if(error != (DATABASE_ENGINE_OK))
     {
-        default:
-        perror("login_attempt_insert: Could not insert the login_attempt structure into the " \
-            "database.\n");
-        result = error;
-        break; 
+        switch(error)
+        {
+            default:
+                perror("login_attempt_insert: Could not insert the login_attempt structure into " \
+                    "the database.\n");
+                result = error;
+                break; 
+        }
     }
 
     return result;
@@ -157,16 +161,19 @@ login_attempt_update(const LoginAttempt *login_attempt)
     uint32_t login_result = htonl(login_attempt->login_result);
 
     uint32_t error = database_engine_execute_write(login_attempt_update_query, 3,
-        user_identifier, 1, sizeof(user_identifier),
-        login_result, 1, sizeof(login_result),
-        user_identifier, 1, sizeof(user_identifier));
+        user_identifier, sizeof(user_identifier), 1,
+        login_result, sizeof(login_result), 1,
+        user_identifier, sizeof(user_identifier), 1);
 
-    switch(error)
+    if(error != (DATABASE_ENGINE_OK))
     {
-        default:
-        perror("login_attempt_update: Could not update the login_attempt structure.\n");
-        result = error;
-        break; 
+        switch(error)
+        {
+            default:
+                perror("login_attempt_update: Could not update the login_attempt structure.\n");
+                result = error;
+                break; 
+        }
     }
 
     return result;
@@ -179,7 +186,7 @@ login_attempt_delete(LoginAttempt *login_attempt)
     uint32_t user_identifier = htonl(login_attempt->user_identifier);
 
     uint32_t error = database_engine_execute_write(login_attempt_delete_query, 1,
-        &user_identifier, 1, sizeof(user_identifier));
+        &user_identifier, sizeof(user_identifier), 1);
 
     switch(error)
     {
@@ -204,26 +211,29 @@ login_attempt_get_amount_of_attempts(void *source_location, uint32_t *error)
 }
 
 uint32_t
-login_attempt_amount_of_logins_in_x_minutes(uint32_t user_identifier, uint32_t number_of_minutes)
+login_attempt_amount_of_logins_in_five_minutes(uint32_t user_identifier)
 {
     uint32_t result;
 
     uint32_t network_user_identifier = htonl(user_identifier);
-    uint32_t network_number_of_minutes = htonl(number_of_minutes);
 
     uint32_t error;
     void *data = database_engine_execute_read(login_attempt_retrieve_attempts_query, 
-        login_attempt_get_amount_of_attempts, &error, 2,
-        &network_user_identifier, 1, sizeof(network_user_identifier),
-        &network_number_of_minutes, 1, sizeof(network_number_of_minutes));
+        login_attempt_get_amount_of_attempts, &error, 1,
+        &network_user_identifier, sizeof(network_user_identifier), 1);
 
-    switch(error)
+
+    if(data == NULL)
     {
+        switch(error)
+        {
         default:
+        return (LOGIN_ATTEMPT_ERROR_CREATE);
         break;
+        }
     }
-
-    result = *(int *) data;
+       
+    result = (int) data;
 
     return result;
 }

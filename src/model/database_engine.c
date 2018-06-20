@@ -58,7 +58,7 @@ database_engine_execute_write(const char *sql_query, uint32_t count, ...)
 
     uint32_t return_code = (DATABASE_ENGINE_OK);
     struct kore_pgsql database_connection;
-    
+
     if(database_engine_initialize(&database_connection, DATABASE_NAME) != DATABASE_ENGINE_OK)
     {
         perror("database_engine_execute_write: Could not initialize the database.\n");
@@ -67,7 +67,7 @@ database_engine_execute_write(const char *sql_query, uint32_t count, ...)
     }    
 
     /* Execute the query on the connected database. */
-    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, parameters))
+    if(!kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters))
     {
         kore_pgsql_logerror(&database_connection);
         return_code = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
@@ -100,7 +100,7 @@ database_engine_execute_read(const char *sql_query,
         goto error_exit;
     }
 
-    if(!kore_pgsql_query_params(&database_connection, sql_query, 0, count, parameters)) 
+    if(!kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters)) 
     {
         kore_pgsql_logerror(&database_connection);
         *error = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
@@ -110,8 +110,8 @@ database_engine_execute_read(const char *sql_query,
 
     if(kore_pgsql_ntuples(&database_connection) == 0)
     {
-        perror("database_engine_execute_read: No results found.");
-        *error = (DATABASE_ENGINE_ERROR_INITIALIZATION);
+        perror("database_engine_execute_read: No results found.\n");
+        *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
         return_value = NULL;
         goto error_exit;
     }

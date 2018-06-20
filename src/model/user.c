@@ -15,64 +15,60 @@
 #include "shared/shared_error.h"
 
 static const char user_insert_query[] = 
-    "INSERT INTO User (useridentifier,role,emailaddress,username,password,dogecoin," \
-    "registrationtime,userfirstname,userlastname,telephonenumber) " \
+    "INSERT INTO User useridentifier,userrole,emailaddress,username,password,dogecoin," \
+    "registrationtime,firstname,lastname,telephonenumber " \
     " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);";
 
 static const char user_update_query[] =
     "UPDATE User " \
     "SET " \
     "useridentifier = $1, " \
-    "role = $2, " \
+    "userrole = $2, " \
     "emailaddress = $3," \
     "username = $4," \
     "password = $5," \
     "dogecoin = $6," \
     "registrationtime = $7," \
-    "userfirstname = $8," \
-    "userlastname = $9," \
+    "firstname = $8," \
+    "lastname = $9," \
     "telephonenumber = $10" \
     "WHERE useridentifier = $ 11;";
 
 static const char user_delete_query[] = "DELETE FROM User WHERE useridentifier = $1;";
 
 static const char user_select_by_email_query[] = 
-    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
-    "userfirstname,userlastname,telephonenumber) " \
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,userlastname,telephonenumber " \
     "FROM User " \
-    "WHERE emailaddress = $1;";
-
-/*
-static const char user_select_by_username_query[] = 
-    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime" \
-    "userfirstname,userlastname,telephonenumber) " \
-    "FROM User " \
-    "WHERE username = $1;";
-*/
+    "WHERE emailaddress = \'$1\';";
 
 static const char user_select_by_identifier_query[] = 
-    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
-    "userfirstname,userlastname,telephonenumber) " \
-    "FROM User " \
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber " \
+    "FROM \"User\" " \
     "WHERE useridentifier = $1;";
 
-static const char user_select_by_email_and_username[] =
-    "SELECT (useridentifier,role,emailaddress,username,password,dogecoin,registrationtime," \
-    "userfirstname,userlastname,telephonenumber) " \
-    "FROM User " \
-    "WHERE emailaddress = $1 AND username = $2;";
+static const char user_select_by_email_or_username[] =
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber " \
+    "FROM \"User\" " \
+    "WHERE emailaddress = $1 OR username = $1;";
 
 User *
-user_create(uint32_t identifier, Role role, const char *username, const char *user_first_name, 
-    const char *user_last_name, const char *telephone, const char *email, const char *password, 
-    uint32_t coins, const char *registration_datetime, uint32_t *error)
+user_create(uint32_t identifier, Role role, const char *username, const char *email, 
+    const char *first_name, const char *last_name, const char *telephone_number, 
+    const char *password, uint32_t doge_coins, const char *registration_datetime, uint32_t *error)
 {
-    uint8_t name_size = strlen(username);
-    uint8_t email_size = strlen(email);
-    uint8_t password_size = strlen(password);
-    uint8_t registration_datetime_size = strlen(registration_datetime);
+    uint8_t name_size = strlen(username) + 1;
+    uint8_t email_size = strlen(email) + 1;
+    uint8_t password_size = strlen(password) + 1;
+    uint8_t registration_datetime_size = strlen(registration_datetime) + 1;
+    uint8_t first_name_size = strlen(first_name) + 1;
+    uint8_t last_name_size = strlen(last_name) + 1;
+    uint8_t telephone_number_size = strlen(telephone_number) + 1;
 
-    uint32_t user_size = name_size + email_size + password_size + registration_datetime_size;
+    uint32_t user_size = name_size + email_size + password_size + registration_datetime_size
+        + first_name_size + last_name_size + telephone_number_size;
 
     /* Allocating space for the structure and the strings appended to it. */
     User *user = malloc(sizeof(User) + user_size); 
@@ -96,21 +92,26 @@ user_create(uint32_t identifier, Role role, const char *username, const char *us
     user->password = (void *) user + user_memory_offset;
     user_memory_offset += password_size; 
     user->registration_datetime= (void *) user + user_memory_offset; 
+    user_memory_offset += registration_datetime_size;
+    user->first_name = (void *) user + user_memory_offset;
+    user_memory_offset += first_name_size;
+    user->last_name = (void *) user + user_memory_offset;
+    user_memory_offset += last_name_size;
+    user->telephone_number = (void *) user + user_memory_offset;
 
     #pragma GCC diagnostic pop
 
     /* Initializing the user structure. */
     user->identifier = identifier; 
     user->role = role;
-    user->doge_coin = coins;
+    user->doge_coin = doge_coins;
     strncpy(user->email, email, email_size);
     strncpy(user->username, username, name_size);
     strncpy(user->password, password, password_size);
-
-    if(registration_datetime != NULL)
-    {
-        strncpy(user->registration_datetime, registration_datetime, registration_datetime_size); 
-    }
+    strncpy(user->first_name, first_name, first_name_size);
+    strncpy(user->last_name, last_name, last_name_size);
+    strncpy(user->telephone_number, telephone_number, telephone_number_size);
+    strncpy(user->registration_datetime, registration_datetime, registration_datetime_size); 
 
     return user;
 }
@@ -120,7 +121,7 @@ user_create_from_query(void *source_location, uint32_t *error)
 {
     /* Determine if the first record of the query result contains the expected amount of fields. */
     /* Is most likely 6 in stead of 7 because of the 0nth element. */
-    if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 6)
+    if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 10)
     {
         perror("user_create_from_query: Invallid source location.\n");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
@@ -170,7 +171,7 @@ user_create_from_query(void *source_location, uint32_t *error)
     }
 
     uint32_t create_user_result;
-    void *temp_user = user_create(identifier, role, email, user_name, user_first_name, 
+    User *temp_user = user_create(identifier, role, user_name, email, user_first_name, 
         user_last_name, telephone_number, password, doge_coin, registration_time, 
         &create_user_result);
 
@@ -178,8 +179,10 @@ user_create_from_query(void *source_location, uint32_t *error)
     {
         perror("user_create_from_query: Could not create an user structure.\n");
         *error = create_user_result;
+        return NULL;
     }
-    
+
+    *error = (USER_CREATE_SUCCESS);
     return temp_user;
 }
 
@@ -301,16 +304,16 @@ user_insert(const User *user)
     uint32_t doge_coin = htonl(user->doge_coin);
 
     uint32_t error = database_engine_execute_write(user_insert_query, 7, 
-        &identifier, 1, sizeof(identifier),
-        &role, 1, sizeof(role),
-        user->email, 0, strlen(user->email),
-        user->username, 0, strlen(user->username),
-        user->password, 0, strlen(user->password),
-        &doge_coin, 1, sizeof(doge_coin),
-        user->registration_datetime, 0, strlen(user->registration_datetime),
-        user->user_first_name, 0, strlen(user->user_first_name),
-        user->user_last_name, 0, strlen(user->user_last_name),
-        user->telephone_number, 0, strlen(user->telephone_number));
+        &identifier, sizeof(identifier), 1,
+        &role, sizeof(role), 1,
+        user->email, strlen(user->email), 0,
+        user->username, strlen(user->username), 0,
+        user->password, strlen(user->password), 0,
+        &doge_coin, sizeof(doge_coin), 1,
+        user->registration_datetime, strlen(user->registration_datetime), 0,
+        user->first_name, strlen(user->first_name), 0,
+        user->last_name, strlen(user->last_name), 0,
+        user->telephone_number, strlen(user->telephone_number), 0);
 
     switch(error)
     {
@@ -335,17 +338,17 @@ user_update(const User *user)
     uint32_t doge_coin = htonl(user->doge_coin);
 
     uint32_t error = database_engine_execute_write(user_update_query, 7, 
-        &identifier, 1, sizeof(identifier),
-        &role, 1, sizeof(role),
-        user->email, 0, strlen(user->email),
-        user->username, 0, strlen(user->username),
-        user->password, 0, strlen(user->password),
-        &doge_coin, 1, sizeof(doge_coin),
-        user->registration_datetime, 0, strlen(user->registration_datetime),
-        user->user_first_name, 0, strlen(user->user_first_name),
-        user->user_last_name, 0, strlen(user->user_last_name),
-        user->telephone_number, 0, strlen(user->telephone_number),
-        &user->identifier, 1, sizeof(user->identifier));  
+        &identifier, sizeof(identifier), 1,
+        &role, sizeof(role), 1,
+        user->email, strlen(user->email), 0,
+        user->username, strlen(user->username), 0,
+        user->password, strlen(user->password), 0,
+        &doge_coin, sizeof(doge_coin), 1,
+        user->registration_datetime, strlen(user->registration_datetime), 0,
+        user->first_name, strlen(user->first_name), 0,
+        user->last_name, strlen(user->last_name), 0,
+        user->telephone_number, strlen(user->telephone_number), 0,
+        &user->identifier, sizeof(user->identifier), 1);
 
     switch(error)
     {
@@ -368,7 +371,7 @@ user_delete(User *user)
     uint32_t identifier = htonl(user->identifier);
 
     uint32_t error = database_engine_execute_write(user_delete_query, 1, 
-        &identifier, 1, sizeof(identifier));
+        &identifier, sizeof(identifier), 1);
 
     switch(error)
     {
@@ -393,7 +396,7 @@ user_find_by_email(const char *email, uint32_t *error)
 
     result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
         &query_error, 1, 
-        email, 0, strlen(email));
+        email, strlen(email), 0);
 
     if(result == NULL)
     {
@@ -419,14 +422,13 @@ user_find_by_email(const char *email, uint32_t *error)
 }
 
 User *
-user_find_by_username_and_email(const char *email, const char *username, uint32_t *error)
+user_find_by_username_or_email(const char *email, uint32_t *error)
 {
     uint32_t query_error;
     void *result;
 
-    result = database_engine_execute_read(user_select_by_email_and_username, 
-        user_create_from_query, &query_error, 1, email, 0, strlen(email), 
-        username, 0, strlen(username));
+    result = database_engine_execute_read(user_select_by_email_or_username, 
+        &user_create_from_query, &query_error, 1, email, strlen(email), 0);
 
     if(result == NULL)
     {
@@ -442,12 +444,14 @@ user_find_by_username_and_email(const char *email, const char *username, uint32_
             case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
             case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
             default:
-                perror("user_find_by_username_and_email: Could not find user.\n");
+                perror("user_find_by_username_and_email: Database encountered problums during " \
+                    "the search for user.\n");
                 *error = query_error;
             break;
         }
     }
 
+    *error = USER_CREATE_SUCCESS;
     return result; 
 }
 
@@ -457,8 +461,8 @@ user_find_by_user_name(const char *user_name, uint32_t *error)
     uint32_t query_error;
     void *result;
 
-    result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
-        &query_error, 1, user_name, 0, strlen(user_name));
+    result = database_engine_execute_read(user_select_by_email_query, &user_create_from_query, 
+        &query_error, 1, user_name, strlen(user_name), 0);
 
     if(result == NULL)
     {
@@ -492,7 +496,7 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     uint32_t cast_identifier = htonl(identifier);
 
     result = database_engine_execute_read(user_select_by_identifier_query, user_create_from_query, 
-        &query_error, 1, &cast_identifier, 1, sizeof(cast_identifier));
+        &query_error, 1, &cast_identifier, sizeof(cast_identifier), 1);
 
     if(result == NULL)
     {

@@ -13,8 +13,8 @@ typedef struct
     Role        role; 
     char        *email;
     char        *username;
-    char        *user_first_name;
-    char        *user_last_name;
+    char        *first_name;
+    char        *last_name;
     char        *telephone_number;
     char        *password;
     uint32_t     doge_coin;
@@ -31,7 +31,7 @@ User *
 user_create(
     uint32_t identifier,
     Role    role,
-    const char    *user_name,
+    const char    *username,
     const char    *email,
     const char    *user_first_name,
     const char    *user_last_name,
@@ -86,9 +86,8 @@ user_find_by_email(
     );
 
 User *
-user_find_by_username_and_email(
+user_find_by_username_or_email(
     const char *email,
-    const char *username,
     uint32_t *error
     );
 
