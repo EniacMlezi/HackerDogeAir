@@ -70,6 +70,16 @@ error_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *tok
         }
     }
 
+    else if(strncmp("timeout", token->text, token->text_length) == 0)
+    {
+        char timeout_string[12];
+        if(snprintf(timeout_string, 12, "%d", ctx->timeout) <= 0)
+        {
+            return (SHARED_RENDER_MUSTACHE_FAIL);
+        }
+        output_string = timeout_string;
+    }
+
     if(NULL == output_string)
     {
         kore_log(LOG_ERR, "failed error render: unknown template variable '%s'", token->text);

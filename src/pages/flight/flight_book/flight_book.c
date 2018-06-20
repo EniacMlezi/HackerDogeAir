@@ -59,7 +59,7 @@ flight_book_error_handler(struct http_request *req, int errcode)
     {
         case (FLIGHT_BOOK_ERROR_ID_VALIDATOR_INVALID):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
-                "Unknown Flight Identifier. Please try again.", "/flight/search");
+                "Unknown Flight Identifier. Please try again.", "/flight/search", 10);
             break;
 
         default:

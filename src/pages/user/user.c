@@ -44,5 +44,5 @@ user(struct http_request *req)
 void
 user_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode, "/user");
+    shared_error_handler(req, errcode, "/");    // redirect to user would cause recursive render 
 }

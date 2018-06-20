@@ -7,6 +7,7 @@ typedef struct ErrorContext {
     PartialContext partial_context;
     const char *error_message;
     const char *redirect_uri;
+    int timeout;
 } ErrorContext;
 
 int

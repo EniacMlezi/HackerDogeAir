@@ -227,7 +227,7 @@ login_error_handler(struct http_request *req, int errcode, UserContext *context)
             break;
         case (LOGIN_ERROR_EMAIL_VALIDATOR_INVALID):
                 context->error_message = 
-                "Please use a correct email address (e.g. test@example.com)";
+                "Please use a correct email address. (e.g. test@example.com)";
             break;
         case (LOGIN_ERROR_PASSWORD_VALIDATOR_INVALID):
                 context->error_message = 

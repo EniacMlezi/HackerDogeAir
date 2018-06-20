@@ -16,8 +16,8 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
         }
         else
         {
-            char id_string[11];
-            if(snprintf(id_string, 11, "%d", ctx->user->id) <= 0)
+            char id_string[12];
+            if(snprintf(id_string, 12, "%d", ctx->user->id) <= 0)
             {
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }

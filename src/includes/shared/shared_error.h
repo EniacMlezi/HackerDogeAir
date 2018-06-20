@@ -14,6 +14,7 @@ void shared_error_handler(struct http_request *request, int status_code, const c
 void shared_error_response(struct http_request *request,
     int status_code,
     const char *message,
-    const char *redirect_uri);
+    const char *redirect_uri,
+    int timeout);
 
 #endif

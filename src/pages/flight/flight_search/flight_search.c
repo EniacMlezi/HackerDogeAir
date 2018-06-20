@@ -119,6 +119,35 @@ int flight_search_parseparams(struct http_request *req, FlightSearchParams *sear
 void
 flight_search_error_handler(struct http_request *req, int errcode, FlightSearchContext *context)
 {
-    kore_log(LOG_INFO, "flight search error: %d", errcode);
-    shared_error_response(req, 500, "flight search error handler", "/flight/search");
+    bool handled = true;
+    int err = 0;
+    switch (errcode)
+    {
+        case (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID):
+                context->error_message = 
+                "Please enter a correct arrival date. (e.g. 28-01-2018)";
+            break;
+
+        default:
+            handled = false;
+    }
+
+    if(!handled)
+    {
+        shared_error_handler(req, errcode, "/flight/search");
+    }
+    else
+    {
+        if((err = flight_search_render(context)) != (SHARED_ERROR_OK))
+        {
+            flight_search_error_handler(req, err, context);
+        }
+
+        http_response_header(req, "content-type", "text/html");
+        http_response(req, HTTP_STATUS_OK, 
+            context->partial_context.dst_context->string, 
+            strlen(context->partial_context.dst_context->string));
+
+        flight_search_render_clean(context);
+    }
 }

@@ -22,8 +22,8 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         }
         else
         {
-            char id_string[11];
-            if(snprintf(id_string, 11, "%d", ctx->flight->id) <= 0)
+            char id_string[12];
+            if(snprintf(id_string, 12, "%d", ctx->flight->id) <= 0)
             {
                 kore_log(LOG_INFO, "flights id failed");
                 return (SHARED_RENDER_MUSTACHE_FAIL);
