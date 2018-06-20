@@ -50,7 +50,7 @@ full_render(PartialContext *context, mustache_api_t *api, const char* const temp
     {
         goto exit;
     }
-
+    
     //render all page specifics using supplied api
     if((err = partial_render_create_str_context(context,
      (const char* const)copy_context.dst_context->string)) != (SHARED_ERROR_OK))

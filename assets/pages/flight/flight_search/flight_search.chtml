@@ -6,8 +6,8 @@
     </head>
     <body>
         {{PARTIAL_HEADER}}
-        <div class="content">
-            <div class="search-flight-page">
+        <div class="content" style="width: 900px;">
+            <div class="flight-search-page">
                 <h1>Flight Search</h1>  
                 <div class="form">
                     <form method="post">

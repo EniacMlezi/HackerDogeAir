@@ -80,36 +80,26 @@ nav a {
 }
 
 .login-page{
-  width: 360px;
   margin: auto;
 }
 .register-page {
   margin: auto;
 }
 
-.users-page {
-  width: 500px;
-  text-align: left;
+.user-detail-page {
+  margin: auto;
 }
 
-.user-page {
-  width: 500px;
-  text-align: left;
+.user-page{
+  margin: auto;
 }
 
-.search-flight-page {
-  margin-left: auto;
-  margin-right: auto;
+.flight-search-page {
+  margin: auto;
 }
 
-.search-flight-page table th {
-  text-align: left;
-  padding-right: 2px;
-}
-
-.search-flight-page table td {
-  text-align: left;
-  padding-right: 2px;
+.user-bookings-page {
+  margin: auto;
 }
 
 .error {
@@ -135,6 +125,20 @@ nav a {
 
 h1 {
   font-size: 38px;
+}
+
+table{
+  margin: auto;
+}
+
+table th {
+  text-align: left;
+  padding-right: 10px;
+}
+
+table td {
+  text-align: left;
+  padding-right: 10px;
 }
 
 a {

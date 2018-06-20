@@ -128,12 +128,11 @@ flight_search_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
 
         FlightSearchListNode *flight_node = NULL;
         api->varget = &flight_varget;
+        FlightContext flightcontext;
+        memcpy(&flightcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
         SLIST_FOREACH(flight_node, &ctx->flightlist, flights)
         {
-            FlightContext flightcontext = {
-                .flight = &flight_node->flight
-            };
-            memcpy(&flightcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));           
+            flightcontext.flight = &flight_node->flight;
             if(!mustache_render(api, &flightcontext, token->section))
             {
                 api->varget = &flight_search_varget;
