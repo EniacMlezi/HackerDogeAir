@@ -66,6 +66,7 @@ shared_error_response(
     };
     if((err = error_render(&context)) != (SHARED_OK))
     {   // could not render error page. give the error plain text
+        kore_log(LOG_ERR, "shared_error_response: failed to render error page.");
         http_response_header(req, "content-type", "text/plain");
         http_response(req, statuscode, (const void *)msg, strlen(msg));
     }

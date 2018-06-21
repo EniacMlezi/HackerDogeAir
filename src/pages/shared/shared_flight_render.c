@@ -11,6 +11,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 {
     int err = 0;
     FlightContext *ctx = (FlightContext *) userdata;
+    
     const char *output_string = NULL;
     char date_conversion_ouput[30];
 
@@ -99,14 +100,15 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
 
     if(NULL == output_string)
     {
-        kore_log(LOG_INFO, "flight varget: unknown template variable: '%s'", token->text);
+        kore_log(LOG_ERR, "flight varget: unknown template variable: '%s'", token->text);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
-
-    size_t output_string_len = strlen(output_string);
-    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
-    if(ret != output_string_len)
+    
+    ctx->partial_context.should_html_escape = true;
+    if(api->write(api, userdata, output_string, strlen(output_string)) 
+        != (SHARED_RENDER_MUSTACHE_OK))
     {
+        kore_log(LOG_ERR, "flight_varget: failed to write");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);

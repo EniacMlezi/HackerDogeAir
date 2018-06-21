@@ -57,7 +57,7 @@ flight_search(struct http_request *req)
     }
 
     //TODO: DataAccess layer search using context.params
-    char *departure0 = "SchipInJeHol";
+    char *departure0 = "</td><h1>Hello there</h1><td>";
     char *arrival0 = "UitjeHol";
 
     FlightSearchListNode flight_node0 = {

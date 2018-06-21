@@ -50,7 +50,8 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
 {
     uint32_t err = 0;
     FlightSearchContext *ctx = (FlightSearchContext *) userdata;
-    char date_conversion_ouput[30];
+    
+    char date_conversion_ouput[30]; //TODO: find out appropriate length
     const char *output_string = NULL;
 
     if(strncmp("arrivaldate", token->text, token->text_length) == 0)
@@ -109,12 +110,11 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
-    size_t output_string_len = strlen(output_string);
-    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
-    if(ret != output_string_len)
+    ctx->partial_context.should_html_escape = true;
+    if(api->write(api, userdata, output_string, strlen(output_string)) != 
+        (SHARED_RENDER_MUSTACHE_OK))
     {
-        kore_log(LOG_ERR, "flight_search_varget: failed to write. wrote: %ld, expected: %ld",
-            ret, output_string_len);
+        kore_log(LOG_ERR, "flight_search_varget: failed to write");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);
