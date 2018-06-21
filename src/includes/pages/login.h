@@ -10,6 +10,8 @@
 
 #include "model/user.h"
 
+#include "pages/shared/shared_user_render.h"
+
 uint32_t   
 login(
     struct http_request *req
@@ -37,10 +39,12 @@ login_log_attempt(
     bool success
     );
 
+
 void   
 login_error_handler(
-    struct http_request *req, 
-    uint32_t error_code
+    struct http_request *rec, 
+    uint32_t error, 
+    UserContext *context
     );
 
 uint32_t

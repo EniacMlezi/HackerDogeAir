@@ -14,6 +14,10 @@ typedef struct
     char        *arrival_time;
     double      distance;
     uint32_t    seats_available; 
+    struct tm   arrival_datetime;
+    struct tm   departure_datetime;
+    char        *arrival_location;
+    char        *departure_location;   
 } Flight;
 
 typedef struct FlightCollection

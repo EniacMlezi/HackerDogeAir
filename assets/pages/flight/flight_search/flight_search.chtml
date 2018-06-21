@@ -1,0 +1,46 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Flight Search - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content" style="width: 900px;">
+            <div class="flight-search-page">
+                <h1>Flight Search</h1>  
+                <div class="form">
+                    <form method="post">
+                        <p class="error">{{error_message}}</p>
+                        <input name="arrivaldate" value="{{arrivaldate}}" type="datetime-local" title="Please enter an arrival date (e.g. 28-11-1980)" pattern="[0-9]{2}-[0-9]{2}-[0-9]{4}" placeholder="Enter arrival date (dd-mm-yyy)" required>
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+
+                <div class="results" {{results_hidden}}>
+                    <h1>Results</h1>
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <th>Departure Location</th>
+                            <th>Departure Time</th>
+                            <th>Arrival Location</th>
+                            <th>Arrival Time</th>
+                            <th></th>
+                        </tr>
+                        {{#flights}}
+                        <tr>
+                            <td>{{id}}</td>
+                            <td>{{departurelocation}}</td>
+                            <td>{{departuredatetime}}</td>
+                            <td>{{arrivallocation}}</td>
+                            <td>{{arrivaldatetime}}</td>
+                            <td><a href="/flight/book?id={{id}}">Book Now!</a></td>
+                        </tr>
+                        {{/flights}}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

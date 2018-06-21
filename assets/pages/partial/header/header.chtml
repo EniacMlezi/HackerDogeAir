@@ -1,0 +1,10 @@
+<div class="header">
+    <header>
+        <h2>HackerDogeAir</h2>
+            <nav>
+                <a href="/">Home</a>
+                <a href="">Flights</a>
+            </nav>
+        <p><a href="">login/register</a></p>
+    </header>
+</div>

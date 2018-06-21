@@ -1,0 +1,46 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User Detail - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content" style="width: 450px;">
+            <div class="user-detail-page">
+                <h1>User Details</h1>
+                <p class="error">{{error_message}}</p><br />
+                <form method="post" action="/user/detail">
+                    <table>
+                        <tr>
+                            <td><label for="username">Username:</label></td>
+                            <td><input type="text" name="username" value="{{username}}" placeholder="Enter username" maxlength="255" title="Please enter a valid username" pattern="[a-zA-Z0-9]{1,255}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="email">Email:</label></td>
+                            <td><input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" title="Please enter a valid email address" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="firstname">Firstname:</label></td>
+                            <td> <input type="text" name="firstname" value="{{firstname}}" placeholder="Enter first name" maxlength="255" title="Please enter your first name" pattern="[a-zA-Z ]{1,255}" required></td> 
+                        </tr>
+                        <tr>
+                            <td><label for="lastname">Lastname:</label></td>
+                            <td><input type="text" name="lastname" value="{{lastname}}" placeholder="Enter last name" title="Please enter your last name" pattern="[a-zA-Z ]{1,255}" required></td>
+                        </tr>
+                        <tr>
+                            <td><label for="telnumber">Telephone Number:</label></td>
+                            <td><input type="tel" name="telnumber" value="{{telnumber}}" placeholder="Enter telephone number" title="Enter your telephone number" pattern="(^\+[0-9]{2}|^\+[0-9]{2}\(0\)|^\(\+[0-9]{2}\)\(0\)|^00[0-9]{2}|^0)(^-| ?)([0-9]{9}$|[0-9\-\s]{10}$)" required></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><button type="submit">Save edits</button></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><button type="reset">Reset</button></td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>
