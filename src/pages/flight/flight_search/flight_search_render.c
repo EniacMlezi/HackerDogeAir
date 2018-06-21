@@ -31,12 +31,12 @@ flight_search_render(FlightSearchContext *context)
     };
 
     if((err = full_render((PartialContext *)context, &api,
-        (const char* const)asset_flight_search_chtml)) != (SHARED_ERROR_OK))
+        (const char* const)asset_flight_search_chtml)) != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void         
@@ -48,7 +48,7 @@ flight_search_render_clean(FlightSearchContext *context)
 uintmax_t
 flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    int err = 0;
+    uint32_t err = 0;
     FlightSearchContext *ctx = (FlightSearchContext *) userdata;
     
     char date_conversion_ouput[30]; //TODO: find out appropriate length
@@ -56,22 +56,26 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
 
     if(strncmp("arrivaldate", token->text, token->text_length) == 0)
     {
-        if(ctx->params.arrivaldate == 0)
+        time_t epoch;
+        if(shared_time_tm_to_epoch(&ctx->params.arrivaldate, &epoch) != (SHARED_OK))
+        {
+            kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
+        }
+
+        if(epoch == -1 || epoch == 0)
         {
             output_string = SHARED_RENDER_EMPTY_STRING;
         }
         else
         {
-            if ((err = shared_time_time_t_to_string(
-                &ctx->params.arrivaldate,
-                date_conversion_ouput,
-                "%d-%m-%Y",
-                sizeof(date_conversion_ouput)) != (SHARED_ERROR_OK)))
+            err = shared_time_tm_to_string(&ctx->params.arrivaldate, date_conversion_ouput,
+                    sizeof(date_conversion_ouput), "%d-%m-%Y");
+
+            if(err == (SHARED_ERROR_TIME_CONVERSION))
             {
                 kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
-
             output_string = date_conversion_ouput;
         }
     }

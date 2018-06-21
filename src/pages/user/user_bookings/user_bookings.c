@@ -31,8 +31,10 @@ user_bookings(struct http_request *req)
     SLIST_INIT(&context.userbookinglist);
     char *departure0 = "SchipInJeHol";
     char *arrival0 = "UitjeHol";
-    time_t departuretime0 = time(NULL) + 10*60;
-    time_t arrivaltime0 = time(NULL) + 50*60;
+
+    struct tm departuretime0 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
+    struct tm arrivaltime0 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
+
     UserBookingListNode booking_node0 = {
         .flight = {
             .arrival_datetime = arrivaltime0,
@@ -45,8 +47,10 @@ user_bookings(struct http_request *req)
 
     char *departure1 = "SchipUitJeHol";
     char *arrival1 = "InjeHol";
-    time_t departuretime1 = time(NULL) + 10*60;
-    time_t arrivaltime1 = time(NULL) + 50*60;
+
+    struct tm departuretime1 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
+    struct tm arrivaltime1 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
+
     UserBookingListNode booking_node1 = {
         .flight = {
             .arrival_datetime = arrivaltime1,
@@ -55,9 +59,10 @@ user_bookings(struct http_request *req)
             .departure_location = departure1
         }
     };
+    
     SLIST_INSERT_HEAD(&context.userbookinglist, &booking_node1, userbookings);
     
-    if((err = user_bookings_render(&context)) != (SHARED_ERROR_OK))
+    if((err = user_bookings_render(&context)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
         return (KORE_RESULT_OK);

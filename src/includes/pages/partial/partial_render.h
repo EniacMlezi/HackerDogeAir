@@ -4,7 +4,6 @@
 #include <stdbool.h>
 #include <mustache.h>
 
-#define SHARED_RENDER_ERROR_ALLOC       1000
 #define SHARED_RENDER_ERROR_TEMPLATE    1001
 #define SHARED_RENDER_ERROR_RENDER      1002
 

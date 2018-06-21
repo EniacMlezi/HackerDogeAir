@@ -1,5 +1,4 @@
-
-#include "pages/user/user_render.h"
+#include "pages/user/user_actions_render.h"
 
 #include <kore/kore.h>
 #include <mustache.h>
@@ -10,11 +9,11 @@
 #include "pages/shared/shared_user_render.h"
 #include "model/user.h"
 
-int         user_render(PartialContext *);
-void        user_render_clean(PartialContext *);
+int         user_actions_render(PartialContext *);
+void        user_actions_render_clean(PartialContext *);
 
 int
-user_render(PartialContext *context)
+user_actions_render(PartialContext *context)
 {
     int err = 0;
 
@@ -27,16 +26,16 @@ user_render(PartialContext *context)
     };
 
     if((err = full_render(context, &api, (const char* const)asset_user_chtml)) 
-        != (SHARED_ERROR_OK))
+        != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void
-user_render_clean(PartialContext *context)
+user_actions_render_clean(PartialContext *context)
 {
     partial_render_clean(context);
 }
