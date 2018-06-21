@@ -22,6 +22,7 @@ LoginAttempt *
 login_attempt_create(
     uint32_t user_identifier,
     bool login_result,
+    struct tm login_attempt_date_time,
     uint32_t *error
     );
 

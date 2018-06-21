@@ -66,7 +66,8 @@ database_engine_execute_write(const char *sql_query, uint32_t count, ...)
     }    
 
     /* Execute the query on the connected database. */
-    if(!kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters))
+    if(kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters) !=
+        (KORE_RESULT_OK))
     {
         kore_pgsql_logerror(&database_connection);
         return_code = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
@@ -96,7 +97,8 @@ database_engine_execute_read(const char *sql_query,
         goto error_exit;
     }
 
-    if(!kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters)) 
+    if(kore_pgsql_v_query_params(&database_connection, sql_query, 0, count, parameters) != 
+        (KORE_RESULT_OK)) 
     {
         kore_pgsql_logerror(&database_connection);
         *error = (DATABASE_ENGINE_ERROR_QUERY_ERROR);

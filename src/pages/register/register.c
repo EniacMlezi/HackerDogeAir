@@ -20,7 +20,26 @@ int
 register_user(struct http_request *req)
 {
     int err;
-    User user = {0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL};
+    User user = (User) {
+        .identifier = 0, 
+        .role = 0,
+        .email = NULL, 
+        .username = NULL, 
+        .first_name = NULL, 
+        .last_name = NULL, 
+        .telephone_number = NULL, 
+        .password = NULL, 
+        .doge_coin = 0, 
+        .registration_datetime = (struct tm) {
+            .tm_year     = 0,
+            .tm_mon      = 0,
+            .tm_mday     = 0,
+            .tm_hour     = 0,
+            .tm_min      = 0,
+            .tm_sec      = 0,  
+            .tm_wday     = 0,
+            .tm_yday     = 0
+    }};
 
     UserContext context = {
         .partial_context = { .session_id = 0 }, //TODO: fill from request cookie

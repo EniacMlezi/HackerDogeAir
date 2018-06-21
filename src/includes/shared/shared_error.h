@@ -18,6 +18,11 @@
 #define SHARED_ERROR_TIME_CONVERSION                22
 
 /* Data model specific error codes. */
+
+/* Session specific error codes. */
+#define SESSION_ERROR_CREATE                        40
+
+/* User specific error codes. */
 #define USER_ERROR_CREATE                           50
 
 /* Login_Attempt specific error codes. */
