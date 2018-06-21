@@ -87,17 +87,17 @@ login_attempt_create_from_query(void *source_location, uint32_t *error)
     }    
 
     uint32_t create_login_attemp_result;
-    void *temp_login_attampt = login_attempt_create(identifier, success_integer, 
+    void *temp_login_attempt = login_attempt_create(identifier, success_integer, 
         &create_login_attemp_result);
 
-    if(temp_login_attampt == NULL)
+    if(temp_login_attempt == NULL)
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Could not create a login_attempt " \
             "structure."); 
         *error = create_login_attemp_result;
     } 
 
-    return temp_login_attampt;
+    return temp_login_attempt;
 }
 
 uint32_t
@@ -130,7 +130,7 @@ login_attempt_insert(const LoginAttempt *login_attempt)
     if(query_result != (SHARED_OK))
     {
         database_engine_log_error("login_attempt_insert", query_result);
-        return (LOGIN_ATTEMPT_ERROR_INSERT);
+        return query_result;
     }
 
     return (SHARED_OK);
@@ -147,7 +147,7 @@ login_attempt_delete(LoginAttempt *login_attempt)
     if(query_result != (SHARED_OK))
     {
         database_engine_log_error("login_attempt_delete", query_result);
-        return (LOGIN_ATTEMPT_ERROR_DELETE);
+        return query_result;
     }   
 
     return (SHARED_OK);
@@ -181,7 +181,7 @@ login_attempt_amount_of_logins_in_five_minutes(uint32_t user_identifier, uint32_
             return 0;
         }
         database_engine_log_error("login_attempt_amount_of_logins_in_five_minutes", query_result);  
-        *error = (LOGIN_ATTEMPT_ERROR_SELECT);
+        *error = (query_result);
     }
        
     return (uint32_t)data;

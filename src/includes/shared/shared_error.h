@@ -18,16 +18,9 @@
 
 /* Data model specific error codes. */
 #define USER_ERROR_CREATE                           50
-#define USER_ERROR_SELECT                           51
-#define USER_ERROR_INSERT                           52
-#define USER_ERROR_UPDATE                           53
-#define USER_ERROR_DELETE                           54
 
 /* Login_Attempt specific error codes. */
 #define LOGIN_ATTEMPT_ERROR_CREATE                  60
-#define LOGIN_ATTEMPT_ERROR_SELECT                  61
-#define LOGIN_ATTEMPT_ERROR_INSERT                  62
-#define LOGIN_ATTEMPT_ERROR_DELETE                  63
 
 /* Logic specific error codes. */
 #define LOGIN_ERROR_EMAIL_VALIDATOR_INVALID         101
