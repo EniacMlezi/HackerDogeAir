@@ -1,10 +1,12 @@
 #include "pages/partial/partial_render.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <kore/kore.h>
 #include <mustache.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_escape.h"
 #include "pages/partial/header/header_render.h"
 
 int full_render(PartialContext *, mustache_api_t *, const char* const);
@@ -26,6 +28,9 @@ int
 full_render(PartialContext *context, mustache_api_t *api, const char* const template_string)
 {
     int err = 0;
+
+    //do not escape html yet. Only set html_escape before rendering in a variable. 
+    context->should_html_escape = false;
 
     //render all partials
     PartialContext copy_context;
@@ -103,6 +108,7 @@ void
 partial_render_copy_context(PartialContext *src, PartialContext *dst)
 {
     dst->session_id = src->session_id;
+    dst->should_html_escape = src->should_html_escape;
     dst->src_context = NULL;
     dst->dst_context = NULL;
 }
@@ -132,7 +138,6 @@ partial_render_create_str_context(PartialContext *context, const char* const tem
 uintmax_t
 partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    uintmax_t ret = 0;
     uintmax_t output_string_len = 0;
     int err = 0;
     PartialContext *ctx = (PartialContext *) userdata;
@@ -146,14 +151,14 @@ partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *t
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
         output_string_len = strlen(new_ctx.dst_context->string);
-        ret = api->write(api, userdata, new_ctx.dst_context->string, output_string_len);
-        header_render_clean(&new_ctx);
-        if (ret != output_string_len)
+        if (api->write(api, userdata, new_ctx.dst_context->string, output_string_len) 
+                != (SHARED_RENDER_MUSTACHE_OK))
         {
-            kore_log(LOG_ERR, "partial_varget: failed to write. wrote: %ld, expected: %ld", 
-                ret, output_string_len);
+            kore_log(LOG_ERR, "partial_varget: failed to write");
+            header_render_clean(&new_ctx);
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
+        header_render_clean(&new_ctx);
         return (SHARED_RENDER_MUSTACHE_OK);
     }
 
@@ -173,11 +178,10 @@ partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *t
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
-    ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
-    if(ret != (uintmax_t)length-1)
+
+    if(api->write(api, userdata, buffer, length-1) != (SHARED_RENDER_MUSTACHE_OK)) //-1 => exclude \0
     {
-        kore_log(LOG_ERR, "partial_varget: failed to write. wrote: %ld, expected: %ld", 
-            ret, (uintmax_t)length-1);
+        kore_log(LOG_ERR, "partial_varget: failed to write");
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
@@ -189,7 +193,6 @@ uintmax_t
 partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *token)
 {   // the partial sectget does nothing but rewriting the section tags and format
     int err = 0;
-    uintmax_t ret = 0;
     int length = strlen(token->name) + 4 + 1 + 1; // +4 => curly braces, +1 => '#' OR '/', +1 => \0
     
     char *buffer = (char *)malloc(length);
@@ -206,16 +209,13 @@ partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *t
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
-    ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
-    if(ret != (uintmax_t)length-1)
+    if(api->write(api, userdata, buffer, length-1) != (SHARED_RENDER_MUSTACHE_OK))//-1 => exclude \0
     {
-        kore_log(LOG_ERR, "partial_sectget: failed to write. wrote: %ld, expected: %ld", 
-            ret, (uintmax_t)length-1);
+        kore_log(LOG_ERR, "partial_sectget: failed to write");
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
-    ret = mustache_render(api, userdata, token->section);
-    if(ret != (SHARED_RENDER_MUSTACHE_OK))
+    if(mustache_render(api, userdata, token->section) != (SHARED_RENDER_MUSTACHE_OK))
     {
         kore_log(LOG_ERR, "partial_sectget: failed render of section.");
         return (SHARED_RENDER_MUSTACHE_FAIL);
@@ -227,11 +227,9 @@ partial_sectget(mustache_api_t *api, void *userdata, mustache_token_section_t *t
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
-    ret = api->write(api, userdata, buffer, length-1); //-1 => exclude \0
-    if(ret != (uintmax_t)length-1)
+    if(api->write(api, userdata, buffer, length-1) != (SHARED_RENDER_MUSTACHE_OK))//-1 => exclude \0
     {
-        kore_log(LOG_ERR, "partial_sectget: failed to write. wrote: %ld, expected: %ld", 
-            ret, (uintmax_t)length-1);
+        kore_log(LOG_ERR, "partial_sectget: failed to write");
         free(buffer);
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
@@ -260,16 +258,45 @@ partial_strread(mustache_api_t *api, void *userdata, char *buffer, uintmax_t buf
 
 uintmax_t
 partial_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size)
-{   //TODO: xss prevention by html encoding
+{
     mustache_str_ctx *ctx = ((PartialContext *)userdata)->dst_context; 
+    bool should_html_escape = ((PartialContext *)userdata)->should_html_escape;
 
-    ctx->string = (char *)realloc(ctx->string, ctx->offset + buffer_size + 1);
+    uint8_t *string_to_write = NULL;
+    size_t string_to_write_len = 0;
+    if(should_html_escape)
+    {
+        string_to_write_len =
+            shared_escape_html(&string_to_write, (const uint8_t *)buffer, buffer_size);
+    }
+    else
+    {
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wcast-qual"
+        string_to_write = (uint8_t *)buffer;
+#pragma GCC diagnostic pop
+        string_to_write_len = buffer_size;
+    }
+
+    ctx->string = (char *)realloc(ctx->string, ctx->offset + string_to_write_len + 1);
     
-    memcpy(ctx->string + ctx->offset, buffer, buffer_size);
-    ctx->string[ctx->offset + buffer_size] = '\0';
+    memcpy(ctx->string + ctx->offset, string_to_write, string_to_write_len);
+    ctx->string[ctx->offset + string_to_write_len] = '\0';
     
-    ctx->offset += buffer_size;
-    return buffer_size;
+    ctx->offset += string_to_write_len;
+
+    if(should_html_escape)
+    {
+        if(string_to_write_len > buffer_size)
+        {
+            kore_log(LOG_WARNING, 
+            "Possible xss attempt detected. html escaped '%s' => '%s'", buffer, string_to_write);
+            free(string_to_write);
+        }
+        ((PartialContext *)userdata)->should_html_escape = false;
+    }
+
+    return (SHARED_RENDER_MUSTACHE_OK);
 }
 
 void

@@ -8,6 +8,7 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
 {
     UserContext *ctx = (UserContext *) userdata;
     const char *output_string = NULL;
+
     if(strncmp("id", token->text, token->text_length) == 0)
     {
         if(NULL == ctx->user)
@@ -100,12 +101,11 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
 
-    uintmax_t output_string_len = strlen(output_string);
-    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
-    if(ret != output_string_len)
+    ctx->partial_context.should_html_escape = true;
+    if(api->write(api, userdata, output_string, strlen(output_string)) 
+        != (SHARED_RENDER_MUSTACHE_OK))
     {
-        kore_log(LOG_ERR, "user_varget: failed to write. wrote: %ld, expected: %ld", 
-            ret, output_string_len);
+        kore_log(LOG_ERR, "user_varget: failed to write");
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);

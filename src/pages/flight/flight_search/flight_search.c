@@ -54,7 +54,7 @@ flight_search(struct http_request *req)
     }
 
     //TODO: DataAccess layer search using context.params
-    char *departure0 = "SchipInJeHol";
+    char *departure0 = "</td><h1>Hello there</h1><td>";
     char *arrival0 = "UitjeHol";
     time_t departuretime0 = time(NULL) + 10*60;
     time_t arrivaltime0 = time(NULL) + 50*60;

@@ -75,6 +75,6 @@ user_bookings(struct http_request *req)
 void
 user_bookings_error_handler(struct http_request *req, int errcode)
 {
-    // Users currently has no specific errors. Use generic handler.
+    // User Bookings currently has no specific errors. Use generic handler.
     shared_error_handler(req, errcode, "/user/bookings");
 }

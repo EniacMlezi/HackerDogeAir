@@ -1,6 +1,7 @@
 #ifndef PARTIAL_RENDER_H
 #define PARTIAL_RENDER_H
 
+#include <stdbool.h>
 #include <mustache.h>
 
 #define SHARED_RENDER_ERROR_ALLOC       1000
@@ -18,6 +19,7 @@ typedef struct PartialContext
 {
     mustache_str_ctx *src_context;
     mustache_str_ctx *dst_context;
+    bool should_html_escape; // set this to true before a partial_strwrite to enforce html escaping
     int session_id; //TODO: replace with a session struct
 } PartialContext;
 

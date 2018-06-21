@@ -23,8 +23,8 @@ header_render(PartialContext *context)
     }
 
     mustache_api_t api={
-        .read = &partial_strread,  //std read will suffice
-        .write = &partial_strwrite,     // need custom write for handling mustache_str_ctx **
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &header_varget,
         .sectget = &partial_sectget,
         .error = &partial_error,
@@ -48,6 +48,7 @@ uintmax_t
 header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
     PartialContext *ctx = (PartialContext *)userdata;
+    
     if(strncmp("session_id", token->text, token->text_length) == 0)
     {
         char session_id[12];
@@ -58,12 +59,10 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
                 ctx->session_id);
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
-        uintmax_t session_id_len = strlen(session_id);
-        uintmax_t ret = api->write(api, userdata, session_id, session_id_len);
-        if(ret != session_id_len)
+        ctx->should_html_escape = true;
+        if(api->write(api, userdata, session_id, strlen(session_id)) != (SHARED_RENDER_MUSTACHE_OK))
         {
-            kore_log(LOG_ERR, "header_varget: failed to write. wrote: %ld, expected: %ld", 
-            ret, session_id_len);
+            kore_log(LOG_ERR, "header_varget: failed to write.");
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }
         return (SHARED_RENDER_MUSTACHE_OK);
