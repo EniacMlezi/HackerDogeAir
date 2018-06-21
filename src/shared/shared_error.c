@@ -15,15 +15,15 @@ shared_error_handler(struct http_request *req, int errcode, const char *redirect
 {
     switch(errcode)
     {
-        case (SHARED_ERROR_SQL_DB_ERROR):
+        case (DATABASE_ENGINE_ERROR_INITIALIZATION):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Database connection failed.", redirect_uri, 5);
             break;
-        case (SHARED_ERROR_SQL_QUERY_ERROR):
+        case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Query failed.", redirect_uri, 5);
             break;
-        case (SHARED_ERROR_SQL_RESULT_TRANSLATE_ERROR):
+        case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
                 "Internal Server error. Query result parsing failed.", redirect_uri, 5);
             break;
@@ -38,7 +38,7 @@ shared_error_handler(struct http_request *req, int errcode, const char *redirect
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Failed to render template.", redirect_uri, 5);
             break;
-        case (SHARED_RENDER_ERROR_ALLOC):
+        case (SHARED_ERROR_ALLOC_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Render allocation failure.", redirect_uri, 5);
             break;
@@ -64,7 +64,7 @@ shared_error_response(
         .redirect_uri = redirect,
         .timeout = timeout
     };
-    if((err = error_render(&context)) != (SHARED_ERROR_OK))
+    if((err = error_render(&context)) != (SHARED_OK))
     {   // could not render error page. give the error plain text
         kore_log(LOG_ERR, "shared_error_response: failed to render error page.");
         http_response_header(req, "content-type", "text/plain");

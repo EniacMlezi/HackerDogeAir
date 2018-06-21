@@ -18,7 +18,7 @@ header_render(PartialContext *context)
     int err = 0;
 
     if((err = partial_render_create_str_context(context, 
-        (const char* const)asset_header_chtml)) != (SHARED_ERROR_OK))
+        (const char* const)asset_header_chtml)) != (SHARED_OK))
     {
         return err;
     }
@@ -31,12 +31,12 @@ header_render(PartialContext *context)
         .error = &partial_error,
     };
 
-    if((err = partial_render_mustache_render(&api, context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(&api, context)) != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void 

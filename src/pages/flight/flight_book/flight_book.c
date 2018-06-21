@@ -25,7 +25,7 @@ flight_book(struct http_request *req)
     }
     
     int flightid = 0;
-    if((err = flight_book_parseparams(req, &flightid)) != (SHARED_ERROR_OK))
+    if((err = flight_book_parseparams(req, &flightid)) != (SHARED_OK))
     {
         flight_book_error_handler(req, err);
         return (KORE_RESULT_OK);
@@ -42,7 +42,7 @@ int
 flight_book_parseparams(struct http_request *req, int *flightid)
 {
     http_populate_get(req);
-    int err = (SHARED_ERROR_OK);
+    int err = (SHARED_OK);
     if(!http_argument_get_int32(req, "id", &flightid))
     {
         err = (FLIGHT_BOOK_ERROR_ID_VALIDATOR_INVALID);

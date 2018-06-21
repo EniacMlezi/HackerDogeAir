@@ -11,7 +11,7 @@
 
 typedef struct FlightSearchParams
 {
-    time_t arrivaldate;
+    struct tm arrivaldate;
 } FlightSearchParams;
 
 typedef struct FlightSearchListNode

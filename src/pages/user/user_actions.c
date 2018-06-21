@@ -6,15 +6,15 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
-#include "pages/user/user_render.h"
+#include "pages/user/user_actions_render.h"
 #include "model/user.h"
 #include "assets.h"
 
-int    user(struct http_request *);
-void   user_error_handler(struct http_request *, int);
+int    user_actions(struct http_request *);
+void   user_actions_error_handler(struct http_request *, int);
 
 int 
-user(struct http_request *req)
+user_actions(struct http_request *req)
 {
     int err;
     PartialContext context = {
@@ -27,9 +27,9 @@ user(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = user_render(&context)) != (SHARED_ERROR_OK))
+    if((err = user_actions_render(&context)) != (SHARED_OK))
     {
-        user_error_handler(req, err);
+        user_actions_error_handler(req, err);
     }
 
     http_response_header(req, "content-type", "text/html");
@@ -37,12 +37,12 @@ user(struct http_request *req)
         context.dst_context->string,
         strlen(context.dst_context->string));
 
-    user_render_clean(&context);
+    user_actions_render_clean(&context);
     return (KORE_RESULT_OK);    
 }
 
 void
-user_error_handler(struct http_request *req, int errcode)
+user_actions_error_handler(struct http_request *req, int errcode)
 {
     shared_error_handler(req, errcode, "/");    // redirect to user would cause recursive render 
 }

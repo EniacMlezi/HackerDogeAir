@@ -18,11 +18,11 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
         else
         {
             char id_string[12];
-            if(snprintf(id_string, 12, "%d", ctx->user->id) <= 0)
+            if(snprintf(id_string, 12, "%d", ctx->user->identifier) <= 0)
             {
                 kore_log(LOG_ERR, 
                     "user_varget: failed int to string conversion for timeout. input: %d",
-                    ctx->user->id);
+                    ctx->user->identifier);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = id_string;
@@ -41,24 +41,24 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
     }
     else if (strncmp("firstname", token->text, token->text_length) == 0)
     {
-        if(NULL == ctx->user || NULL == ctx->user->firstname)
+        if(NULL == ctx->user || NULL == ctx->user->first_name)
         {
             output_string = (SHARED_RENDER_EMPTY_STRING);
         }
         else
         {
-            output_string = ctx->user->firstname;
+            output_string = ctx->user->first_name;
         }
     }
     else if (strncmp("lastname", token->text, token->text_length) == 0)
     {
-        if(NULL == ctx->user || NULL == ctx->user->lastname)
+        if(NULL == ctx->user || NULL == ctx->user->last_name)
         {
             output_string = (SHARED_RENDER_EMPTY_STRING);
         }
         else
         {
-            output_string = ctx->user->lastname;
+            output_string = ctx->user->last_name;
         }
     }
     else if (strncmp("username", token->text, token->text_length) == 0)
@@ -74,13 +74,13 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
     }    
     else if (strncmp("telnumber", token->text, token->text_length) == 0)
     {
-        if(NULL == ctx->user || NULL == ctx->user->telnumber)
+        if(NULL == ctx->user || NULL == ctx->user->telephone_number)
         {
             output_string = (SHARED_RENDER_EMPTY_STRING);
         }
         else
         {
-            output_string = ctx->user->telnumber;
+            output_string = ctx->user->telephone_number;
         }
     }
     else if(strncmp("error_message", token->text, token->text_length) == 0)

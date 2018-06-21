@@ -27,7 +27,7 @@ int
 user_detail(struct http_request *req)
 {
     int err = 0;
-    User user = {0, NULL, NULL};
+    User user = {0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL};
     UserContext context = {
         .partial_context = {.session_id = 0},
         .user = &user
@@ -35,7 +35,7 @@ user_detail(struct http_request *req)
     if(req->method == HTTP_METHOD_GET)
     {
         //TODO: fill context.user with DataAccess Layer
-        if((err = user_detail_render(&context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(&context)) != (SHARED_OK))
         {
             user_detail_error_handler(req, err, &context);
             return (KORE_RESULT_OK);
@@ -54,7 +54,7 @@ user_detail(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = user_detail_parseparams(req, context.user)) != (SHARED_ERROR_OK))
+    if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
     {
         user_detail_error_handler(req, err, &context);
         return (KORE_RESULT_OK);
@@ -73,20 +73,20 @@ int
 user_detail_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
-    int err = (SHARED_ERROR_OK);
+    int err = (SHARED_OK);
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
         err = (USER_DETAIL_ERROR_EMAIL_VALIDATOR_INVALID);
     }
-    if(!http_argument_get_string(req, "firstname", &(user->firstname)))
+    if(!http_argument_get_string(req, "firstname", &(user->first_name)))
     {
         err = (USER_DETAIL_ERROR_FIRSTNAME_VALIDATOR_INVALID); 
     }
-    if(!http_argument_get_string(req, "lastname", &(user->lastname)))
+    if(!http_argument_get_string(req, "lastname", &(user->last_name)))
     {
         err = (USER_DETAIL_ERROR_LASTNAME_VALIDATOR_INVALID); 
     }
-    if(!http_argument_get_string(req, "telnumber", &(user->telnumber)))
+    if(!http_argument_get_string(req, "telnumber", &(user->telephone_number)))
     {
         err = (USER_DETAIL_ERROR_TELNUMBER_VALIDATOR_INVALID); 
     }
@@ -139,7 +139,7 @@ user_detail_error_handler(struct http_request *req, int errcode, UserContext *co
     }
     else
     {
-        if((err = user_detail_render(context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(context)) != (SHARED_OK))
         {
             user_detail_error_handler(req, err, context);
         }
