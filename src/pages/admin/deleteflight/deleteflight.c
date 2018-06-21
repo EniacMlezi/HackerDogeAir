@@ -46,5 +46,14 @@ admin_delete_flight(struct http_request *req)
 void
 admin_delete_flight_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode);
+    bool handled = true;
+    switch(errcode) 
+    {
+        default:
+            handled = false;
+    }
+    if (!handled) 
+    {
+        shared_error_handler(req, errcode, "");
+    }
 }

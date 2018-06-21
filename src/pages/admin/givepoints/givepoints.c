@@ -46,5 +46,14 @@ admin_give_points(struct http_request *req)
 void
 admin_give_points_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode);
+    bool handled = true;
+    switch(errcode) 
+    {
+        default:
+            handled = false;
+    }
+    if (!handled) 
+    {
+        shared_error_handler(req, errcode, "");
+    }
 }

@@ -46,5 +46,14 @@ admin_user_list(struct http_request *req)
 void
 admin_user_list_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode);
+    bool handled = true;
+    switch(errcode) 
+    {
+        default:
+            handled = false;
+    }
+    if (!handled) 
+    {
+        shared_error_handler(req, errcode, "");
+    }
 }

@@ -46,5 +46,14 @@ admin(struct http_request *req)
 void
 admin_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode);
+    bool handled = true;
+    switch(errcode) 
+    {
+        default:
+            handled = false;
+    }
+    if (!handled) 
+    {
+        shared_error_handler(req, errcode, "");
+    }
 }

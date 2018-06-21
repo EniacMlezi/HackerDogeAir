@@ -51,6 +51,8 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     const char *output_string = NULL;
     bool isAdmin = true;
     bool isLoggedIn = true;
+
+    PartialContext *ctx = (PartialContext *)userdata;
     
     if(strncmp("NAVBAR", token->text, token->text_length) == 0)
     {
@@ -76,17 +78,16 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
             output_string = "<a href='userdetail'>User</a>\n<a href='logout'>Logout</a>";
         }
     }
+    ctx->should_html_escape = false;
+    if(api->write(api, userdata, output_string, strlen(output_string)) != (SHARED_RENDER_MUSTACHE_OK))
+    {
+        kore_log(LOG_ERR, "header_varget: failed to write.");
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
 
     if(NULL == output_string)
     {
         kore_log(LOG_INFO, "failed user list render: unknown template variable");
-        return (SHARED_RENDER_MUSTACHE_FAIL);
-    }
-
-    size_t output_string_len = strlen(output_string);
-    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
-    if(ret != output_string_len)
-    {
         return (SHARED_RENDER_MUSTACHE_FAIL);
     }
     return (SHARED_RENDER_MUSTACHE_OK);
