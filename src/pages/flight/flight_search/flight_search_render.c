@@ -55,15 +55,26 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
 
     if(strncmp("arrivaldate", token->text, token->text_length) == 0)
     {
-        shared_time_tm_to_database_string(ctx->params.arrivaldate, date_conversion_ouput, &err);
-
-        if(err == (SHARED_TIME_CONVERSION_ERROR))
+        time_t epoch;
+        if(shared_time_tm_to_epoch(&ctx->params.arrivaldate, &epoch) != (SHARED_OK))
         {
             kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
-            return (SHARED_RENDER_MUSTACHE_FAIL);
+        }
+
+        if(epoch == -1 || epoch == 0)
+        {
+            output_string = SHARED_RENDER_EMPTY_STRING;
         }
         else
         {
+            err = shared_time_tm_to_string(&ctx->params.arrivaldate, date_conversion_ouput,
+                    sizeof(date_conversion_ouput), "%d-%m-%Y");
+
+            if(err == (SHARED_ERROR_TIME_CONVERSION))
+            {
+                kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
+                return (SHARED_RENDER_MUSTACHE_FAIL);
+            }
             output_string = date_conversion_ouput;
         }
     }

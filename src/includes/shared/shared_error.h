@@ -15,6 +15,7 @@
 /*Miscellaneous error codes.*/
 #define SHARED_ERROR_HASH_ERROR                     20
 #define SHARED_ERROR_ALLOC_ERROR                    21
+#define SHARED_ERROR_TIME_CONVERSION                22
 
 /* Data model specific error codes. */
 #define USER_ERROR_CREATE                           50
@@ -38,12 +39,8 @@
 #define REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID  205
 #define REGISTER_ERROR_USERNAME_VALIDATOR_INVALID   206
 
-#define SHARED_TIME_CONVERSION_OK                   251
-#define SHARED_TIME_CONVERSION_ERROR                252
-
-
 //generates a generic error response for given error.
-void shared_error_handler(struct http_request *request, int status_code, const char *);
+void shared_error_handler(struct http_request *request, int status_code, const char *redirect_uri);
 void shared_error_response(struct http_request *request,
     int status_code,
     const char *message,

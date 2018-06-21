@@ -337,7 +337,7 @@ user_update(const User *user)
     if (query_result != (SHARED_OK))
     {
         database_engine_log_error("user_update", query_result);
-        return (USER_ERROR_UPDATE);
+        return query_result;
     }
 
     return (SHARED_OK);
@@ -354,7 +354,7 @@ user_delete(User *user)
     if(query_result != (SHARED_OK))
     {
         database_engine_log_error("user_delete", query_result);
-        return (USER_ERROR_DELETE);
+        return query_result;
     }
 
     return (SHARED_OK);
@@ -378,7 +378,7 @@ user_find_by_username_or_email(const char *email, uint32_t *error)
             return result;
         }
         database_engine_log_error("user_find_by_username_or_email", query_result);
-        *error = (USER_ERROR_SELECT);
+        *error = query_result;
     }
 
     return result; 
@@ -398,7 +398,7 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     if(result == NULL)
     {
         database_engine_log_error("user_find_by_identifier", query_result);
-        *error = (USER_ERROR_SELECT);
+        *error = query_result;
     }
 
     return result;

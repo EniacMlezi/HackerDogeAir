@@ -25,18 +25,11 @@ int
 flight_search(struct http_request *req)
 {
     int err = 0;
+    time_t zero_epoch = 0;
+    struct tm *zero_arrivaldate = localtime(&zero_epoch);
     FlightSearchContext context = {
         .partial_context = {.session_id = 0},
-        .params = {.arrivaldate = (struct tm) {
-            .tm_year     = 0,
-            .tm_mon      = 0,
-            .tm_mday     = 0,
-            .tm_hour     = 0,
-            .tm_min      = 0,
-            .tm_sec      = 0,  
-            .tm_wday     = 0,
-            .tm_yday     = 0
-        }}
+        .params = {.arrivaldate = *zero_arrivaldate}
     };
     SLIST_INIT(&context.flightlist);
     if(req->method == HTTP_METHOD_GET)
@@ -67,13 +60,10 @@ flight_search(struct http_request *req)
     char *departure0 = "SchipInJeHol";
     char *arrival0 = "UitjeHol";
 
-    struct tm departuretime0 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
-    struct tm arrivaltime0 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
-
     FlightSearchListNode flight_node0 = {
         .flight = {
-            .arrival_datetime = arrivaltime0,
-            .departure_datetime = departuretime0,
+            .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
+            .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
             .arrival_location = arrival0,
             .departure_location = departure0
         }
@@ -83,13 +73,10 @@ flight_search(struct http_request *req)
     char *departure1 = "SchipUitJeHol";
     char *arrival1 = "InjeHol";
 
-    struct tm departuretime1 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
-    struct tm arrivaltime1 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
-
     FlightSearchListNode flight_node1 = {
         .flight = {
-            .arrival_datetime = arrivaltime1,
-            .departure_datetime = departuretime1,
+            .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
+            .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
             .arrival_location = arrival1,
             .departure_location = departure1
         }
@@ -113,13 +100,19 @@ flight_search(struct http_request *req)
 int flight_search_parseparams(struct http_request *req, FlightSearchParams *search_params)
 {
     http_populate_post(req);
+    int err = 0;
     char *date = NULL;
     if(!http_argument_get_string(req, "arrivaldate", &date))
     {
         return (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID);
     }
 
-    shared_time_user_input_string_to_tm(date, &search_params->arrivaldate);
+    if((err = shared_time_string_to_tm(date, &search_params->arrivaldate, "%d-%m-%Y")) 
+        != (SHARED_OK))
+    {
+        kore_log(LOG_ERR, "flight_search_parseparams: time conversion error %d", err);
+        return (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID);
+    }
 
     return (SHARED_OK);
 }

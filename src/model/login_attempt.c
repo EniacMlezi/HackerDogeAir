@@ -157,7 +157,7 @@ void *
 login_attempt_get_amount_of_attempts(void *source_location, uint32_t *error)
 {
 #pragma GCC diagnostic push  // require GCC 4.6
-#pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
     return (void *) kore_pgsql_ntuples((struct kore_pgsql *) source_location); 
 #pragma GCC diagnostic pop
 }
@@ -183,6 +183,8 @@ login_attempt_amount_of_logins_in_five_minutes(uint32_t user_identifier, uint32_
         database_engine_log_error("login_attempt_amount_of_logins_in_five_minutes", query_result);  
         *error = (query_result);
     }
-       
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
     return (uint32_t)data;
+#pragma GCC diagnostic pop
 }
