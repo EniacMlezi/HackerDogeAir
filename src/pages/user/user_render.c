@@ -1,7 +1,6 @@
 
-#include "pages/register/register_render.h"
+#include "pages/user/user_render.h"
 
-#include <stdbool.h>
 #include <kore/kore.h>
 #include <mustache.h>
 
@@ -11,23 +10,23 @@
 #include "pages/shared/shared_user_render.h"
 #include "model/user.h"
 
-int         register_render(UserContext *);
-void        register_render_clean(UserContext *);
+int         user_render(PartialContext *);
+void        user_render_clean(PartialContext *);
 
 int
-register_render(UserContext *context)
+user_render(PartialContext *context)
 {
     int err = 0;
 
     mustache_api_t api={
         .read = &partial_strread,
         .write = &partial_strwrite,
-        .varget = &user_varget,
+        .varget = &partial_varget,
         .sectget = &partial_sectget,
         .error = &partial_error,
     };
 
-    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_register_chtml)) 
+    if((err = full_render(context, &api, (const char* const)asset_user_chtml)) 
         != (SHARED_ERROR_OK))
     {
         return err;
@@ -37,7 +36,7 @@ register_render(UserContext *context)
 }
 
 void
-register_render_clean(UserContext *context)
+user_render_clean(PartialContext *context)
 {
-    partial_render_clean(&context->partial_context);
+    partial_render_clean(context);
 }

@@ -1,6 +1,7 @@
 #ifndef PARTIAL_RENDER_H
 #define PARTIAL_RENDER_H
 
+#include <stdbool.h>
 #include <mustache.h>
 
 #define SHARED_RENDER_ERROR_ALLOC       1000
@@ -18,6 +19,7 @@ typedef struct PartialContext
 {
     mustache_str_ctx *src_context;
     mustache_str_ctx *dst_context;
+    bool should_html_escape; // set this to true before a partial_strwrite to enforce html escaping
     int session_id; //TODO: replace with a session struct
 } PartialContext;
 
@@ -81,13 +83,6 @@ Writes to a PartialContext string context.
 */
 uintmax_t
 partial_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size);
-
-/*
-Alternative Partial mustache write function.
-Writes to a mustache_str_context without the use of a PartialContext.
-*/
-uintmax_t 
-partial_mustache_strwrite(mustache_api_t *api, void *userdata, char const *buffer, uintmax_t buffer_size);
 
 /*
 Partial mustache error handler.

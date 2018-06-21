@@ -22,14 +22,14 @@ int     register_user(struct http_request *);
 int     register_parse_params(struct http_request *req, User *user);
 int     register_try_register(User *);
 
-void    register_error_handler(struct http_request *req, int errcode, RegisterContext *context);
+void    register_error_handler(struct http_request *req, int errcode, UserContext *context);
 
 int
 register_user(struct http_request *req)
 {
     int err;
     User user = {0, NULL, NULL, NULL, NULL, NULL, NULL};
-    RegisterContext context = {
+    UserContext context = {
         .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
@@ -66,9 +66,8 @@ register_user(struct http_request *req)
         return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
     }
 
-    const char *success = "successfully registered";
-    http_response_header(req, "content-type", "text/plain");
-    http_response(req, HTTP_STATUS_OK, success, strlen(success));
+    http_response_header(req, "content-type", "text/html");
+    http_response(req, HTTP_STATUS_OK, asset_register_success_html, asset_len_register_success_html);
 
     return (KORE_RESULT_OK);
 }
@@ -147,7 +146,7 @@ out:
 }
 
 void
-register_error_handler(struct http_request *req, int errcode, RegisterContext *context)
+register_error_handler(struct http_request *req, int errcode, UserContext *context)
 {
     bool handled = true;
     int err = 0;
@@ -178,7 +177,7 @@ register_error_handler(struct http_request *req, int errcode, RegisterContext *c
 
     if(!handled)
     {
-        shared_error_handler(req, errcode);
+        shared_error_handler(req, errcode, "/register");
     }
     else
     {

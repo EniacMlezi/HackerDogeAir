@@ -1,22 +1,20 @@
 #include <stdbool.h>
-#include <limits.h>
 #include <time.h>
-#include <libscrypt.h>
 
 #include <kore/kore.h>
 #include <kore/http.h>
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
-#include "pages/home/home_render.h"
+#include "pages/user/user_render.h"
 #include "model/user.h"
 #include "assets.h"
 
-int    home(struct http_request *);
-void   home_error_handler(struct http_request *, int);
+int    user(struct http_request *);
+void   user_error_handler(struct http_request *, int);
 
 int 
-home(struct http_request *req)
+user(struct http_request *req)
 {
     int err;
     PartialContext context = {
@@ -29,22 +27,22 @@ home(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = home_render(&context)) != (SHARED_ERROR_OK))
+    if((err = user_render(&context)) != (SHARED_ERROR_OK))
     {
-        home_error_handler(req, err);
+        user_error_handler(req, err);
     }
 
     http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, 
+    http_response(req, HTTP_STATUS_OK,
         context.dst_context->string,
         strlen(context.dst_context->string));
 
-    home_render_clean(&context);
+    user_render_clean(&context);
     return (KORE_RESULT_OK);    
 }
 
 void
-home_error_handler(struct http_request *req, int errcode)
+user_error_handler(struct http_request *req, int errcode)
 {
-    shared_error_handler(req, errcode, "/");
+    shared_error_handler(req, errcode, "/");    // redirect to user would cause recursive render 
 }

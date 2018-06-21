@@ -23,14 +23,14 @@ int    login_parseparams(struct http_request *, User *);
 int    login_trylogin(User *);
 int    login_check_bruteforce(struct kore_pgsql *, int);
 int    login_log_attempt(struct kore_pgsql *, int, bool);
-void   login_error_handler(struct http_request *, int, LoginContext *);
+void   login_error_handler(struct http_request *, int, UserContext *);
 
 int 
 login(struct http_request *req)
 {
     int err = 0;
     User user = {0, NULL, NULL};
-    LoginContext context = {
+    UserContext context = {
         .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
@@ -215,7 +215,7 @@ login_log_attempt(struct kore_pgsql *pgsql, int userid, bool success)
 }
 
 void
-login_error_handler(struct http_request *req, int errcode, LoginContext *context)
+login_error_handler(struct http_request *req, int errcode, UserContext *context)
 {
     bool handled = true;
     int err = 0;
@@ -227,7 +227,7 @@ login_error_handler(struct http_request *req, int errcode, LoginContext *context
             break;
         case (LOGIN_ERROR_EMAIL_VALIDATOR_INVALID):
                 context->error_message = 
-                "Please use a correct email address (e.g. test@example.com)";
+                "Please use a correct email address. (e.g. test@example.com)";
             break;
         case (LOGIN_ERROR_PASSWORD_VALIDATOR_INVALID):
                 context->error_message = 
@@ -245,7 +245,7 @@ login_error_handler(struct http_request *req, int errcode, LoginContext *context
 
     if(!handled)
     {
-        shared_error_handler(req, errcode);
+        shared_error_handler(req, errcode, "/login");
     }
     else
     {

@@ -24,8 +24,8 @@ header_render(PartialContext *context)
     }
 
     mustache_api_t api={
-        .read = &partial_strread,  //std read will suffice
-        .write = &partial_strwrite,     // need custom write for handling mustache_str_ctx **
+        .read = &partial_strread,
+        .write = &partial_strwrite,
         .varget = &header_varget,
         .sectget = &partial_sectget,
         .error = &partial_error,
