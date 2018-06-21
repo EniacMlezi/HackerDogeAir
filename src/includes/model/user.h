@@ -18,7 +18,7 @@ typedef struct
     char        *telephone_number;
     char        *password;
     uint32_t     doge_coin;
-    char        *registration_datetime; 
+    struct tm   registration_datetime; 
 } User;
 
 typedef struct UserCollection
@@ -38,7 +38,7 @@ user_create(
     const char    *telephone_number,
     const char    *password,
     uint32_t       doge_coin,
-    const char    *registration_datetime,
+    struct tm      registration_datetime,
     uint32_t *error
     );
 

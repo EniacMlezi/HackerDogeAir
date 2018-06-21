@@ -37,8 +37,7 @@ static const char login_attempt_retrieve_attempts_query[] =
 //static const char login_attempt_select_by_identifier[] = "";
 
 LoginAttempt *
-login_attempt_create(uint32_t user_identifier, bool login_result,
-    uint32_t *error)
+login_attempt_create(uint32_t user_identifier, bool login_result, uint32_t *error)
 {
     LoginAttempt *login_attempt = malloc(sizeof(LoginAttempt));
 
