@@ -32,8 +32,8 @@ user_bookings(struct http_request *req)
     char *departure0 = "SchipInJeHol";
     char *arrival0 = "UitjeHol";
 
-    struct tm departuretime0 = {0, 10, 0, 0, 0, 0, 0, 0};
-    struct tm arrivaltime0 = {0, 15, 0, 0, 0, 0, 0, 0};
+    struct tm departuretime0 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
+    struct tm arrivaltime0 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
 
     UserBookingListNode booking_node0 = {
         .flight = {
@@ -48,8 +48,8 @@ user_bookings(struct http_request *req)
     char *departure1 = "SchipUitJeHol";
     char *arrival1 = "InjeHol";
 
-    struct tm departuretime1 = {0, 10, 0, 0, 0, 0, 0, 0};
-    struct tm arrivaltime1 = {0, 15, 0, 0, 0, 0, 0, 0};
+    struct tm departuretime1 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
+    struct tm arrivaltime1 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
 
     UserBookingListNode booking_node1 = {
         .flight = {
