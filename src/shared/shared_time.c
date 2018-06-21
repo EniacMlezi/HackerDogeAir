@@ -1,21 +1,42 @@
 #define _XOPEN_SOURCE 700 //must be defined for strptime from time.h
 #include "shared/shared_time.h"
 
+#include <stdio.h>
+#include <stdint.h>
+#include <string.h>
 #include <time.h>
 
 #include "shared/shared_error.h"
 
-int shared_time_time_t_to_string(time_t *src, char *dest, const char *__restrict __format, int maxsize)
+char *
+shared_time_tm_to_database_string(struct tm time, char *destination_string, uint32_t *error)
 {
-    struct tm *date_tm = localtime(src);
-    if(NULL == date_tm)
-    {
-        return (SHARED_TIME_ERROR_PRINT);
-    }
-    if(strftime(dest, maxsize, __format, date_tm) == 0)
-    {
-        return (SHARED_TIME_ERROR_LOCALTIME);
-    }
+  if(strftime(destination_string, strlen(destination_string), "%Y-%m-%d %H:%M:%S", &time) !=
+    strlen(destination_string))
+  {
+    perror("shared_time_tm_to_database_string: Encountered a conversion error.\n");
+    *error = (SHARED_TIME_CONVERSION_ERROR);
+    return NULL;
+  }
 
-    return (SHARED_OK);
+   *error = (SHARED_OK);
+   return destination_string;
+}
+
+uint32_t
+shared_time_database_string_to_tm(const char *source_location, struct tm *destination)
+{
+    /* This function return both a nullptr in the case of an error and when the complete 
+    source_location is processed and is thus not handable. */
+    strptime(source_location, "%Y-%m-%d %H:%M:%S", destination);
+    return (SHARED_TIME_CONVERSION_OK);
+}
+
+uint32_t
+shared_time_user_input_string_to_tm(const char *source_location, struct tm *destination)
+{
+    /* This function return both a nullptr in the case of an error and when the complete 
+    source_location is processed and is thus not handable. */
+    strptime(source_location, "%d-%m-%Y", destination);
+    return (SHARED_TIME_CONVERSION_OK);
 }

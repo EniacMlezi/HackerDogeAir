@@ -2,11 +2,13 @@
 #define LOGIN_ATTEMPT_H
 
 #include <stdint.h>
+#include <time.h>
 #include <sys/queue.h>
 
 typedef struct
 {
     uint32_t    user_identifier;
+    struct tm   login_attempt_date_time;
     bool        login_result;
 } LoginAttempt;
 

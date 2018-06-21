@@ -7,6 +7,7 @@
 #include <kore/http.h>
 #include <kore/pgsql.h>
 
+#include "shared/shared_time.h"
 #include "shared/shared_error.h"
 #include "pages/flight/flight_search/flight_search_render.h"
 #include "model/user.h"
@@ -26,7 +27,16 @@ flight_search(struct http_request *req)
     int err = 0;
     FlightSearchContext context = {
         .partial_context = {.session_id = 0},
-        .params = {.arrivaldate = 0 }
+        .params = {.arrivaldate = (struct tm) {
+            .tm_year     = 0,
+            .tm_mon      = 0,
+            .tm_mday     = 0,
+            .tm_hour     = 0,
+            .tm_min      = 0,
+            .tm_sec      = 0,  
+            .tm_wday     = 0,
+            .tm_yday     = 0
+        }}
     };
     SLIST_INIT(&context.flightlist);
     if(req->method == HTTP_METHOD_GET)
@@ -109,14 +119,8 @@ int flight_search_parseparams(struct http_request *req, FlightSearchParams *sear
         return (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID);
     }
 
-    struct tm date_tm;
-    memset(&date_tm, 0, sizeof(date_tm));
-    char *ret = strptime(date, "%d-%m-%Y", &date_tm);
-    if(NULL == ret || *ret != '\0')
-    {
-        return (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID);
-    }
-    search_params->arrivaldate = mktime(&date_tm);
+    shared_time_user_input_string_to_tm(date, &search_params->arrivaldate);
+
     return (SHARED_OK);
 }
 

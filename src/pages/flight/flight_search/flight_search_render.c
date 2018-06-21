@@ -48,29 +48,22 @@ flight_search_render_clean(FlightSearchContext *context)
 uintmax_t
 flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    int err = 0;
+    uint32_t err = 0;
     FlightSearchContext *ctx = (FlightSearchContext *) userdata;
     char date_conversion_ouput[30];
     const char *output_string = NULL;
 
     if(strncmp("arrivaldate", token->text, token->text_length) == 0)
     {
-        if(ctx->params.arrivaldate == 0)
+        shared_time_tm_to_database_string(ctx->params.arrivaldate, date_conversion_ouput, &err);
+
+        if(err == (SHARED_TIME_CONVERSION_ERROR))
         {
-            output_string = SHARED_RENDER_EMPTY_STRING;
+            kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
+            return (SHARED_RENDER_MUSTACHE_FAIL);
         }
         else
         {
-            if ((err = shared_time_time_t_to_string(
-                &ctx->params.arrivaldate,
-                date_conversion_ouput,
-                "%d-%m-%Y",
-                sizeof(date_conversion_ouput)) != (SHARED_OK)))
-            {
-                kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
-                return (SHARED_RENDER_MUSTACHE_FAIL);
-            }
-
             output_string = date_conversion_ouput;
         }
     }
