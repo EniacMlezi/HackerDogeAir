@@ -2,9 +2,8 @@
     <header>
         <h2>HackerDogeAir</h2>
             <nav>
-                <a href="/">Home</a>
-                <a href="">Flights</a>
+                {{NAVBAR}}
             </nav>
-        <p><a href="">login/register</a></p>
+        <p>{{LOGGEDIN}}</p>
     </header>
 </div>

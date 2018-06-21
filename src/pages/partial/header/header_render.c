@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <kore/kore.h>
 #include <mustache.h>
+#include <stdbool.h>
 
 #include "shared/shared_error.h"
 #include "assets.h"
@@ -47,21 +48,46 @@ header_render_clean(PartialContext *context)
 uintmax_t
 header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
-    PartialContext *ctx = (PartialContext *)userdata;
-    if(strncmp("session_id", token->text, token->text_length) == 0)
+    const char *output_string = NULL;
+    bool isAdmin = true;
+    bool isLoggedIn = true;
+    
+    if(strncmp("NAVBAR", token->text, token->text_length) == 0)
     {
-        char session_id[12];
-        if(snprintf(session_id, 12, "%d", ctx->session_id) <= 0)
+        //TODO: acquire current logged in user role, if admin show admin nav
+        if(!isAdmin)
         {
-            return (SHARED_RENDER_MUSTACHE_FAIL); //error
+            output_string = "<a href='/'>Home</a>\n<a href=''>Flights</a>";
         }
-        size_t session_id_len = strlen(session_id);
-        uintmax_t ret = api->write(api, userdata, session_id, session_id_len);
-        if(ret != session_id_len)
+        else
         {
-            return (SHARED_RENDER_MUSTACHE_FAIL);
+            output_string = "<a href='/'>Home</a>\n<a href='flightsearch'>Flights</a>\n<a href='admin'>Admin</a>";
         }
-        return (SHARED_RENDER_MUSTACHE_OK);
     }
-    return (SHARED_RENDER_MUSTACHE_FAIL);
+    else if(strncmp("LOGGEDIN", token->text, token->text_length) == 0)
+    {
+        //TODO: acquire current logged in user role, if admin show admin nav
+        if(!isLoggedIn)
+        {
+            output_string = "<a href='login'>login/register</a>";
+        }
+        else
+        {
+            output_string = "<a href='userdetail'>User</a>\n<a href='logout'>Logout</a>";
+        }
+    }
+
+    if(NULL == output_string)
+    {
+        kore_log(LOG_INFO, "failed user list render: unknown template variable");
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+
+    size_t output_string_len = strlen(output_string);
+    uintmax_t ret = api->write(api, userdata, output_string, output_string_len);
+    if(ret != output_string_len)
+    {
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    return (SHARED_RENDER_MUSTACHE_OK);
 }
