@@ -31,12 +31,12 @@ flight_search_render(FlightSearchContext *context)
     };
 
     if((err = full_render((PartialContext *)context, &api,
-        (const char* const)asset_flight_search_chtml)) != (SHARED_ERROR_OK))
+        (const char* const)asset_flight_search_chtml)) != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void         
@@ -65,7 +65,7 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
                 &ctx->params.arrivaldate,
                 date_conversion_ouput,
                 "%d-%m-%Y",
-                sizeof(date_conversion_ouput)) != (SHARED_ERROR_OK)))
+                sizeof(date_conversion_ouput)) != (SHARED_OK)))
             {
                 kore_log(LOG_ERR, "flight_search_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);

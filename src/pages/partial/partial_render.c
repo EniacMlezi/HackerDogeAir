@@ -31,9 +31,9 @@ full_render(PartialContext *context, mustache_api_t *api, const char* const temp
     PartialContext copy_context;
     partial_render_copy_context(context, &copy_context);
     if((err = partial_render_create_str_context(&copy_context, template_string)) 
-        != (SHARED_ERROR_OK))
+        != (SHARED_OK))
     {
-        if(err == SHARED_RENDER_ERROR_ALLOC)
+        if(err == SHARED_ERROR_ALLOC_ERROR)
         {   // do not clean up when allocation failed.
             return err;
         }
@@ -46,23 +46,23 @@ full_render(PartialContext *context, mustache_api_t *api, const char* const temp
         .sectget = &partial_sectget,
         .error = &partial_error,
     };
-    if((err = partial_render_mustache_render(&partial_api, &copy_context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(&partial_api, &copy_context)) != (SHARED_OK))
     {
         goto exit;
     }
     
     //render all page specifics using supplied api
     if((err = partial_render_create_str_context(context,
-     (const char* const)copy_context.dst_context->string)) != (SHARED_ERROR_OK))
+     (const char* const)copy_context.dst_context->string)) != (SHARED_OK))
     {
         goto exit;
     }
-    if((err = partial_render_mustache_render(api, context)) != (SHARED_ERROR_OK))
+    if((err = partial_render_mustache_render(api, context)) != (SHARED_OK))
     {
         goto exit;
     }
 
-    err = (SHARED_ERROR_OK);
+    err = (SHARED_OK);
 
 exit:
     partial_render_clean(&copy_context);
@@ -85,7 +85,7 @@ partial_render_mustache_render(mustache_api_t *api, void *context)
     }
     mustache_free(api, template);
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void
@@ -116,7 +116,7 @@ partial_render_create_str_context(PartialContext *context, const char* const tem
 
     if(NULL == context->src_context || NULL == context->dst_context)
     {
-        return (SHARED_RENDER_ERROR_ALLOC);
+        return (SHARED_ERROR_ALLOC_ERROR);
     }
 #pragma GCC diagnostic push  // require GCC 4.6
 #pragma GCC diagnostic ignored "-Wcast-qual"
@@ -126,7 +126,7 @@ partial_render_create_str_context(PartialContext *context, const char* const tem
     context->dst_context->string = NULL;
     context->dst_context->offset = 0;
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 uintmax_t
@@ -141,7 +141,7 @@ partial_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *t
 
     if(strncmp("PARTIAL_HEADER", token->text, token->text_length) == 0)
     {
-        if((err = header_render(&new_ctx)) != (SHARED_ERROR_OK))
+        if((err = header_render(&new_ctx)) != (SHARED_OK))
         {
             return (SHARED_RENDER_MUSTACHE_FAIL);
         }

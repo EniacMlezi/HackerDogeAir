@@ -31,12 +31,12 @@ user_bookings_render(UserBookingsContext *context)
     };
 
     if((err = full_render((PartialContext *)context, &api,
-        (const char* const)asset_user_bookings_chtml)) != (SHARED_ERROR_OK))
+        (const char* const)asset_user_bookings_chtml)) != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void         

@@ -21,14 +21,6 @@ static const char login_attempt_insert_query[] =
 static const char login_attempt_delete_query[] = 
     "DELETE FROM \"LoginAttempt\" WHERE useridentifier = $1;";
 
-static const char login_attempt_update_query[] = 
-    "UPDATE \"LoginAttempt\" " \
-    "SET " \
-    "useridentifier = $1, " \
-    "datetime = NOW, " \
-    "success = $2 " \
-    "WHERE useridentifier = $1;";
-
 static const char login_attempt_retrieve_attempts_query[] = 
     "SELECT * FROM \"LoginAttempt\" " \
     "WHERE useridentifier = $1 " \
@@ -44,7 +36,7 @@ login_attempt_create(uint32_t user_identifier, bool login_result,
 
     if(login_attempt == NULL)
     {
-        perror("login_attempt_create: Could not allocate memory for a login_attempt structure.\n");
+        kore_log(LOG_ERR, "login_attempt_create: Could not allocate memory for a login_attempt structure.");
         *error = (LOGIN_ATTEMPT_ERROR_CREATE);
         return NULL;
     }
@@ -52,7 +44,7 @@ login_attempt_create(uint32_t user_identifier, bool login_result,
     login_attempt->user_identifier = user_identifier;
     login_attempt->login_result = login_result;
 
-    *error = (LOGIN_ATTEMPT_CREATE_SUCCESS);
+    *error = (SHARED_OK);
     return login_attempt;
 }
 
@@ -68,7 +60,7 @@ login_attempt_create_from_query(void *source_location, uint32_t *error)
 {
     if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 1)
     {
-        perror("login_attempt_create_from_query: Invallid source location.\n");
+        kore_log(LOG_ERR, "login_attempt_create_from_query: Invalid source location");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
@@ -80,8 +72,8 @@ login_attempt_create_from_query(void *source_location, uint32_t *error)
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Could not translate db_identifier " \
-            "string to uint32_t.\n");
-        *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            "string to uint32_t");
+        *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
 
@@ -90,8 +82,8 @@ login_attempt_create_from_query(void *source_location, uint32_t *error)
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Could not translate db_success " \
-            "string to uint32_t.\n");
-        *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            "string to uint32_t");
+        *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }    
 
@@ -101,7 +93,8 @@ login_attempt_create_from_query(void *source_location, uint32_t *error)
 
     if(temp_login_attampt == NULL)
     {
-        perror("login_attampt_create_from_query: Could not create a login_attempt structure.\n"); 
+        kore_log(LOG_ERR, "login_attempt_create_from_query: Could not create a login_attempt " \
+            "structure."); 
         *error = create_login_attemp_result;
     } 
 
@@ -129,119 +122,68 @@ login_attempt_collection_destroy(LoginAttempt *login_attempt_collection)
 uint32_t
 login_attempt_insert(const LoginAttempt *login_attempt)
 {
-    uint32_t result = (LOGIN_LOG_ATTEMPT_SUCCESS);
-
     uint32_t user_identifier = htonl(login_attempt->user_identifier);
-    uint32_t login_result = htonl(login_attempt->login_result);
 
-    uint32_t error = database_engine_execute_write(login_attempt_insert_query, 2,
+    uint32_t query_result = database_engine_execute_write(login_attempt_insert_query, 2,
     &user_identifier, sizeof(user_identifier), 1,
-    &login_result, sizeof(login_result), 1);
+    &login_attempt->login_result, sizeof(login_attempt->login_result), 1);
 
-    if(error != (DATABASE_ENGINE_OK))
+    if(query_result != (SHARED_OK))
     {
-        switch(error)
-        {
-            default:
-                perror("login_attempt_insert: Could not insert the login_attempt structure into " \
-                    "the database.\n");
-                result = error;
-                break; 
-        }
+        database_engine_log_error("login_attempt_insert", query_result);
+        return (LOGIN_ATTEMPT_ERROR_INSERT);
     }
 
-    return result;
-}
-
-uint32_t
-login_attempt_update(const LoginAttempt *login_attempt)
-{
-    uint32_t result = (DATABASE_ENGINE_OK);
-    uint32_t user_identifier = htonl(login_attempt->user_identifier);
-    uint32_t login_result = htonl(login_attempt->login_result);
-
-    uint32_t error = database_engine_execute_write(login_attempt_update_query, 3,
-        user_identifier, sizeof(user_identifier), 1,
-        login_result, sizeof(login_result), 1,
-        user_identifier, sizeof(user_identifier), 1);
-
-    if(error != (DATABASE_ENGINE_OK))
-    {
-        switch(error)
-        {
-            default:
-                perror("login_attempt_update: Could not update the login_attempt structure.\n");
-                result = error;
-                break; 
-        }
-    }
-
-    return result;
+    return (SHARED_OK);
 }
 
 uint32_t
 login_attempt_delete(LoginAttempt *login_attempt)
 {
-    uint32_t result = (DATABASE_ENGINE_OK);
     uint32_t user_identifier = htonl(login_attempt->user_identifier);
 
-    uint32_t error = database_engine_execute_write(login_attempt_delete_query, 1,
+    uint32_t query_result = database_engine_execute_write(login_attempt_delete_query, 1,
         &user_identifier, sizeof(user_identifier), 1);
 
-    switch(error)
+    if(query_result != (SHARED_OK))
     {
-        default:
-        perror("login_attempt_delete: Could not delete the login_attempt structure from the " \
-            " database.\n");
+        database_engine_log_error("login_attempt_delete", query_result);
+        return (LOGIN_ATTEMPT_ERROR_DELETE);
+    }   
 
-        result = error;
-        break; 
-    }
-
-    return result;
+    return (SHARED_OK);
 }
 
 void *
 login_attempt_get_amount_of_attempts(void *source_location, uint32_t *error)
 {
-    #pragma GCC diagnostic push  // require GCC 4.6
-    #pragma GCC diagnostic ignored "-Wcast-qual"
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wcast-qual"
     return (void *) kore_pgsql_ntuples((struct kore_pgsql *) source_location); 
-    #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 }
 
 uint32_t
-login_attempt_amount_of_logins_in_five_minutes(uint32_t user_identifier)
+login_attempt_amount_of_logins_in_five_minutes(uint32_t user_identifier, uint32_t *error)
 {
-    uint32_t result;
-
+    *error = (SHARED_OK);
     uint32_t network_user_identifier = htonl(user_identifier);
 
-    uint32_t error;
+    uint32_t query_result;
     void *data = database_engine_execute_read(login_attempt_retrieve_attempts_query, 
-        login_attempt_get_amount_of_attempts, &error, 1,
+        login_attempt_get_amount_of_attempts, &query_result, 1,
         &network_user_identifier, sizeof(network_user_identifier), 1);
-
 
     if(data == NULL)
     {
-        switch(error)
+        if(query_result == (DATABASE_ENGINE_ERROR_NO_RESULTS))
         {
-        default:
-        return (LOGIN_ATTEMPT_ERROR_CREATE);
-        break;
+            *error = query_result;
+            return 0;
         }
+        database_engine_log_error("login_attempt_amount_of_logins_in_five_minutes", query_result);  
+        *error = (LOGIN_ATTEMPT_ERROR_SELECT);
     }
        
-    result = (int) data;
-
-    return result;
+    return (uint32_t)data;
 }
-
-/*
-LoginAttemptCollection *
-login_attempt_collection_find_by_identifier(uint32_t user_identifier, uint32_t *error)
-{
-
-}
-*/

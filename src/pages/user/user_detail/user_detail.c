@@ -35,7 +35,7 @@ user_detail(struct http_request *req)
     if(req->method == HTTP_METHOD_GET)
     {
         //TODO: fill context.user with DataAccess Layer
-        if((err = user_detail_render(&context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(&context)) != (SHARED_OK))
         {
             user_detail_error_handler(req, err, &context);
             return (KORE_RESULT_OK);
@@ -54,7 +54,7 @@ user_detail(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = user_detail_parseparams(req, context.user)) != (SHARED_ERROR_OK))
+    if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
     {
         user_detail_error_handler(req, err, &context);
         return (KORE_RESULT_OK);
@@ -73,7 +73,7 @@ int
 user_detail_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
-    int err = (SHARED_ERROR_OK);
+    int err = (SHARED_OK);
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
         err = (USER_DETAIL_ERROR_EMAIL_VALIDATOR_INVALID);
@@ -139,7 +139,7 @@ user_detail_error_handler(struct http_request *req, int errcode, UserContext *co
     }
     else
     {
-        if((err = user_detail_render(context)) != (SHARED_ERROR_OK))
+        if((err = user_detail_render(context)) != (SHARED_OK))
         {
             user_detail_error_handler(req, err, context);
         }

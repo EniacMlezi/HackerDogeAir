@@ -23,7 +23,7 @@ login_parse_params(
     User *user
     );
 
-uint32_t    
+uint32_t
 login_try_login(
     User *input_user
     );
@@ -48,9 +48,9 @@ login_error_handler(
     );
 
 uint32_t
-login_validate_user_credentials(
-    const User *input_user, 
-    const User *database_user
+login_validate_password(
+    char *password1, 
+    char *password2
     );
 
 #endif

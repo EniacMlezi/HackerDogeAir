@@ -62,7 +62,8 @@ login_attempt_delete(
 
 uint32_t
 login_attempt_amount_of_logins_in_five_minutes(
-    uint32_t user_identifier
+    uint32_t user_identifier,
+    uint32_t *error
     );
 
 /*

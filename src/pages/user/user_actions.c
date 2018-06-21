@@ -27,7 +27,7 @@ user_actions(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = user_actions_render(&context)) != (SHARED_ERROR_OK))
+    if((err = user_actions_render(&context)) != (SHARED_OK))
     {
         user_actions_error_handler(req, err);
     }

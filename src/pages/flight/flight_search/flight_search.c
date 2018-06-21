@@ -47,7 +47,7 @@ flight_search(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = flight_search_parseparams(req, &context.params)) != (SHARED_ERROR_OK))
+    if((err = flight_search_parseparams(req, &context.params)) != (SHARED_OK))
     {
         flight_search_error_handler(req, err, &context);
         return (KORE_RESULT_OK);
@@ -86,7 +86,7 @@ flight_search(struct http_request *req)
     };
     SLIST_INSERT_HEAD(&context.flightlist, &flight_node1, flights);
 
-    if((err = flight_search_render(&context)) != (SHARED_ERROR_OK))
+    if((err = flight_search_render(&context)) != (SHARED_OK))
     {
         flight_search_error_handler(req, err, &context);  
         return (KORE_RESULT_OK); 
@@ -117,7 +117,7 @@ int flight_search_parseparams(struct http_request *req, FlightSearchParams *sear
         return (FLIGHT_SEARCH_ERROR_ARRIVALDATE_VALIDATOR_INVALID);
     }
     search_params->arrivaldate = mktime(&date_tm);
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void
@@ -142,7 +142,7 @@ flight_search_error_handler(struct http_request *req, int errcode, FlightSearchC
     }
     else
     {
-        if((err = flight_search_render(context)) != (SHARED_ERROR_OK))
+        if((err = flight_search_render(context)) != (SHARED_OK))
         {
             flight_search_error_handler(req, err, context);
         }

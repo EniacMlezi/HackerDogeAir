@@ -29,7 +29,7 @@ home(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = home_render(&context)) != (SHARED_ERROR_OK))
+    if((err = home_render(&context)) != (SHARED_OK))
     {
         home_error_handler(req, err);
     }

@@ -17,5 +17,5 @@ int shared_time_time_t_to_string(time_t *src, char *dest, const char *__restrict
         return (SHARED_TIME_ERROR_LOCALTIME);
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }

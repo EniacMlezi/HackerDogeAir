@@ -35,10 +35,10 @@ database_engine_initialize(struct kore_pgsql *pgsql, char *database_name)
         goto error_exit;
     }
 
-    return (DATABASE_ENGINE_OK);
+    return (SHARED_OK);
 
     /* Error exit label. */
-    error_exit: 
+error_exit: 
     kore_pgsql_cleanup(pgsql);
     return return_code;
 }
@@ -47,7 +47,7 @@ static uint32_t
 database_engine_close_connection(struct kore_pgsql *pgsql)
 {
     kore_pgsql_cleanup(pgsql); 
-    return (DATABASE_ENGINE_OK);
+    return (SHARED_OK);
 }
 
 uint32_t
@@ -56,12 +56,11 @@ database_engine_execute_write(const char *sql_query, uint32_t count, ...)
     va_list parameters;
     va_start(parameters, count);
 
-    uint32_t return_code = (DATABASE_ENGINE_OK);
+    uint32_t return_code = (SHARED_OK);
     struct kore_pgsql database_connection;
 
-    if(database_engine_initialize(&database_connection, DATABASE_NAME) != DATABASE_ENGINE_OK)
+    if(database_engine_initialize(&database_connection, DATABASE_NAME) != (SHARED_OK))
     {
-        perror("database_engine_execute_write: Could not initialize the database.\n");
         return_code = (DATABASE_ENGINE_ERROR_INITIALIZATION);
         goto error_exit; 
     }    
@@ -74,10 +73,9 @@ database_engine_execute_write(const char *sql_query, uint32_t count, ...)
         goto error_exit;
     }
 
-    va_end(parameters);
-
-    error_exit:
+error_exit:
     database_engine_close_connection(&database_connection);
+    va_end(parameters);
     return return_code;
 }
 
@@ -89,14 +87,12 @@ database_engine_execute_read(const char *sql_query,
     va_list parameters;
     va_start(parameters, count);
 
-    void *return_value;
+    void *return_value = NULL;
     struct kore_pgsql database_connection;
 
-    if(database_engine_initialize(&database_connection, DATABASE_NAME) != DATABASE_ENGINE_OK)
+    if(database_engine_initialize(&database_connection, DATABASE_NAME) != (SHARED_OK))
     {
-        perror("database_engine_execute_read: Could not initialize database.\n");
         *error = (DATABASE_ENGINE_ERROR_INITIALIZATION);
-        return_value = NULL;
         goto error_exit;
     }
 
@@ -104,37 +100,47 @@ database_engine_execute_read(const char *sql_query,
     {
         kore_pgsql_logerror(&database_connection);
         *error = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
-        return_value = NULL;
         goto error_exit; 
     }
 
     if(kore_pgsql_ntuples(&database_connection) == 0)
     {
-        perror("database_engine_execute_read: No results found.\n");
         *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-        return_value = NULL;
         goto error_exit;
     }
 
-    uint32_t err;
-    if((return_value = model_build_from_query(&database_connection, &err))
-     == NULL) 
-    {
-        switch(err)
-        {
-            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
-            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
-            default:
-                perror("database_engine_execute_read: Could not interpret the " \
-                    "query result.\n");
-                *error = (DATABASE_ENGINE_ERROR_INVALLID_RESULT);
-                return_value = NULL;
-            break;
-        }
-    }
+    return_value = model_build_from_query(&database_connection, error);  
 
-    error_exit:
+error_exit:
     va_end(parameters);
     database_engine_close_connection(&database_connection);
     return return_value;
+}
+
+void 
+database_engine_log_error(const char *prefix, uint32_t error)
+{
+    if(error == (SHARED_OK))
+    {
+        return;
+    }
+
+    switch(error)
+    {
+        case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            kore_log(LOG_ERR, "%s: could not initialize database", prefix);
+            break;
+        case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+            kore_log(LOG_ERR, "%s: query error", prefix);
+            break;
+        case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+            kore_log(LOG_ERR, "%s: result parsing error", prefix);
+            break;
+        case (SHARED_ERROR_ALLOC_ERROR):
+            kore_log(LOG_CRIT, "%s: failed allocation", prefix);
+            break;
+        default:
+            kore_log(LOG_ERR, "%s: the database encountered a problem", prefix);
+            break;
+    }
 }

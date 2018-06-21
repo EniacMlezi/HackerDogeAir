@@ -28,12 +28,12 @@ register_render(UserContext *context)
     };
 
     if((err = full_render((PartialContext *)context, &api, (const char* const)asset_register_chtml)) 
-        != (SHARED_ERROR_OK))
+        != (SHARED_OK))
     {
         return err;
     }
 
-    return (SHARED_ERROR_OK);
+    return (SHARED_OK);
 }
 
 void

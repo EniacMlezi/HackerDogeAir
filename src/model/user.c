@@ -15,9 +15,9 @@
 #include "shared/shared_error.h"
 
 static const char user_insert_query[] = 
-    "INSERT INTO User useridentifier,userrole,emailaddress,username,password,dogecoin," \
-    "registrationtime,firstname,lastname,telephonenumber " \
-    " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);";
+    "INSERT INTO \"User\" (userrole,emailaddress,username,password,dogecoin," \
+    "registrationtime,firstname,lastname,telephonenumber) " \
+    " VALUES ($1, $2, $3, $4, $5, now(), $6, $7, $8);";
 
 static const char user_update_query[] =
     "UPDATE User " \
@@ -35,12 +35,6 @@ static const char user_update_query[] =
     "WHERE useridentifier = $ 11;";
 
 static const char user_delete_query[] = "DELETE FROM User WHERE useridentifier = $1;";
-
-static const char user_select_by_email_query[] = 
-    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
-    "firstname,userlastname,telephonenumber " \
-    "FROM User " \
-    "WHERE emailaddress = \'$1\';";
 
 static const char user_select_by_identifier_query[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
@@ -75,7 +69,7 @@ user_create(uint32_t identifier, Role role, const char *username, const char *em
     if(user == NULL)
     {
         perror("user_create: Could not allocate memory for the user object.\n");
-        *error = 1; /* Change this later to a more meaningfull error code. */
+        *error = (SHARED_ERROR_ALLOC_ERROR);
         return NULL;
     }
 
@@ -123,7 +117,7 @@ user_create_from_query(void *source_location, uint32_t *error)
     /* Is most likely 6 in stead of 7 because of the 0nth element. */
     if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 10)
     {
-        perror("user_create_from_query: Invallid source location.\n");
+        perror("user_create_from_query: Invalid source location.\n");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL; 
     }
@@ -156,7 +150,7 @@ user_create_from_query(void *source_location, uint32_t *error)
     {
         kore_log(LOG_ERR, "user_create_from_query: Could not translate db_user_role string to " \
             "uint64_t.\n");
-        *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+        *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL; 
     }
 
@@ -177,12 +171,12 @@ user_create_from_query(void *source_location, uint32_t *error)
 
     if(temp_user == NULL)
     {
-        perror("user_create_from_query: Could not create an user structure.\n");
+        perror("user_create_from_query: Could not create a user structure.\n");
         *error = create_user_result;
         return NULL;
     }
 
-    *error = (USER_CREATE_SUCCESS);
+    *error = (SHARED_OK);
     return temp_user;
 }
 
@@ -190,16 +184,6 @@ void *
 user_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
-
-/*
-    if(number_of_results <= 0)
-    {
-        perror("user_collection_create_from_query: Invallid number of record. Must be more " \
-            "than zero.\n");
-        *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-        return NULL;
-    }
-*/
 
     TAILQ_HEAD(user_collection_s, UserCollection) *user_collection = malloc(sizeof(UserCollection));
     TAILQ_INIT(user_collection);
@@ -299,11 +283,36 @@ user_collection_destroy(UserCollection *user_collection)
 uint32_t
 user_insert(const User *user)
 {
+    uint32_t role = htonl(user->role);
+    uint32_t doge_coin = htonl(user->doge_coin);
+
+    uint32_t query_result = database_engine_execute_write(user_insert_query, 8,
+        &role, sizeof(role), 1,
+        user->email, strlen(user->email), 0,
+        user->username, strlen(user->username), 0,
+        user->password, strlen(user->password), 0,
+        &doge_coin, sizeof(doge_coin), 1,
+        user->first_name, strlen(user->first_name), 0,
+        user->last_name, strlen(user->last_name), 0,
+        user->telephone_number, strlen(user->telephone_number), 0);
+
+    if(query_result != (SHARED_OK))
+    {
+        database_engine_log_error("user_insert", query_result);
+        return query_result;
+    }
+    
+    return (SHARED_OK);
+}
+
+uint32_t
+user_update(const User *user)
+{
     uint32_t identifier = htonl(user->identifier);
     uint32_t role = htonl(user->role);
     uint32_t doge_coin = htonl(user->doge_coin);
 
-    uint32_t error = database_engine_execute_write(user_insert_query, 7, 
+    uint32_t query_result = database_engine_execute_write(user_update_query, 7, 
         &identifier, sizeof(identifier), 1,
         &role, sizeof(role), 1,
         user->email, strlen(user->email), 0,
@@ -315,54 +324,13 @@ user_insert(const User *user)
         user->last_name, strlen(user->last_name), 0,
         user->telephone_number, strlen(user->telephone_number), 0);
 
-    switch(error)
+    if (query_result != (SHARED_OK))
     {
-        case DATABASE_ENGINE_ERROR_INITIALIZATION:
-        case DATABASE_ENGINE_ERROR_QUERY_ERROR:
-        perror("user_insert: Could not insert user.\n");
-        break;
-
-        case DATABASE_ENGINE_OK:
-        default:
-        break;
+        database_engine_log_error("user_update", query_result);
+        return (USER_ERROR_UPDATE);
     }
 
-    return error;
-}
-
-uint32_t
-user_update(const User *user)
-{
-    uint32_t identifier = htonl(user->identifier);
-    uint32_t role = htonl(user->role);
-    uint32_t doge_coin = htonl(user->doge_coin);
-
-    uint32_t error = database_engine_execute_write(user_update_query, 7, 
-        &identifier, sizeof(identifier), 1,
-        &role, sizeof(role), 1,
-        user->email, strlen(user->email), 0,
-        user->username, strlen(user->username), 0,
-        user->password, strlen(user->password), 0,
-        &doge_coin, sizeof(doge_coin), 1,
-        user->registration_datetime, strlen(user->registration_datetime), 0,
-        user->first_name, strlen(user->first_name), 0,
-        user->last_name, strlen(user->last_name), 0,
-        user->telephone_number, strlen(user->telephone_number), 0,
-        &user->identifier, sizeof(user->identifier), 1);
-
-    switch(error)
-    {
-        case DATABASE_ENGINE_ERROR_INITIALIZATION:
-        case DATABASE_ENGINE_ERROR_QUERY_ERROR:
-            perror("user_update: Could not update user.\n");
-        break;
-
-        case DATABASE_ENGINE_OK:
-        default:
-        break;
-    }
-
-    return error;
+    return (SHARED_OK);
 }
 
 uint32_t
@@ -370,152 +338,57 @@ user_delete(User *user)
 {
     uint32_t identifier = htonl(user->identifier);
 
-    uint32_t error = database_engine_execute_write(user_delete_query, 1, 
+    uint32_t query_result = database_engine_execute_write(user_delete_query, 1, 
         &identifier, sizeof(identifier), 1);
 
-    switch(error)
+    if(query_result != (SHARED_OK))
     {
-        case DATABASE_ENGINE_ERROR_INITIALIZATION:
-        case DATABASE_ENGINE_ERROR_QUERY_ERROR:
-            perror("user_delete: Could not delete user.\n");
-        break;
-
-        case DATABASE_ENGINE_OK:
-        default:
-        break;
+        database_engine_log_error("user_delete", query_result);
+        return (USER_ERROR_DELETE);
     }
 
-    return error;
-}
-
-User *
-user_find_by_email(const char *email, uint32_t *error)
-{
-    uint32_t query_error;
-    void *result;
-
-    result = database_engine_execute_read(user_select_by_email_query, user_create_from_query, 
-        &query_error, 1, 
-        email, strlen(email), 0);
-
-    if(result == NULL)
-    {
-        switch(query_error)
-        {
-            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
-                perror("user_find_by_email: Could not find a user with the corresponding " \
-                    "email address.\n");
-                *error = query_error;
-            break;
-
-            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
-            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
-            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
-            default:
-                perror("user_find_by_email: Could not find user.\n");
-                *error = query_error;
-            break;
-        }
-    }
-
-    return result;
+    return (SHARED_OK);
 }
 
 User *
 user_find_by_username_or_email(const char *email, uint32_t *error)
 {
-    uint32_t query_error;
+    uint32_t query_result;
     void *result;
 
     result = database_engine_execute_read(user_select_by_email_or_username, 
-        &user_create_from_query, &query_error, 1, email, strlen(email), 0);
+        &user_create_from_query, &query_result, 1, email, strlen(email), 0);
 
     if(result == NULL)
     {
-        switch(query_error)
+        // No results is a special case that does not require logging
+        if(query_result == (DATABASE_ENGINE_ERROR_NO_RESULTS))
         {
-            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
-                perror("user_find_by_username_and_email: Could not find a user with the " \
-                    "corresponding email or username address.\n");
-                *error = query_error;
-            break;
-
-            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
-            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
-            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
-            default:
-                perror("user_find_by_username_and_email: Database encountered problums during " \
-                    "the search for user.\n");
-                *error = query_error;
-            break;
+            *error = query_result;
+            return result;
         }
+        database_engine_log_error("user_find_by_username_or_email", query_result);
+        *error = (USER_ERROR_SELECT);
     }
 
-    *error = USER_CREATE_SUCCESS;
     return result; 
-}
-
-User *
-user_find_by_user_name(const char *user_name, uint32_t *error)
-{
-    uint32_t query_error;
-    void *result;
-
-    result = database_engine_execute_read(user_select_by_email_query, &user_create_from_query, 
-        &query_error, 1, user_name, strlen(user_name), 0);
-
-    if(result == NULL)
-    {
-        switch(query_error)
-        {
-            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
-                perror("user_find_by_user_name: Could not find a user with the corresponding " \
-                    "user name.\n");
-                *error = query_error;
-            break;
-
-            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
-            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
-            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
-            default:
-                perror("user_find_by_user_name: Could not find user.\n");
-                *error = query_error;
-            break;
-        }
-    }
-
-    return result;
 }
 
 User *
 user_find_by_identifier(uint32_t identifier, uint32_t *error)
 {
-    uint32_t query_error;
+    uint32_t query_result;
     void *result;
 
     uint32_t cast_identifier = htonl(identifier);
 
     result = database_engine_execute_read(user_select_by_identifier_query, user_create_from_query, 
-        &query_error, 1, &cast_identifier, sizeof(cast_identifier), 1);
+        &query_result, 1, &cast_identifier, sizeof(cast_identifier), 1);
 
     if(result == NULL)
     {
-        switch(query_error)
-        {
-            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
-                perror("user_find_by_identifier: Could not find a user with the corresponding " \
-                    "identifier.\n");
-                *error = query_error;
-            break;
-
-            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
-            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
-            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
-            default:
-                perror("user_find_by_identifier: Could not find a user.\n");
-                *error = query_error;
-            break;
-        }
+        database_engine_log_error("user_find_by_identifier", query_result);
+        *error = (USER_ERROR_SELECT);
     }
 
     return result;

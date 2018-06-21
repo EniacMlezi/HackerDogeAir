@@ -3,15 +3,6 @@
 
 #define DATABASE_NAME "DogeAir"
 
-/*
-#define DATABASE_ENGINE_OK                              0
-#define DATABASE_ENGINE_ERROR_NO_RESULTS                1
-#define DATABASE_ENGINE_ERROR_INITIALIZATION            2
-#define DATABASE_ENGINE_ERROR_QUERY_ERROR               3
-#define DATABASE_ENGINE_ERROR_INVALLID_RESULT           4
-#define DATABASE_ENGINE_ERROR_RESULT_PARSE              5
-*/
-
 #include <stdint.h>
 #include <stdarg.h>
 
@@ -30,5 +21,11 @@ database_engine_execute_read(
     uint32_t count,
     ...
     );
+
+
+void 
+database_engine_log_error(
+    const char *prefix, 
+    uint32_t error);
 
 #endif

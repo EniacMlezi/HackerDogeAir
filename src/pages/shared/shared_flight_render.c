@@ -44,7 +44,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         {
            if(strftime(date_conversion_ouput,
             sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->arrival_datetime) == (SHARED_ERROR_OK))
+            &ctx->flight->arrival_datetime) == (SHARED_OK))
             {
                 kore_log(LOG_ERR, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
@@ -64,7 +64,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         {
             if(strftime(date_conversion_ouput,
             sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->departure_datetime) == (SHARED_ERROR_OK))
+            &ctx->flight->departure_datetime) == (SHARED_OK))
             {
                 kore_log(LOG_ERR, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);

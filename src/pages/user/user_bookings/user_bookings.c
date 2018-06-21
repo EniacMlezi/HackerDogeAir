@@ -62,7 +62,7 @@ user_bookings(struct http_request *req)
     
     SLIST_INSERT_HEAD(&context.userbookinglist, &booking_node1, userbookings);
     
-    if((err = user_bookings_render(&context)) != (SHARED_ERROR_OK))
+    if((err = user_bookings_render(&context)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
         return (KORE_RESULT_OK);
