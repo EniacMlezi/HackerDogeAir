@@ -12,24 +12,16 @@
                 <table>
                         <tr>
                             <th>User ID</th>
-                            <th>Username</th>
                             <th>Flight ID</th>
-                            <th>Departure Location</th>
-                            <th>Departure Time</th>
-                            <th>Arrival Location</th>
-                            <th>Arrival Time</th>
+                            <th>Ticket ID</th>
                         </tr>
-                        {{#flightsbooking}}
+                        {{#bookingslist}}
                         <tr>
                             <td>{{userid}}</td>
-                            <td>{{username}}</td>
                             <td>{{flightid}}</td>
-                            <td>{{departurelocation}}</td>
-                            <td>{{departuredatetime}}</td>
-                            <td>{{arrivallocation}}</td>
-                            <td>{{arrivaldatetime}}</td>
+                            <td>{{ticketid}}</td>
                         </tr>
-                        {{/flightsbooking}}
+                        {{/bookingslist}}
                     </table>
             </div>
         </div>

@@ -18,7 +18,7 @@
                             Username: {{username}}.
                         </tr>
                         <tr>
-                            <input type="text" name="dogecoins" value="{{dogecoins}}" placeholder="Enter DogeCoins" maxlength="10" title="DogeCoins" pattern="[0-9]{1,10}" required>
+                            <input type="number" name="dogecoins" value="{{dogecoins}}" placeholder="Enter DogeCoins" maxlength="10" title="DogeCoins" pattern="[0-9]{1,10}" required>
                         </tr>
                         <tr>
                             <button type="submit">Save</button>
