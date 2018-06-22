@@ -373,6 +373,7 @@ user_find_by_username_or_email(const char *email, uint32_t *error)
         *error = query_result;
     }
 
+    *error = (SHARED_OK);
     return result; 
 }
 

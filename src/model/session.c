@@ -111,7 +111,7 @@ session_insert(const Session *session)
     uint32_t session_identifier = htonl(session->session_identifier);
     uint32_t user_identifier = htonl(session->user_identifier);
 
-    uint8_t query_result = database_engine_execute_write(session_insert_query, 2,
+    uint32_t query_result = database_engine_execute_write(session_insert_query, 2,
         &session_identifier, sizeof(session_identifier), 1,
         &user_identifier, sizeof(user_identifier), 1);
 
@@ -130,7 +130,7 @@ session_update(const Session *session)
     uint32_t session_identifier = htonl(session->session_identifier);
     uint32_t user_identifier = htonl(session->user_identifier);
 
-    uint8_t query_result = database_engine_execute_write(session_update_query, 2,
+    uint32_t query_result = database_engine_execute_write(session_update_query, 2,
         &session_identifier, sizeof(session_identifier), 1,
         &user_identifier, sizeof(user_identifier), 1);
 
@@ -148,7 +148,7 @@ session_delete(Session *session)
 {
     uint32_t session_identifier = htonl(session->session_identifier);
 
-    uint8_t query_result = database_engine_execute_write(session_delete_query, 1,
+    uint32_t query_result = database_engine_execute_write(session_delete_query, 1,
         &session_identifier, sizeof(session_identifier), 1);
 
     if(query_result != (SHARED_OK))

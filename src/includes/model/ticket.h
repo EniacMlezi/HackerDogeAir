@@ -9,13 +9,13 @@ typedef struct
     uint32_t    ticket_identifier;
     uint32_t    flight_identifier;
     uint32_t    user_identifier;
-    double      cost;
+    uint32_t    cost;
 } Ticket;
 
 typedef struct TicketCollection
 {
     Ticket ticket;
-    LIST_ENTRY(TicketCollection) ticket_collection;
+    TAILQ_ENTRY(TicketCollection) ticket_collection;
 } TicketCollection;
 
 Ticket *
@@ -23,13 +23,25 @@ ticket_create(
     uint32_t ticket_identifier,
     uint32_t flight_identifier,
     uint32_t user_identifier,
-    double cost,
+    uint32_t cost,
     uint32_t *error
     );
 
-uint32_t
+void
 ticket_destroy(
     Ticket *ticket
+    );
+
+void *
+ticket_create_from_query(
+    void *source_location,
+    uint32_t *error
+    );
+
+void *
+ticket_create_collection_from_query(
+    void *source_location,
+    uint32_t *error
     );
 
 uint32_t
@@ -53,12 +65,6 @@ ticket_find_by_user_identifier(
     uint32_t *error
     );
 
-TicketCollection *
-ticket_collection_create(
-    void *source_location,
-    uint32_t *error
-    );
-
 uint32_t
 ticket_collection_destroy(
     TicketCollection *ticket_collection
@@ -73,6 +79,12 @@ ticket_collection_find_by_flight_identifier(
 TicketCollection *
 ticket_collection_find_by_user_identifier(
     uint32_t user_identifier,
+    uint32_t *error
+    );
+
+TicketCollection *
+ticket_collection_find_by_ticket_identifier(
+    uint32_t ticket_identifier, 
     uint32_t *error
     );
 

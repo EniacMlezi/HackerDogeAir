@@ -17,7 +17,7 @@ typedef struct
     char        *last_name;
     char        *telephone_number;
     char        *password;
-    uint32_t     doge_coin;
+    uint32_t    doge_coin;
     struct tm   registration_datetime; 
 } User;
 

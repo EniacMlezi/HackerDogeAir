@@ -17,8 +17,6 @@
 #define SHARED_ERROR_ALLOC_ERROR                    21
 #define SHARED_ERROR_TIME_CONVERSION                22
 
-/* Data model specific error codes. */
-
 /* Session specific error codes. */
 #define SESSION_ERROR_CREATE                        40
 

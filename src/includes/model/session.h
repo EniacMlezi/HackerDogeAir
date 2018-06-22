@@ -15,7 +15,7 @@ typedef struct
 typedef struct SessionCollection
 {
     Session session;
-    LIST_ENTRY(SessionCollection) session_collection;
+    TAILQ_ENTRY(SessionCollection) session_collection;
 } SessionCollection;
 
 Session *
