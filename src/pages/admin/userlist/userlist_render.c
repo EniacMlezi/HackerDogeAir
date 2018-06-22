@@ -51,16 +51,16 @@ admin_user_list_sectget(mustache_api_t *api, void *userdata, mustache_token_sect
     UserListContext *ctx = (UserListContext *)userdata;
     if (strcmp("userlist", token->name) == 0)
     {
-        if (SLIST_EMPTY(&ctx->userlist))
+        if (NULL == &ctx->userlist)
         { 
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        UserListNode *user_node = NULL;
+        UserCollection *user_node = NULL;
         api->varget = &user_varget;
         UserContext usercontext;
         memcpy(&usercontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        SLIST_FOREACH(user_node, &ctx->userlist, users)
+        TAILQ_FOREACH(user_node, &ctx->userlist, user_collection)
         {
             usercontext.user = &user_node->user;
             if(!mustache_render(api, &usercontext, token->section))
