@@ -179,8 +179,8 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
         Flight *temp_flight = NULL;
 
         char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1);
-        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
-        char *arrival_time_string = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+        char *arrival_time_string = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
+        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
         char *departure_time_string = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
 
         struct tm arrival_time;
