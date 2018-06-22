@@ -52,10 +52,10 @@ login_attempt_create(uint32_t user_identifier, bool login_result, struct tm logi
 }
 
 void
-login_attempt_destroy(LoginAttempt *login_attempt)
+login_attempt_destroy(LoginAttempt **login_attempt)
 {
-    free(login_attempt);
-    login_attempt = NULL;
+    free(*login_attempt);
+    *login_attempt = NULL;
 }
 
 void *
@@ -119,7 +119,7 @@ login_attempt_collection_destroy(LoginAttempt *login_attempt_collection)
         LoginAttemptCollection *temp = TAILQ_FIRST(&head);
         TAILQ_REMOVE(&head, temp, login_attempt_collection);
 
-        login_attempt_destroy(temp->login_attempt);
+        login_attempt_destroy(&temp->login_attempt);
         free(temp);
         temp = NULL;
      }

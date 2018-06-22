@@ -10,7 +10,7 @@
 typedef struct FlightListNode
 {
     Flight flight;
-    SLIST_ENTRY(FlightSearchListNode) flights;
+    SLIST_ENTRY(FlightListNode) flights;
 } FlightListNode;
 
 typedef struct FlightListContext

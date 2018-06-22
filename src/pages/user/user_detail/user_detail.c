@@ -94,7 +94,7 @@ user_detail(struct http_request *req)
             break;
     }
     user_detail_render_clean(&context);
-    user_destroy(context.user);
+    user_destroy(&context.user);
     return return_code;
 }
 

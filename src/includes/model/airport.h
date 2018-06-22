@@ -8,20 +8,20 @@ typedef struct _Airport
 {
     uint32_t    identifier;
     char        *name;
-    char        location[255];   
+    char        *location;   
 } Airport; 
 
 typedef struct AirportCollection
 {
-    Airport airport; 
-    LIST_ENTRY(AirportCollection) airport_collection;
+    Airport *airport; 
+    TAILQ_ENTRY(AirportCollection) airport_collection;
 } AirportCollection;
 
 Airport *
 airport_create(
     uint32_t identifier,
-    char name[255],
-    char location[255],
+    const char *name,
+    const char *location,
     uint32_t *error
     );
 
@@ -37,9 +37,9 @@ airport_collection_create_from_query(
     uint32_t *error
     );
 
-uint32_t
+void
 airport_destroy(
-    Airport *airport
+    Airport **airport
     );
 
 uint32_t
@@ -70,12 +70,18 @@ airport_find_by_identifier(
 
 Airport *
 airport_find_by_name(
-    const char name[255],
+    const char *name,
+    uint32_t *error
+    );
+
+Airport *
+airport_find_by_location(
+    const char *location,
     uint32_t *error
     );
 
 AirportCollection *
-airport_get_collection(
+airport_get_all_airports(
     uint32_t *error
     );
 

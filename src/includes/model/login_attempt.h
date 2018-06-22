@@ -28,7 +28,7 @@ login_attempt_create(
 
 void
 login_attempt_destroy(
-    LoginAttempt *login_attempt
+    LoginAttempt **login_attempt
     );
 
 void *

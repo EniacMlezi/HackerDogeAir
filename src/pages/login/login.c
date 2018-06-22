@@ -179,7 +179,7 @@ login_try_login(User *input_user)
         return_code = (LOGIN_ERROR_LOG_ATTEMPT_ERROR);
     }
 
-    user_destroy(database_user);
+    user_destroy(&database_user);
 
     return return_code;
 }
@@ -257,7 +257,7 @@ login_log_attempt(uint32_t user_identifier, bool success)
     result = (SHARED_OK);
 
     out:
-    login_attempt_destroy(login_attempt);
+    login_attempt_destroy(&login_attempt);
     return result; 
 }
 
