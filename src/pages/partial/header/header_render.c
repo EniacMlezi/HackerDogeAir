@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <kore/kore.h>
 #include <mustache.h>
+#include <stdbool.h>
 
 #include "shared/shared_error.h"
 #include "assets.h"
@@ -47,26 +48,47 @@ header_render_clean(PartialContext *context)
 uintmax_t
 header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
+    const char *output_string = NULL;
+    bool isAdmin = true;
+    bool isLoggedIn = true;
+
     PartialContext *ctx = (PartialContext *)userdata;
     
-    if(strncmp("session_id", token->text, token->text_length) == 0)
+    if(strncmp("NAVBAR", token->text, token->text_length) == 0)
     {
-        char session_id[12];
-        if(snprintf(session_id, 12, "%d", ctx->session_id) <= 0)
+        //TODO: acquire current logged in user role, if admin show admin nav
+        if(!isAdmin)
         {
-            kore_log(LOG_ERR, 
-                "header_varget: failed int to string conversion for session_id. input: %d", 
-                ctx->session_id);
-            return (SHARED_RENDER_MUSTACHE_FAIL);
+            output_string = "<a href='/'>Home</a>\n<a href=''>Flights</a>";
         }
-        ctx->should_html_escape = true;
-        if(api->write(api, userdata, session_id, strlen(session_id)) != (SHARED_RENDER_MUSTACHE_OK))
+        else
         {
-            kore_log(LOG_ERR, "header_varget: failed to write.");
-            return (SHARED_RENDER_MUSTACHE_FAIL);
+            output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>\n<a href='/admin'>Admin</a>";
         }
-        return (SHARED_RENDER_MUSTACHE_OK);
     }
-    kore_log(LOG_ERR, "header_varget: unknown template variable '%s'", token->text);
-    return (SHARED_RENDER_MUSTACHE_FAIL);
+    else if(strncmp("LOGGEDIN", token->text, token->text_length) == 0)
+    {
+        //TODO: acquire current logged in user role, if admin show admin nav
+        if(!isLoggedIn)
+        {
+            output_string = "<a href='login'>login/register</a>";
+        }
+        else
+        {
+            output_string = "<a href='userdetail'>User</a>\n<a href='logout'>Logout</a>";
+        }
+    }
+    ctx->should_html_escape = false;
+    if(api->write(api, userdata, output_string, strlen(output_string)) != (SHARED_RENDER_MUSTACHE_OK))
+    {
+        kore_log(LOG_ERR, "header_varget: failed to write.");
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+
+    if(NULL == output_string)
+    {
+        kore_log(LOG_INFO, "failed user list render: unknown template variable");
+        return (SHARED_RENDER_MUSTACHE_FAIL);
+    }
+    return (SHARED_RENDER_MUSTACHE_OK);
 }

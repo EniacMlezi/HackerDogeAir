@@ -39,6 +39,17 @@ login_log_attempt(
     bool success
     );
 
+uint32_t
+login_validate_password(
+    char *password1, 
+    char *password2
+    );
+
+uint32_t
+login_create_session(
+    struct http_request *req,
+    uint32_t user_identifier
+    );
 
 void   
 login_error_handler(
@@ -46,11 +57,4 @@ login_error_handler(
     uint32_t error, 
     UserContext *context
     );
-
-uint32_t
-login_validate_password(
-    char *password1, 
-    char *password2
-    );
-
 #endif

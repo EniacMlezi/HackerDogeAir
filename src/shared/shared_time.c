@@ -12,7 +12,7 @@ char *
 shared_time_tm_to_database_string(const struct tm *time, char *destination_string, uintmax_t size, 
     uint32_t *error)
 {
-    if(strftime(destination_string, size, "%Y-%m-%d %H:%M:%S", time) != size)
+    if(strftime(destination_string, size, "%Y-%m-%d %H:%M:%S", time) == 0)
     {
       *error = (SHARED_ERROR_TIME_CONVERSION);
       return NULL;
@@ -25,9 +25,10 @@ shared_time_tm_to_database_string(const struct tm *time, char *destination_strin
 uint32_t
 shared_time_database_string_to_tm(const char *source_location, struct tm *destination)
 {
-    /* This function return both a nullptr in the case of an error and when the complete 
-    source_location is processed and is thus not handable. */
-    strptime(source_location, "%Y-%m-%d %H:%M:%S", destination);
+    if(strptime(source_location, "%Y-%m-%d %H:%M:%S", destination) == NULL)
+    {
+        return (SHARED_ERROR_TIME_CONVERSION);
+    }
     return (SHARED_OK);
 }
 

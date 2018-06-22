@@ -1,3 +1,5 @@
+#include "pages/home/home.h"
+
 #include <stdbool.h>
 #include <limits.h>
 #include <time.h>

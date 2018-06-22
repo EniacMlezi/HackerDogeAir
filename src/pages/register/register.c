@@ -11,6 +11,7 @@
 #include "model/user.h"
 #include "assets.h"
 
+
 int     register_user(struct http_request *);
 int     register_parse_params(struct http_request *req, User *user);
 int     register_try_register(User *);
@@ -89,6 +90,7 @@ register_parse_params(struct http_request *req, User *user)
 {
     http_populate_post(req);
     int err = (SHARED_OK);
+
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
         err = (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID);
@@ -160,12 +162,10 @@ register_error_handler(struct http_request *req, int errcode, UserContext *conte
             context->error_message = 
             "Please enter a correct first name (maximum length of 255 characters)";
             break;
-
         case (REGISTER_ERROR_LASTNAME_VALIDATOR_INVALID):
             context->error_message = 
             "Please enter a correct last name (maximum length of 255 characters)";
             break;
-
         case (REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID):
             context->error_message = 
             "Please enter a correct telephone number";

@@ -1,0 +1,35 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Flight list - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+            <div class="admin-flightlist-page">
+                <h1>Flight list</h1>
+                <table>
+                        <tr>
+                            <th>Flight ID</th>
+                            <th>Departure Location</th>
+                            <th>Departure Time</th>
+                            <th>Arrival Location</th>
+                            <th>Arrival Time</th>
+                            <th></th>
+                        </tr>
+                        {{#flightlist}}
+                        <tr>
+                            <td>{{id}}</td>
+                            <td>{{departurelocation}}</td>
+                            <td>{{departuredatetime}}</td>
+                            <td>{{arrivallocation}}</td>
+                            <td>{{arrivaldatetime}}</td>
+                            <td><a href="/admin/deleteflight?id={{id}}">Delete this flight</a></td>
+                        </tr>
+                        {{/flightlist}}
+                    </table>
+            </div>
+        </div>
+    </body>
+</html>

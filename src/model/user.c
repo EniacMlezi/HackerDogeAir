@@ -34,6 +34,15 @@ static const char user_update_query[] =
     "telephonenumber = $9" \
     "WHERE useridentifier = $1;";
 
+static const char user_update_details_query[] = 
+    "UPDATE \"User\" SET " \
+    "username = $2, " \
+    "emailaddress = $3, " \
+    "firstname = $4, " \
+    "lastname = $5, " \
+    "telephonenumber = $6 " \
+    "WHERE useridentifier = $1;";
+
 static const char user_delete_query[] = "DELETE FROM \"User\" WHERE useridentifier = $1;";
 
 static const char user_select_by_identifier_query[] = 
@@ -41,6 +50,11 @@ static const char user_select_by_identifier_query[] =
     "firstname,lastname,telephonenumber " \
     "FROM \"User\" " \
     "WHERE useridentifier = $1;";
+
+static const char user_select_by_session[] = 
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber FROM \"User\" WHERE useridentifier = " \
+    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1);";
 
 static const char user_select_by_email_or_username[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
@@ -366,6 +380,28 @@ user_update_doge_coin(uint32_t doge_coin)
 }
 
 uint32_t
+user_update_details(const User *user)
+{
+    uint32_t identifier = htonl(user->identifier);
+
+    uint32_t query_result = database_engine_execute_write(user_update_details_query, 6,
+        &identifier, sizeof(identifier), 1,
+        user->username, strlen(user->username), 0,
+        user->email, strlen(user->email), 0,
+        user->first_name, strlen(user->first_name), 0,
+        user->last_name, strlen(user->last_name), 0,
+        user->telephone_number, strlen(user->telephone_number), 0);
+    
+    if (query_result != (SHARED_OK))
+    {
+        database_engine_log_error("user_update", query_result);
+        return query_result;
+    }
+
+    return (SHARED_OK);
+}
+
+uint32_t
 user_delete(User *user)
 {
     uint32_t identifier = htonl(user->identifier);
@@ -380,6 +416,30 @@ user_delete(User *user)
     }
 
     return (SHARED_OK);
+}
+
+User *
+user_find_by_session_identifier(const char *session_identifier, uint32_t *error)
+{
+    uint32_t query_result;
+    void *result;
+
+    result = database_engine_execute_read(user_select_by_session, user_create_from_query,
+        &query_result, 1, session_identifier, strlen(session_identifier), 0);
+
+    if(result == NULL)
+    {
+        // No results is a special case that does not require logging
+        if(query_result == (DATABASE_ENGINE_ERROR_NO_RESULTS))
+        {
+            *error = query_result;
+            return result;
+        }
+        database_engine_log_error("user_find_by_session_identifier", query_result);
+        *error = query_result;
+    }
+
+    return result; 
 }
 
 User *

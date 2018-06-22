@@ -1,0 +1,35 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>User list - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+           <div class="admin-userlist-page">
+                <h1>Flight list</h1>
+                <table>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>DogeCoins</th>
+                            <th></th>
+                        </tr>
+                        {{#userlist}}
+                            <tr>
+                                <td>{{id}}</td>
+                                <td>{{email}}</td>
+                                <td>{{username}}</td>
+                                <td>{{role}}</td>
+                                <td>{{dogecoins}}</td>
+                                <td><a href="/admin/givepoints?id={{id}}">Add DogeCoins</a></td>
+                            </tr>
+                        {{/userlist}}
+                    </table>
+            </div>
+        </div>
+    </body>
+</html>

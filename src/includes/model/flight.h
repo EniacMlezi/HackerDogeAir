@@ -68,7 +68,6 @@ flight_collection_destroy(
     FlightCollection *flight_collection
     );
 
-
 Flight *
 flight_find_by_identifier(
     uint32_t flight_identifier,

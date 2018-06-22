@@ -80,6 +80,11 @@ user_update_doge_coin(
     );
 
 uint32_t
+user_update_details(
+    const User *user
+    );
+
+uint32_t
 user_delete(
     User *user
     );
@@ -99,6 +104,12 @@ user_find_by_username_or_email(
 User *
 user_find_by_user_name(
     const char *user_name,
+    uint32_t *error
+    );
+
+User *
+user_find_by_session_identifier(
+    const char *session_identifier,
     uint32_t *error
     );
 
