@@ -17,7 +17,7 @@ typedef struct
     char        *last_name;
     char        *telephone_number;
     char        *password;
-    uint32_t     doge_coin;
+    uint32_t    doge_coin;
     struct tm   registration_datetime; 
 } User;
 
@@ -38,7 +38,7 @@ user_create(
     const char    *telephone_number,
     const char    *password,
     uint32_t       doge_coin,
-    struct tm      registration_datetime,
+    struct tm     *registration_datetime,
     uint32_t *error
     );
 
@@ -56,7 +56,7 @@ user_collection_create_from_query(
 
 void
 user_destroy(
-    User *user
+    User **user
     );
 
 uint32_t
@@ -72,6 +72,11 @@ user_insert(
 uint32_t
 user_update(
     const User *user
+    );
+
+uint32_t 
+user_update_doge_coin(
+    uint32_t doge_coin
     );
 
 uint32_t
@@ -111,6 +116,11 @@ user_find_by_session_identifier(
 User *
 user_find_by_identifier(
     uint32_t identifier,
+    uint32_t *error
+    );
+
+UserCollection *
+user_get_all_users(
     uint32_t *error
     );
 

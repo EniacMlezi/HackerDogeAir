@@ -62,10 +62,15 @@ static const char user_select_by_email_or_username[] =
     "FROM \"User\" " \
     "WHERE emailaddress = $1 OR username = $1;";
 
+static const char user_get_all_users_query[] = 
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber " \
+    "FROM \"User\";";
+
 User *
 user_create(uint32_t identifier, Role role, const char *username, const char *email, 
     const char *first_name, const char *last_name, const char *telephone_number, 
-    const char *password, uint32_t doge_coins, struct tm registration_datetime, uint32_t *error)
+    const char *password, uint32_t doge_coins, struct tm *registration_datetime, uint32_t *error)
 {
     uint8_t name_size = strlen(username) + 1;
     uint8_t email_size = strlen(email) + 1;
@@ -116,7 +121,7 @@ user_create(uint32_t identifier, Role role, const char *username, const char *em
     strncpy(user->first_name, first_name, first_name_size);
     strncpy(user->last_name, last_name, last_name_size);
     strncpy(user->telephone_number, telephone_number, telephone_number_size);
-    user->registration_datetime = registration_datetime;
+    user->registration_datetime = *registration_datetime;
 
     return user;
 }
@@ -180,7 +185,7 @@ user_create_from_query(void *source_location, uint32_t *error)
 
     uint32_t create_user_result;
     User *temp_user = user_create(identifier, role, user_name, email, user_first_name, 
-        user_last_name, telephone_number, password, doge_coin, registration_datetime, 
+        user_last_name, telephone_number, password, doge_coin, &registration_datetime, 
         &create_user_result);
 
     if(temp_user == NULL)
@@ -203,7 +208,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
     TAILQ_INIT(user_collection);
 
     uint32_t i;
-    for(i =0; i < number_of_results; ++i)
+    for(i = 0; i < number_of_results; ++i)
     {
         User *temp_user = NULL;
 
@@ -252,7 +257,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 
         uint32_t create_user_result;
         temp_user = user_create(identifier, role, user_name, email, user_first_name, user_last_name, 
-            telephone_number, password, doge_coin, registration_datetime, &create_user_result);
+            telephone_number, password, doge_coin, &registration_datetime, &create_user_result);
 
         if(temp_user == NULL)
         {
@@ -262,6 +267,16 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         }
 
         UserCollection *temp_collection = malloc(sizeof(UserCollection));
+
+        if(temp_collection == NULL)
+        {
+            kore_log(LOG_ERR, "user_collection_create_from_query: Could not allocate memory for " \
+                "temp_collection.");
+            user_destroy(&temp_user);
+            free(temp_collection);
+            return NULL;
+        }
+
         temp_collection->user = temp_user;
 
         TAILQ_INSERT_TAIL(user_collection, temp_collection, user_collection);
@@ -272,10 +287,10 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 }
 
 void
-user_destroy(User *user)
+user_destroy(User **user)
 {
-    free(user);
-    user = NULL;
+    free(*user);
+    *user = NULL;
 }
 
 uint32_t
@@ -288,12 +303,12 @@ user_collection_destroy(UserCollection *user_collection)
         UserCollection *temp = TAILQ_FIRST(&head);
         TAILQ_REMOVE(&head, temp, user_collection);
 
-        user_destroy(temp->user);
+        user_destroy(&temp->user);
         free(temp);
         temp = NULL;
     }
 
-    return 0;
+    return (SHARED_OK);
 }
 
 uint32_t
@@ -342,6 +357,22 @@ user_update(const User *user)
     if (query_result != (SHARED_OK))
     {
         database_engine_log_error("user_update", query_result);
+        return query_result;
+    }
+
+    return (SHARED_OK);
+}
+
+uint32_t 
+user_update_doge_coin(uint32_t doge_coin)
+{
+    uint32_t database_doge_coin = htonl(doge_coin);
+
+    uint32_t query_result = database_engine_execute_write(user_update_query, 1, 
+        &database_doge_coin, sizeof(database_doge_coin), 1);
+    if (query_result != (SHARED_OK))
+    {
+        database_engine_log_error("user_update_doge_coin", query_result);
         return query_result;
     }
 
@@ -432,6 +463,7 @@ user_find_by_username_or_email(const char *email, uint32_t *error)
         *error = query_result;
     }
 
+    *error = (SHARED_OK);
     return result; 
 }
 
@@ -441,14 +473,33 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     uint32_t query_result;
     void *result;
 
-    uint32_t cast_identifier = htonl(identifier);
+    uint32_t database_identifier = htonl(identifier);
 
     result = database_engine_execute_read(user_select_by_identifier_query, user_create_from_query, 
-        &query_result, 1, &cast_identifier, sizeof(cast_identifier), 1);
+        &query_result, 1, 
+        &database_identifier, sizeof(database_identifier), 1);
 
     if(result == NULL)
     {
         database_engine_log_error("user_find_by_identifier", query_result);
+        *error = query_result;
+    }
+
+    return result;
+}
+
+UserCollection *
+user_get_all_users(uint32_t *error)
+{
+    uint32_t query_result;
+    void *result;
+
+    result = database_engine_execute_read(user_get_all_users_query, 
+        &user_collection_create_from_query, &query_result, 0); 
+
+    if(result == NULL)
+    {
+        database_engine_log_error("user_get_all_users", query_result);
         *error = query_result;
     }
 

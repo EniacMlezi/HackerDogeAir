@@ -11,8 +11,6 @@
 int
 auth_user(struct http_request *req, const char *cookie)
 {
-    int return_code = (KORE_RESULT_OK);
-
     uint32_t error = 0;
     if (cookie == NULL)
     {
@@ -36,7 +34,7 @@ auth_user(struct http_request *req, const char *cookie)
     if(epoch_current_time > epoch_expiration_time)
     {
         auth_remove(req);
-        session_destroy(session);
+        session_destroy(&session);
         return (KORE_RESULT_ERROR);
     }
 
@@ -47,20 +45,18 @@ auth_user(struct http_request *req, const char *cookie)
     if((error = session_update(session)) != (SHARED_OK))
     {
         kore_log(LOG_ERR, "auth_user: failed to update session");
-        session_destroy(session);
+        session_destroy(&session);
         return (KORE_RESULT_ERROR);
     }
     //update cookie expiration time
     http_response_cookie(req, "session", cookie, "/", epoch_new_expiration_time, 60*60, NULL);
-    session_destroy(session);
+    session_destroy(&session);
     return (KORE_RESULT_OK);
 }
 
 int
 auth_admin(struct http_request *req, const char *cookie)
 {
-    int return_code = (KORE_RESULT_OK);
-
     uint32_t error = 0;
     if (cookie == NULL)
     {
@@ -84,7 +80,7 @@ auth_admin(struct http_request *req, const char *cookie)
     if(epoch_current_time > epoch_expiration_time)
     {
         auth_remove(req);
-        session_destroy(session);
+        session_destroy(&session);
         return (KORE_RESULT_ERROR);
     }
 
@@ -93,7 +89,7 @@ auth_admin(struct http_request *req, const char *cookie)
     if(error != (SHARED_OK) || user == NULL)
     {
         kore_log(LOG_ERR, "auth_admin: Failed to get user from database.");
-        session_destroy(session);
+        session_destroy(&session);
         return (KORE_RESULT_ERROR);
     }
     else if(user->role != ADMIN)
@@ -109,12 +105,12 @@ auth_admin(struct http_request *req, const char *cookie)
     if((error = session_update(session)) != (SHARED_OK))
     {
         kore_log(LOG_ERR, "auth_admin: failed to update session");
-        session_destroy(session);
+        session_destroy(&session);
         return (KORE_RESULT_ERROR);
     }
     //update cookie expiration time
     http_response_cookie(req, "session", cookie, "/", epoch_new_expiration_time, 60*60, NULL);
-    session_destroy(session);
+    session_destroy(&session);
     return (KORE_RESULT_OK);
 }
 

@@ -99,7 +99,7 @@ user_detail(struct http_request *req)
     }
 exit:
     user_detail_render_clean(&context);
-    user_destroy(context.user);
+    user_destroy(&context.user);
     return return_code;
 }
 

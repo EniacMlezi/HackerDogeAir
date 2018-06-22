@@ -18,8 +18,6 @@
 #define SHARED_ERROR_TIME_CONVERSION                22
 #define SHARED_ERROR_COOKIE_NOT_FOUND               23
 
-/* Data model specific error codes. */
-
 /* Session specific error codes. */
 #define SESSION_ERROR_CREATE                        40
 

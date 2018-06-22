@@ -15,7 +15,7 @@ typedef struct
 typedef struct SessionCollection
 {
     Session session;
-    LIST_ENTRY(SessionCollection) session_collection;
+    TAILQ_ENTRY(SessionCollection) session_collection;
 } SessionCollection;
 
 Session *
@@ -34,7 +34,7 @@ session_create_from_query(
 
 void
 session_destroy(
-    Session *session
+    Session **session
     );
 
 uint32_t

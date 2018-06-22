@@ -31,7 +31,7 @@ static const char session_update_query[] =
     "WHERE sessionidentifier = $1;"; 
 
 Session *
-session_create(char *session_identifier, uint32_t user_identifier, struct tm *experiation_time,
+session_create(char *session_identifier, uint32_t user_identifier, struct tm *expiration_time,
     uint32_t *error)
 {
     uint32_t session_identifier_len = strlen(session_identifier) + 1;
@@ -50,7 +50,7 @@ session_create(char *session_identifier, uint32_t user_identifier, struct tm *ex
 
     strncpy(session->identifier, session_identifier, session_identifier_len);
     session->user_identifier = user_identifier;
-    session->expiration_time = *experiation_time;
+    session->expiration_time = *expiration_time;
 
     *error = (SHARED_OK);
     return session;
@@ -103,10 +103,10 @@ session_create_from_query(void *source_location, uint32_t *error)
 }
 
 void
-session_destroy(Session *session)
+session_destroy(Session **session)
 {
-    free(session);
-    session = NULL;
+    free(*session);
+    *session = NULL;
 }
 
 uint32_t
@@ -206,4 +206,3 @@ session_find_by_session_identifier(const char *session_identifier, uint32_t *err
 
     return result;
 }
-

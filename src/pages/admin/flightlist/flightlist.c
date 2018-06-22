@@ -33,7 +33,7 @@ admin_flight_list(struct http_request *req)
 
             FlightListNode flight_node0 = {
                 .flight = {
-                    .identifier = 0,
+                    .flight_identifier = 0,
                     .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
                     .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
                     .arrival_location = arrival0,
@@ -47,7 +47,7 @@ admin_flight_list(struct http_request *req)
 
             FlightListNode flight_node1 = {
                 .flight = {
-                    .identifier = 1,
+                    .flight_identifier = 1,
                     .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
                     .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
                     .arrival_location = arrival1,
