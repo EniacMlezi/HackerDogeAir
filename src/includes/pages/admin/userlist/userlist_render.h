@@ -7,17 +7,13 @@
 #include "pages/partial/partial_render.h"
 #include "model/user.h"
 
-typedef struct UserListNode
-{
-    User user;
-    SLIST_ENTRY(UserListNode) users;
-} UserListNode;
+
 
 typedef struct UserListContext
 {
     PartialContext partial_context;
     const char *error_message;
-    SLIST_HEAD(head_s, UserListNode) userlist;
+    TAILQ_HEAD(head_s, UserCollection) userlist;
 } UserListContext;
 
 int
