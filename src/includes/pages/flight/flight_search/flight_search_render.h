@@ -14,18 +14,13 @@ typedef struct FlightSearchParams
     struct tm arrivaldate;
 } FlightSearchParams;
 
-typedef struct FlightSearchListNode
-{
-    Flight flight;
-    SLIST_ENTRY(FlightSearchListNode) flights;
-} FlightSearchListNode;
 
 typedef struct FlightSearchContext
 {
     PartialContext partial_context;
     const char *error_message;
     FlightSearchParams params;
-    SLIST_HEAD(head_s, FlightSearchListNode) flightlist;
+    struct FlightCollection *flights;
 } FlightSearchContext;
 
 int

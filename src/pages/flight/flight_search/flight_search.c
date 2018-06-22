@@ -37,7 +37,6 @@ flight_search(struct http_request *req)
         .partial_context = {.session_id = 0},
         .params = {.arrivaldate = *zero_arrivaldate}
     };
-    SLIST_INIT(&context.flightlist);
 
     switch(req->method)
     {
@@ -64,32 +63,14 @@ flight_search(struct http_request *req)
                 break;
             }
 
-            //TODO: DataAccess layer search using context.params
-            char *departure0 = "</td><h1>Hello there</h1><td>";
-            char *arrival0 = "UitjeHol";
-
-            FlightSearchListNode flight_node0 = {
-                .flight = {
-                    .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
-                    .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
-                    .arrival_location = arrival0,
-                    .departure_location = departure0
-                }
-            };
-            SLIST_INSERT_HEAD(&context.flightlist, &flight_node0, flights);
-
-            char *departure1 = "SchipUitJeHol";
-            char *arrival1 = "InjeHol";
-
-            FlightSearchListNode flight_node1 = {
-                .flight = {
-                    .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
-                    .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
-                    .arrival_location = arrival1,
-                    .departure_location = departure1
-                }
-            };
-            SLIST_INSERT_HEAD(&context.flightlist, &flight_node1, flights);
+            uint32_t db_error = 0;
+            context.flights = flight_find_by_arrival_date(&context.params.arrivaldate, &db_error);
+            if(db_error != (SHARED_OK))
+            {
+                flight_search_error_handler(req, db_error, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
             if((err = flight_search_render(&context)) != (SHARED_OK))
             {

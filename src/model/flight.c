@@ -13,10 +13,10 @@
 #include "model/database_engine.h"
 
 static const char flight_find_by_arrival_date_query[] =
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
-"WHERE arrivaldatetime =$1;";
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
+"WHERE arrivaldatetime::date = $1;";
 
 static const char flight_insert_query[] =
     "INSERT INTO \"Flight\" " \
@@ -170,9 +170,8 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    TAILQ_HEAD(flight_collection, FlightCollection) *flight_collection = 
-        malloc(sizeof(FlightCollection));
-    TAILQ_INIT(flight_collection);
+    struct FlightCollection *flightcollection = malloc(sizeof(struct FlightCollection));
+    TAILQ_INIT(flightcollection);
 
     uint32_t i;
     for(i = 0; i < number_of_results; ++i)
@@ -197,7 +196,7 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_flight_id string to " \
                 "uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flight_collection);
+            free(flightcollection);
             return NULL;
         }
 
@@ -208,7 +207,7 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_distance string to " \
                 "uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flight_collection);
+            free(flightcollection);
             return NULL;
         }
 
@@ -219,7 +218,7 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_seatsavailable string" \
                 " to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flight_collection);
+            free(flightcollection);
             return NULL;
         }
 
@@ -231,30 +230,30 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not create a flight structure");
             *error = create_flight_result;
-            free(flight_collection);
+            free(flightcollection);
             return NULL;
         }        
 
-        FlightCollection *temp_flight_collection = malloc(sizeof(FlightCollection));
+        FlightCollectionNode *temp_flight_node = malloc(sizeof(FlightCollectionNode));
 
-        if(temp_flight_collection == NULL)
+        if(temp_flight_node == NULL)
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not allocate memory for " \
                 "temp_flight_collection.");
             flight_destroy(&temp_flight);
             //flight_collection_destroy(flight_collection);
-            free(flight_collection);
+            free(flightcollection);
             return NULL;   
         }
 
-        temp_flight_collection->flight = temp_flight;
+        temp_flight_node->flight = temp_flight;
 
-        TAILQ_INSERT_TAIL(flight_collection, temp_flight_collection, flight_collection);
+        TAILQ_INSERT_TAIL(flightcollection, temp_flight_node, flight_collection);
         
-        temp_flight_collection = NULL;
+        temp_flight_node = NULL;
     }
 
-    return (void *) flight_collection;
+    return (void *) flightcollection;
 }
 
 void
@@ -327,14 +326,13 @@ flight_delete(Flight *flight)
 }
 
 uint32_t
-flight_collection_destroy(FlightCollection *flight_collection)
+flight_collection_destroy(struct FlightCollection *flight_collection)
 {
-    TAILQ_HEAD(flight_collection, FlightCollection) head;
-
-    while(!TAILQ_EMPTY(&head))
+    FlightCollectionNode *temp = NULL;
+    while(!TAILQ_EMPTY(flight_collection))
     {
-        FlightCollection *temp = TAILQ_FIRST(&head);
-        TAILQ_REMOVE(&head, temp, flight_collection);
+        temp = TAILQ_FIRST(flight_collection);
+        TAILQ_REMOVE(flight_collection, temp, flight_collection);
 
         flight_destroy(&temp->flight);
         free(temp);
@@ -446,18 +444,17 @@ flight_find_by_arrival_airport_and_departure_time(char *arrival_airport,
 }
 
 
-FlightCollection *
+struct FlightCollection *
 flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
 {
     uint32_t err = 0;
     uint32_t query_result = 0;
     void *result;
 
-    char arrival_datetime[SHARED_TIME_TM_TO_DATABASE_FORMAT_STRING_SIZE]; 
-    shared_time_tm_to_database_string(arrival_date, arrival_datetime, 
-        sizeof(arrival_datetime), &err);
+    char arrival_datetime[30];
 
-    if(err != (SHARED_OK))
+    if((err = shared_time_tm_to_string(arrival_date, arrival_datetime, 
+        sizeof(arrival_datetime), "%Y-%m-%d")) != (SHARED_OK))
     {
         kore_log(LOG_ERR, "flight_find_by_arrival_date: struct tm to string conversion error " \
             "detected: %d.", err);
@@ -478,7 +475,7 @@ flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
     return result;
 }
 
-FlightCollection *
+struct FlightCollection *
 flight_get_all_flights(uint32_t *error)
 {
     uint32_t query_result;

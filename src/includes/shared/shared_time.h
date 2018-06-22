@@ -1,7 +1,7 @@
 #ifndef SHARED_TIME_H
 #define SHARED_TIME_H
 
-#define SHARED_TIME_TM_TO_DATABASE_FORMAT_STRING_SIZE 17
+#define SHARED_TIME_TM_TO_DATABASE_FORMAT_STRING_SIZE 27
 
 #include <stdint.h>
 #include <time.h>

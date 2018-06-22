@@ -18,11 +18,13 @@ typedef struct
     uint32_t    seats_available;   
 } Flight;
 
-typedef struct FlightCollection
+typedef struct FlightCollectionNode
 {
     Flight *flight;
-    TAILQ_ENTRY(FlightCollection) flight_collection;
-} FlightCollection;
+    TAILQ_ENTRY(FlightCollectionNode) flight_collection;
+} FlightCollectionNode;
+
+TAILQ_HEAD(FlightCollection, FlightCollectionNode); //expands to struct FlightCollection
 
 Flight *
 flight_create(
@@ -65,7 +67,7 @@ flight_delete(
 
 uint32_t
 flight_collection_destroy(
-    FlightCollection *flight_collection
+    struct FlightCollection *flight_collection
     );
 
 Flight *
@@ -93,13 +95,13 @@ flight_find_by_arrival_airport_and_departure_time(
     uint32_t *error
     );
 
-FlightCollection *
+struct FlightCollection *
 flight_find_by_arrival_date(
     struct tm *arrival_date, 
     uint32_t *error
     );
 
-FlightCollection *
+struct FlightCollection *
 flight_get_all_flights(
     uint32_t *error
     );

@@ -6,6 +6,7 @@
 #include <sys/queue.h>
 
 #include "assets.h"
+#include "model/flight.h"
 #include "shared/shared_error.h"
 #include "shared/shared_time.h"
 #include "pages/partial/partial_render.h"
@@ -82,7 +83,7 @@ flight_search_varget(mustache_api_t *api, void *userdata, mustache_token_variabl
 
     else if(strncmp("results_hidden", token->text, token->text_length) == 0)
     {
-        if (SLIST_EMPTY(&ctx->flightlist))
+        if (NULL == ctx->flights || TAILQ_EMPTY(ctx->flights))
         {
             output_string = SHARED_RENDER_HIDDEN_STRING;
         }
@@ -127,18 +128,18 @@ flight_search_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
 
     if(strcmp("flights", token->name) == 0)
     {
-        if (SLIST_EMPTY(&ctx->flightlist))
+        if (ctx->flights == NULL || TAILQ_EMPTY(ctx->flights))
         { 
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        FlightSearchListNode *flight_node = NULL;
+        FlightCollectionNode *flight_node = NULL;
         api->varget = &flight_varget;
         FlightContext flightcontext;
         memcpy(&flightcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        SLIST_FOREACH(flight_node, &ctx->flightlist, flights)
+        TAILQ_FOREACH(flight_node, ctx->flights, flight_collection  )
         {
-            flightcontext.flight = &flight_node->flight;
+            flightcontext.flight = flight_node->flight;
             if(!mustache_render(api, &flightcontext, token->section))
             {
                 kore_log(LOG_ERR, "flight_search_sectget: failed to render a flight");
