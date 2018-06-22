@@ -56,6 +56,11 @@ flight_delete(
     Flight *flight
     );
 
+uint32_t
+flight_delete_by_flight_identifier(
+    uint32_t flight_identifier
+    );
+
 Flight *
 flight_find_by_identifier(
     uint32_t flight_identifier,

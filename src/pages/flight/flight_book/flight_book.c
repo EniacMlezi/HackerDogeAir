@@ -43,7 +43,7 @@ flight_book_parseparams(struct http_request *req, int *flightid)
 {
     http_populate_get(req);
     int err = (SHARED_OK);
-    if(!http_argument_get_int32(req, "id", &flightid))
+    if(!http_argument_get_int32(req, "id", flightid))
     {
         err = (FLIGHT_BOOK_ERROR_ID_VALIDATOR_INVALID);
     }
