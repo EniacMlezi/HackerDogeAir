@@ -50,18 +50,18 @@ admin_flight_list_sectget(mustache_api_t *api, void *flightdata, mustache_token_
     FlightListContext *ctx = (FlightListContext *)flightdata;
     if (strcmp("flightlist", token->name) == 0)
     {
-        if (SLIST_EMPTY(&ctx->flightlist))
+        if (ctx->flight_collection == NULL || TAILQ_EMPTY(ctx->flight_collection))
         { 
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        FlightListNode *flight_node = NULL;
+        FlightCollectionNode *flight_node = NULL;
         api->varget = &flight_varget;
         FlightContext flightcontext;
         memcpy(&flightcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        SLIST_FOREACH(flight_node, &ctx->flightlist, flights)
+        TAILQ_FOREACH(flight_node, ctx->flight_collection, flight_collection)
         {
-            flightcontext.flight = &flight_node->flight;
+            flightcontext.flight = flight_node->flight;
             if(!mustache_render(api, &flightcontext, token->section))
             {
                 kore_log(LOG_ERR, "admin_flight_list_sectget: failed to render a flight");

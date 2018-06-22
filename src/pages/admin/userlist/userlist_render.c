@@ -51,18 +51,18 @@ admin_user_list_sectget(mustache_api_t *api, void *userdata, mustache_token_sect
     UserListContext *ctx = (UserListContext *)userdata;
     if (strcmp("userlist", token->name) == 0)
     {
-        if (NULL == &ctx->userlist)
+        if (ctx->user_collection == NULL || TAILQ_EMPTY(ctx->user_collection))
         { 
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        UserCollection *user_node = NULL;
+        UserCollectionNode *user_node = NULL;
         api->varget = &user_varget;
         UserContext usercontext;
         memcpy(&usercontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        TAILQ_FOREACH(user_node, &ctx->userlist, user_collection)
+        TAILQ_FOREACH(user_node, ctx->user_collection, user_collection)
         {
-            usercontext.user = &user_node->user;
+            usercontext.user = user_node->user;
             if(!mustache_render(api, &usercontext, token->section))
             {
                 kore_log(LOG_ERR, "admin_user_list_sectget: failed to render a user");

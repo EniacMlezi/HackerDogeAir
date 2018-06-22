@@ -24,7 +24,7 @@ typedef struct FlightCollectionNode
     TAILQ_ENTRY(FlightCollectionNode) flight_collection;
 } FlightCollectionNode;
 
-TAILQ_HEAD(FlightCollection, FlightCollectionNode); //expands to struct FlightCollection
+TAILQ_HEAD(FlightCollection, FlightCollectionNode);
 
 Flight *
 flight_create(
@@ -66,8 +66,14 @@ flight_delete(
     );
 
 uint32_t
+flight_delete_by_identifier(
+    uint32_t flight_identifier
+    );
+
+
+uint32_t
 flight_collection_destroy(
-    struct FlightCollection *flight_collection
+    struct FlightCollection **flight_collection
     );
 
 Flight *

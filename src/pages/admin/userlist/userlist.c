@@ -19,18 +19,17 @@ void   admin_user_list_error_handler(struct http_request *, int);
 int 
 admin_user_list(struct http_request *req)
 {
-    int err = (SHARED_OK);
+    uint32_t err = (SHARED_OK);
     UserListContext context = {
         .partial_context = { .session_id = 0 }  //TODO: fill from request cookie
     };
-    TAILQ_INIT(&context.userlist);
 
     switch(req->method)
     {
         case HTTP_METHOD_GET:
         {
-            //context.userlist = user_get_all_users(&err);
-            if (err == (DATABASE_ENGINE_ERROR_NO_RESULTS)) {
+            context.user_collection = user_get_all_users(&err);
+            if (err != (SHARED_OK)) {
                 admin_user_list_error_handler(req, err);
             }
 

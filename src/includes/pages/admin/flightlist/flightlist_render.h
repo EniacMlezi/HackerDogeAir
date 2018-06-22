@@ -7,17 +7,11 @@
 #include "pages/partial/partial_render.h"
 #include "model/flight.h"
 
-typedef struct FlightListNode
-{
-    Flight flight;
-    SLIST_ENTRY(FlightListNode) flights;
-} FlightListNode;
-
 typedef struct FlightListContext
 {
     PartialContext partial_context;
     const char *error_message;
-    SLIST_HEAD(head_s, FlightListNode) flightlist;
+    struct FlightCollection *flight_collection;
 } FlightListContext;
 
 int

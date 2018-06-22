@@ -138,8 +138,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    TAILQ_HEAD(ticket_collection_s, TicketCollection) *ticket_collection = 
-        malloc(sizeof(TicketCollection)); 
+    struct TicketCollection *ticket_collection = malloc(sizeof(struct TicketCollection));
     TAILQ_INIT(ticket_collection);
 
     uint32_t i;
@@ -155,7 +154,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_ticket_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         }
 
@@ -166,7 +165,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_flight_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         }
 
@@ -177,7 +176,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_user_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         }
 
@@ -188,7 +187,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_cost " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         }
 
@@ -200,44 +199,47 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not create a ticket structure.");
             *error = create_ticket_result;
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         } 
 
-        TicketCollection *temp_ticket_collection = malloc(sizeof(TicketCollection));
+        TicketCollectionNode *temp_ticket_node = malloc(sizeof(TicketCollectionNode));
 
-        if(temp_ticket_collection == NULL)
+        if(temp_ticket_node == NULL)
         {
             kore_log(LOG_ERR, "ticket_create_from_queryL Could not allocate memory for " \
                 "temp_ticket_collection.");
             ticket_destroy(&temp_ticket);
-            free(ticket_collection);
+            ticket_collection_destroy(&ticket_collection);
             return NULL;
         }
 
-        temp_ticket_collection->ticket = temp_ticket;
+        temp_ticket_node->ticket = temp_ticket;
 
-        TAILQ_INSERT_TAIL(ticket_collection, temp_ticket_collection, ticket_collection);
-        temp_ticket_collection = NULL;
+        TAILQ_INSERT_TAIL(ticket_collection, temp_ticket_node, ticket_collection);
+        temp_ticket_node = NULL;
     }
 
     return (void *) ticket_collection;
 }
 
 uint32_t
-ticket_destroy_collection(TicketCollection *ticket_collection)
+ticket_collection_destroy(struct TicketCollection **ticket_collection)
 {
-    TAILQ_HEAD(ticket_collection, TicketCollection) head;
+    TicketCollectionNode *temp = NULL;
 
-    while(!TAILQ_EMPTY(&head))
+    while(!TAILQ_EMPTY(*ticket_collection))
     {
-        TicketCollection *temp = TAILQ_FIRST(&head);
-        TAILQ_REMOVE(&head, temp, ticket_collection);
+        temp = TAILQ_FIRST(*ticket_collection);
+        TAILQ_REMOVE(*ticket_collection, temp, ticket_collection);
 
         ticket_destroy(&temp->ticket);
         free(temp);
         temp = NULL;
     }
+
+    free(*ticket_collection);
+    *ticket_collection = NULL;
 
     return (SHARED_OK);
 }
@@ -333,7 +335,7 @@ ticket_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
     return result; 
 }
 
-TicketCollection *
+struct TicketCollection *
 ticket_collection_find_by_flight_identifier(uint32_t flight_identifier, uint32_t *error)
 {
       uint32_t database_flight_identifier = htonl(flight_identifier);
@@ -361,7 +363,7 @@ ticket_collection_find_by_flight_identifier(uint32_t flight_identifier, uint32_t
     return result;   
 }
 
-TicketCollection *
+struct TicketCollection *
 ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t *error)
 {    
     uint32_t database_ticket_identifier = htonl(ticket_identifier);
@@ -390,7 +392,7 @@ ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t
 }
 
 
-TicketCollection *
+struct TicketCollection *
 ticket_get_all_tickets(uint32_t *error)
 {
     uint32_t query_result;
