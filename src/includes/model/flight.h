@@ -7,17 +7,15 @@
 
 typedef struct
 {
-    uint32_t    flight_identifier;
-    uint32_t    departure_airport_identifier;
-    uint32_t    arrival_airport_identifier;
-    char        *departure_time;
-    char        *arrival_time;
-    double      distance;
-    uint32_t    seats_available; 
+    uint32_t    identifier;
+    uint32_t    arrival_location_identifier;
+    uint32_t    departure_location_identifier;
+    char        *arrival_location;
+    char        *departure_location; 
     struct tm   arrival_datetime;
     struct tm   departure_datetime;
-    char        *arrival_location;
-    char        *departure_location;   
+    uint32_t    distance;
+    uint32_t    seats_available;   
 } Flight;
 
 typedef struct FlightCollection
@@ -28,17 +26,17 @@ typedef struct FlightCollection
 
 Flight *
 flight_create(
-    uint32_t flight_identifier,
-    uint32_t departure_airport_identifier,
-    uint32_t arrival_airport_identifier,
-    char *departure_time,
-    char *arrival_time,
-    double distance,
+    uint32_t identifier,
+    char *departure_airport,
+    char *arrival_airport,
+    struct tm *departure_time,
+    struct tm *arrival_time,
+    uint32_t distance,
     uint32_t seats_available,
     uint32_t *error
     );
 
-uint32_t
+void
 flight_destroy(
     Flight **flight
     );

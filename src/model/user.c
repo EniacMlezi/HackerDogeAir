@@ -188,7 +188,6 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
     TAILQ_HEAD(user_collection_s, UserCollection) *user_collection = malloc(sizeof(UserCollection));
     TAILQ_INIT(user_collection);
 
-
     uint32_t i;
     for(i = 0; i < number_of_results; ++i)
     {
