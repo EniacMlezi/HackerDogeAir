@@ -328,6 +328,11 @@ flight_delete(Flight *flight)
 uint32_t
 flight_collection_destroy(struct FlightCollection *flight_collection)
 {
+    if (flight_collection == NULL)
+    {
+        return (SHARED_OK);
+    }
+
     FlightCollectionNode *temp = NULL;
     while(!TAILQ_EMPTY(flight_collection))
     {
