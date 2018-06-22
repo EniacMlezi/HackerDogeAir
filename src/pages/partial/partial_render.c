@@ -95,12 +95,21 @@ partial_render_mustache_render(mustache_api_t *api, void *context)
 
 void
 partial_render_clean(PartialContext *context)
-{
-    free(context->src_context);
-    free(context->dst_context->string);
-    free(context->dst_context);
+{ 
+    if(context == NULL)
+    {
+        return;
+    }
+    if(context->src_context != NULL)
+    {
+        free(context->src_context);
+    }
+    if(context->dst_context != NULL)
+    {
+        free(context->dst_context->string);
+        free(context->dst_context);
+    }
     context->src_context = NULL;
-    context->dst_context->string = NULL;
     context->dst_context = NULL;
 }
 

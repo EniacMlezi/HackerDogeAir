@@ -11,13 +11,20 @@
 #include "pages/login/login_render.h"
 #include "model/user.h"
 #include "model/login_attempt.h"
+#include "model/session.h"
 #include "assets.h"
 #include "pages/login.h"
 
 uint32_t 
 login(struct http_request *req)
 {
-    int err;
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
+    int return_code = (KORE_RESULT_OK);
+    int err = 0;
     
     User user = (User) {
         .identifier = 0, 
@@ -41,47 +48,69 @@ login(struct http_request *req)
         }};
 
     UserContext context = {
-        .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
+        .partial_context = { 
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session_id = 0 
+            }, //TODO: fill from request cookie
         .user = &user
     };
 
-    if(req->method == HTTP_METHOD_GET)
-    {   
-        //a GET receives the login form
-        if((err = login_render(&context)) != (SHARED_OK))
-        {
-            login_error_handler(req, err, &context);
-        }
-
-        http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, 
-            context.partial_context.dst_context->string, 
-            strlen(context.partial_context.dst_context->string));
-
-        login_render_clean(&context);
-        return (KORE_RESULT_OK);
-    }
-    else if(req->method != HTTP_METHOD_POST)
-    {   //only serve GET and POST requests
-        return (KORE_RESULT_ERROR);
-    }
-
-    if((err = login_parse_params(req, context.user)) != (SHARED_OK))
+    switch(req->method)
     {
-        login_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit
+        case (HTTP_METHOD_GET):
+        {
+            if((err = login_render(&context)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                context.partial_context.dst_context->string, 
+                strlen(context.partial_context.dst_context->string));
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        case (HTTP_METHOD_POST):
+        {
+            if((err = login_parse_params(req, context.user)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
+
+            if((err = login_try_login(context.user)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
+            
+            if((err = login_create_session(req, context.user->identifier)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                asset_login_success_html,
+                asset_len_login_success_html);
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        default:
+            return_code = (KORE_RESULT_ERROR);
+            break;
     }
 
-    if((err = login_try_login(context.user)) != (SHARED_OK))
-    {   //when not logged in correctly, notify user.
-        login_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
-    }
-
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
-
-    return (KORE_RESULT_OK);
+    login_render_clean(&context);
+    return return_code;
 }
 
 uint32_t
@@ -139,7 +168,7 @@ login_try_login(User *input_user)
         }
         else
         {
-            input_user = database_user;
+            input_user->identifier = database_user->identifier;
             login_attempt_result = true;
         }
     }
@@ -150,7 +179,7 @@ login_try_login(User *input_user)
         return_code = (LOGIN_ERROR_LOG_ATTEMPT_ERROR);
     }
 
-    user_destroy(database_user);
+    user_destroy(&database_user);
 
     return return_code;
 }
@@ -228,8 +257,44 @@ login_log_attempt(uint32_t user_identifier, bool success)
     result = (SHARED_OK);
 
     out:
-    login_attempt_destroy(login_attempt);
+    login_attempt_destroy(&login_attempt);
     return result; 
+}
+
+uint32_t
+login_create_session(struct http_request *req, uint32_t user_identifier)
+{
+    uint32_t err = 0;
+    unsigned char session_id[144];
+    char *session_id_output;
+
+    if(libscrypt_salt_gen(session_id, sizeof(session_id)) < 0)
+    {
+        kore_log(LOG_ERR, "login_create_session: Could not generate a random salt");
+        return (SHARED_ERROR_HASH_ERROR);
+    }
+    
+    if(kore_base64_encode(session_id, sizeof(session_id), &session_id_output) != (KORE_RESULT_OK))
+    {
+        kore_log(LOG_ERR, "login_create_session: Could not encode random salt");
+        return (SHARED_ERROR_HASH_ERROR);
+    }
+
+    time_t epoch_expiration_time = time(NULL) + 60 * 60;
+    struct tm *expiration_time = localtime(&epoch_expiration_time); 
+    Session session = {
+        .identifier = session_id_output,
+        .user_identifier = user_identifier,
+        .expiration_time = *expiration_time
+    };
+    if((err = session_insert_or_update(&session)) != (SHARED_OK))
+    {
+        return err;
+    }
+
+    http_response_cookie(
+        req, "session", session_id_output, "/", epoch_expiration_time, 60*60, NULL);
+    return (SHARED_OK);
 }
 
 void

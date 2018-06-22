@@ -7,6 +7,7 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/user/user_detail/user_detail_render.h"
 #include "model/user.h"
 #include "assets.h"
@@ -26,67 +27,75 @@ void    user_detail_error_handler(struct http_request *req, int errcode, UserCon
 int
 user_detail(struct http_request *req)
 {
-    int err = 0;
-    User user = (User) {
-        .identifier = 0, 
-        .role = 0,
-        .email = NULL, 
-        .username = NULL, 
-        .first_name = NULL, 
-        .last_name = NULL, 
-        .telephone_number = NULL, 
-        .password = NULL, 
-        .doge_coin = 0, 
-        .registration_datetime = (struct tm) {
-            .tm_year     = 0,
-            .tm_mon      = 0,
-            .tm_mday     = 0,
-            .tm_hour     = 0,
-            .tm_min      = 0,
-            .tm_sec      = 0,  
-            .tm_wday     = 0,
-            .tm_yday     = 0
-    }};
-    
-    UserContext context = {
-        .partial_context = {.session_id = 0},
-        .user = &user
-    };
-    if(req->method == HTTP_METHOD_GET)
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
     {
-        //TODO: fill context.user with DataAccess Layer
-        if((err = user_detail_render(&context)) != (SHARED_OK))
-        {
-            user_detail_error_handler(req, err, &context);
-            return (KORE_RESULT_OK);
-        }
-
-        http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, 
-            context.partial_context.dst_context->string, 
-            strlen(context.partial_context.dst_context->string));
-
-        user_detail_render_clean(&context);
-        return (KORE_RESULT_OK);
-    }
-    else if(req->method != HTTP_METHOD_POST)
-    {   //don't serve any other methods
         return (KORE_RESULT_ERROR);
     }
 
-    if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
+    int return_code = (KORE_RESULT_OK);
+    int err = 0;
+    
+    UserContext context = {
+        .partial_context = { 
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session_id = 0
+        }
+    };
+    if((err = shared_http_get_user_from_request(req, &context.user)) != (SHARED_OK))
     {
         user_detail_error_handler(req, err, &context);
         return (KORE_RESULT_OK);
     }
 
-    //TODO: Save edits to database with DataAccess layer
-    //on error: call user detail error handler 
-    kore_log(LOG_INFO, "success return");
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, asset_user_detail_success_html, asset_len_user_detail_success_html);
-    
-    return (KORE_RESULT_OK);
+    switch(req->method)
+    {
+        case (HTTP_METHOD_GET):
+        {
+            //TODO: fill context.user with DataAccess Layer
+            if((err = user_detail_render(&context)) != (SHARED_OK))
+            {
+                user_detail_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                context.partial_context.dst_context->string, 
+                strlen(context.partial_context.dst_context->string));
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        case (HTTP_METHOD_POST):
+        {
+            if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
+            {
+                user_detail_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+            }
+
+            if((err = user_update_details(context.user)) != (SHARED_OK))
+            {
+                user_detail_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_ERROR);
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                asset_user_detail_success_html, 
+                asset_len_user_detail_success_html);
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        default:
+            return_code = (KORE_RESULT_ERROR);
+            break;
+    }
+    user_detail_render_clean(&context);
+    user_destroy(&context.user);
+    return return_code;
 }
 
 int
@@ -94,6 +103,7 @@ user_detail_parseparams(struct http_request *req, User *user)
 {
     http_populate_post(req);
     int err = (SHARED_OK);
+
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
         err = (USER_DETAIL_ERROR_EMAIL_VALIDATOR_INVALID);

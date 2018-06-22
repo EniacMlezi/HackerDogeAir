@@ -7,22 +7,22 @@
 
 typedef struct
 {
-    uint32_t    session_identifier;
+    char *      identifier;
     uint32_t    user_identifier;
-    struct tm   experiation_time;
+    struct tm   expiration_time;
 } Session;
 
 typedef struct SessionCollection
 {
     Session session;
-    LIST_ENTRY(SessionCollection) session_collection;
+    TAILQ_ENTRY(SessionCollection) session_collection;
 } SessionCollection;
 
 Session *
 session_create(
-    uint32_t session_identifier,
+    char * session_identifier,
     uint32_t user_identifier,
-    struct tm experiation_time,
+    struct tm *experiation_time,
     uint32_t *error
     );
 
@@ -34,11 +34,11 @@ session_create_from_query(
 
 void
 session_destroy(
-    Session *session
+    Session **session
     );
 
 uint32_t
-session_insert(
+session_insert_or_update(
     const Session *session
     );
 
@@ -54,7 +54,7 @@ session_delete(
 
 Session *
 session_find_by_session_identifier(
-    uint32_t session_identifier,
+    const char * session_identifier,
     uint32_t *error
     );
 

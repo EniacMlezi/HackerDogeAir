@@ -1,3 +1,5 @@
+#include "pages/home/home.h"
+
 #include <stdbool.h>
 #include <limits.h>
 #include <time.h>
@@ -18,29 +20,34 @@ void   home_error_handler(struct http_request *, int);
 int 
 home(struct http_request *req)
 {
-    int err;
-    PartialContext context = {
-        .session_id = 0  //TODO: fill from request cookie
-    };
-
     if(req->method != HTTP_METHOD_GET)
     {
         return(KORE_RESULT_ERROR); //No methods besides GET exist on the home page
     }
+
+    int return_code = (KORE_RESULT_OK);
+    int err = 0;
+    PartialContext context = {
+        .src_context = NULL,
+        .dst_context = NULL,
+        .session_id = 0  //TODO: fill from request cookie
+    };
     
     //a GET receives the home form and renders the page
     if((err = home_render(&context)) != (SHARED_OK))
     {
         home_error_handler(req, err);
+        return_code = (KORE_RESULT_OK);
+        goto exit;
     }
 
     http_response_header(req, "content-type", "text/html");
     http_response(req, HTTP_STATUS_OK, 
         context.dst_context->string,
         strlen(context.dst_context->string));
-
+exit:
     home_render_clean(&context);
-    return (KORE_RESULT_OK);    
+    return return_code;    
 }
 
 void
