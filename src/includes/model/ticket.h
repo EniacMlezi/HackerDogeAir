@@ -14,7 +14,7 @@ typedef struct
 
 typedef struct TicketCollection
 {
-    Ticket ticket;
+    Ticket *ticket;
     TAILQ_ENTRY(TicketCollection) ticket_collection;
 } TicketCollection;
 
@@ -29,7 +29,7 @@ ticket_create(
 
 void
 ticket_destroy(
-    Ticket *ticket
+    Ticket **ticket
     );
 
 void *
@@ -42,6 +42,11 @@ void *
 ticket_create_collection_from_query(
     void *source_location,
     uint32_t *error
+    );
+
+uint32_t
+ticket_destroy_collection(
+    TicketCollection *ticket_collection
     );
 
 uint32_t

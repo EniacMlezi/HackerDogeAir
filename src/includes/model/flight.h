@@ -40,7 +40,7 @@ flight_create(
 
 uint32_t
 flight_destroy(
-    Flight *flight
+    Flight **flight
     );
 
 uint32_t

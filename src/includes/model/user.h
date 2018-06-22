@@ -56,7 +56,7 @@ user_collection_create_from_query(
 
 void
 user_destroy(
-    User *user
+    User **user
     );
 
 uint32_t

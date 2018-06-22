@@ -34,7 +34,7 @@ session_create_from_query(
 
 void
 session_destroy(
-    Session *session
+    Session **session
     );
 
 uint32_t

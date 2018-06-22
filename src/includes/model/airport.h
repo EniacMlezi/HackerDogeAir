@@ -39,7 +39,7 @@ airport_collection_create_from_query(
 
 uint32_t
 airport_destroy(
-    Airport *airport
+    Airport **airport
     );
 
 uint32_t

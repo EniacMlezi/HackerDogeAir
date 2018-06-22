@@ -190,7 +190,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 
 
     uint32_t i;
-    for(i =0; i < number_of_results; ++i)
+    for(i = 0; i < number_of_results; ++i)
     {
         User *temp_user = NULL;
 
@@ -259,10 +259,10 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 }
 
 void
-user_destroy(User *user)
+user_destroy(User **user)
 {
-    free(user);
-    user = NULL;
+    free(*user);
+    *user = NULL;
 }
 
 uint32_t
@@ -275,12 +275,12 @@ user_collection_destroy(UserCollection *user_collection)
         UserCollection *temp = TAILQ_FIRST(&head);
         TAILQ_REMOVE(&head, temp, user_collection);
 
-        user_destroy(temp->user);
+        user_destroy(&temp->user);
         free(temp);
         temp = NULL;
     }
 
-    return 0;
+    return (SHARED_OK);
 }
 
 uint32_t

@@ -99,10 +99,10 @@ session_create_from_query(void *source_location, uint32_t *error)
 }
 
 void
-session_destroy(Session *session)
+session_destroy(Session **session)
 {
-    free(session);
-    session = NULL;
+    free(*session);
+    *session = NULL;
 }
 
 uint32_t

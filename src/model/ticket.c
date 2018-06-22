@@ -60,10 +60,10 @@ ticket_create(uint32_t ticket_identifier, uint32_t flight_identifier, uint32_t u
 }
 
 void
-ticket_destroy(Ticket *ticket)
+ticket_destroy(Ticket **ticket)
 {
-    free(ticket);
-    ticket = NULL;
+    free(*ticket);
+    *ticket = NULL;
 }
 
 void *
@@ -142,7 +142,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
     uint32_t i;
     for(i = 0; i < number_of_results; ++i)
     {
-        Ticket *ticket = NULL;
+        Ticket *temp_ticket = NULL;
 
         int err = 0;
         uint32_t ticket_identifier = kore_strtonum64(
@@ -186,7 +186,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
         }
 
         uint32_t create_ticket_result = 0;
-        void *temp_ticket = ticket_create(ticket_identifier, flight_identifier, user_identifier, cost,
+        temp_ticket = ticket_create(ticket_identifier, flight_identifier, user_identifier, cost,
             &create_ticket_result);
 
         if(temp_ticket == NULL)
@@ -197,7 +197,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
         } 
 
         TicketCollection *temp_ticket_collection = malloc(sizeof(TicketCollection));
-        temp_ticket_collection = temp_ticket;
+        temp_ticket_collection->ticket = temp_ticket;
 
         TAILQ_INSERT_TAIL(ticket_collection, temp_ticket_collection, ticket_collection);
         temp_ticket_collection = NULL;
@@ -207,9 +207,21 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
 }
 
 uint32_t
-ticket_collection_destroy(TicketCollection *ticket_collection)
+ticket_destroy_collection(TicketCollection *ticket_collection)
 {
+    TAILQ_HEAD(ticket_collection, TicketCollection) head;
 
+    while(!TAILQ_EMPTY(&head))
+    {
+        TicketCollection *temp = TAILQ_FIRST(&head);
+        TAILQ_REMOVE(&head, temp, ticket_collection);
+
+        ticket_destroy(&temp->ticket);
+        free(temp);
+        temp = NULL;
+    }
+
+    return (SHARED_OK);
 }
 
 uint32_t
