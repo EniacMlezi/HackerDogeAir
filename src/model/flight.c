@@ -44,6 +44,9 @@ static const char flight_find_by_departure_airport_query[] =
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
 "WHERE d.name=$1;";
 
+static const char flight_get_user_bookings_query[] =
+"";
+
 static const char flight_find_by_arrival_airport_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \

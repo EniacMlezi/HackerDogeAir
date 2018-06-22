@@ -265,7 +265,7 @@ uint32_t
 login_create_session(struct http_request *req, uint32_t user_identifier)
 {
     uint32_t err = 0;
-    unsigned char session_id[144];
+    unsigned char session_id[20];
     char *session_id_output;
 
     if(libscrypt_salt_gen(session_id, sizeof(session_id)) < 0)
