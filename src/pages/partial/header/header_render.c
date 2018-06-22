@@ -63,7 +63,7 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         }
         else
         {
-            output_string = "<a href='/'>Home</a>\n<a href='flightsearch'>Flights</a>\n<a href='admin'>Admin</a>";
+            output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>\n<a href='/admin'>Admin</a>";
         }
     }
     else if(strncmp("LOGGEDIN", token->text, token->text_length) == 0)

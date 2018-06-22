@@ -70,38 +70,14 @@ int
 register_parse_params(struct http_request *req, User *user)
 {
     http_populate_post(req);
-<<<<<<< HEAD
-    int err = (SHARED_ERROR_OK);
-=======
     int err = (SHARED_OK);
->>>>>>> master
+
     if(!http_argument_get_string(req, "email", &(user->email)))
     {
         err = (REGISTER_ERROR_EMAIL_VALIDATOR_INVALID);
     }
     if(!http_argument_get_string(req, "password", &(user->password)))
     {
-<<<<<<< HEAD
-        err = (REGISTER_ERROR_PASSWORD_VALIDATOR_INVALID); 
-    }
-    if(!http_argument_get_string(req, "firstname", &(user->firstname)))
-    {
-        err = (REGISTER_ERROR_FIRSTNAME_VALIDATOR_INVALID); 
-    }
-    if(!http_argument_get_string(req, "lastname", &(user->lastname)))
-    {
-        err = (REGISTER_ERROR_LASTNAME_VALIDATOR_INVALID); 
-    }
-    if(!http_argument_get_string(req, "telnumber", &(user->telnumber)))
-    {
-        err = (REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID); 
-    }
-    if(!http_argument_get_string(req, "username", &(user->username)))
-    {
-        err = (REGISTER_ERROR_USERNAME_VALIDATOR_INVALID); 
-    }
-
-=======
         err = (REGISTER_ERROR_PASSWORD_VALIDATOR_INVALID);
     }
     if(!http_argument_get_string(req, "firstname", &(user->first_name)))
@@ -120,7 +96,6 @@ register_parse_params(struct http_request *req, User *user)
     {
         err = (REGISTER_ERROR_USERNAME_VALIDATOR_INVALID); 
     }
->>>>>>> master
     return err;
 }
 
@@ -168,24 +143,10 @@ register_error_handler(struct http_request *req, int errcode, UserContext *conte
             context->error_message = 
             "Please enter a correct first name (maximum length of 255 characters)";
             break;
-        case (REGISTER_ERROR_FIRSTNAME_VALIDATOR_INVALID):
-            context->error_message = "Please use a correct firstname (length: 1-255, may contain: a-zA-Z and spaces )";
-            break;
-        case (REGISTER_ERROR_LASTNAME_VALIDATOR_INVALID):
-            context->error_message = "Please use a correct lastname (length: 1-255, may contain: a-zA-Z and spaces )";
-            break;
-        case (REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID):
-            context->error_message = "Please use a correct telephone number";
-            break;
-        case (REGISTER_ERROR_USERNAME_VALIDATOR_INVALID):
-            context->error_message = "Please use a correct username (length: 1-255, may contain: a-zA-Z0-9 )";
-            break;
-
         case (REGISTER_ERROR_LASTNAME_VALIDATOR_INVALID):
             context->error_message = 
             "Please enter a correct last name (maximum length of 255 characters)";
             break;
-
         case (REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID):
             context->error_message = 
             "Please enter a correct telephone number";

@@ -10,6 +10,7 @@
 #include "shared/shared_error.h"
 #include "pages/admin/userlist/userlist_render.h"
 #include "model/user.h"
+#include "model/role.h"
 #include "assets.h"
 
 int    admin_user_list(struct http_request *);
@@ -19,28 +20,65 @@ int
 admin_user_list(struct http_request *req)
 {
     int err;
-    PartialContext context = {
-        .session_id = 0  //TODO: fill from request cookie
+    UserListContext context = {
+        .partial_context = { .session_id = 0 }  //TODO: fill from request cookie
     };
+    SLIST_INIT(&context.userlist);
 
-    if(req->method != HTTP_METHOD_GET)
+    switch(req->method)
     {
-        return(KORE_RESULT_ERROR); //No methods besides GET exist on the home page
-    }
-    
-    //a GET receives the home form and renders the page
-    if((err = admin_user_list_render(&context)) != (SHARED_ERROR_OK))
-    {
-        admin_user_list_error_handler(req, err);
-    }
+        case HTTP_METHOD_GET:
+        {
+            UserListNode user_node0 = {
+                .user = {
+                    .identifier = 0,
+                    .email = "dennis17-17@hotmail.com",
+                    .username = "EniacBlue",
+                    .role = 2,
+                    .doge_coin = 12000
+                }
+            };
+            
+            UserListNode user_node1 = {
+                .user = {
+                    .identifier = 1,
+                    .email = "nick.devisser@hotmail.com",
+                    .username = "EniacMazamo",
+                    .role = 1,
+                    .doge_coin = 10
+                }
+            };
 
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, 
-        context.dst_context->string,
-        strlen(context.dst_context->string));
+            UserListNode user_node2 = {
+                .user = {
+                    .identifier = 2,
+                    .email = "larsgardien@live.nl",
+                    .username = "EniacMlezi",
+                    .role = 1,
+                    .doge_coin = 1022
+                }
+            };
+            SLIST_INSERT_HEAD(&context.userlist, &user_node0, users);
+            SLIST_INSERT_HEAD(&context.userlist, &user_node1, users);
+            SLIST_INSERT_HEAD(&context.userlist, &user_node2, users);
 
-    admin_user_list_render_clean(&context);
-    return (KORE_RESULT_OK);    
+            if((err = admin_user_list_render(&context)) != (SHARED_OK))
+            {
+                admin_user_list_error_handler(req, err);
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                context.partial_context.dst_context->string,
+                strlen(context.partial_context.dst_context->string));
+
+            admin_user_list_render_clean(&context);
+            return (KORE_RESULT_OK);
+        }
+
+        default:
+            return(KORE_RESULT_ERROR); //No methods besides GET exist on this page
+    }
 }
 
 void

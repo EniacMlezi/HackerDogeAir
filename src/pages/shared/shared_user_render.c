@@ -94,6 +94,49 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
             output_string = ctx->error_message;
         }
     }
+    else if(strncmp("role", token->text, token->text_length) == 0)
+    {
+        if (NULL == ctx->user)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else 
+        {
+            Role role = ctx->user->role;
+            switch(role)
+            {
+                case 1:
+                    output_string = "User";
+                    break;
+                case 2:
+                    output_string = "Admin";
+                    break;
+                default:
+                    output_string = (SHARED_RENDER_EMPTY_STRING);
+                    break;
+
+            }
+        }
+    }
+    else if(strncmp("dogecoins", token->text, token->text_length) == 0)
+    {
+        if (NULL == ctx->user)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else 
+        {
+            char dogecoin_string[12];
+            if(snprintf(dogecoin_string, 12, "%d", ctx->user->doge_coin) <= 0)
+            {
+                kore_log(LOG_ERR, 
+                    "user_varget: failed int to string conversion for timeout. input: %d",
+                    ctx->user->doge_coin);
+                return (SHARED_RENDER_MUSTACHE_FAIL);
+            }
+            output_string = dogecoin_string;
+        }
+    }
 
     if(NULL == output_string)
     {

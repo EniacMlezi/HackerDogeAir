@@ -29,7 +29,7 @@ admin_booking_list(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = admin_booking_list_render(&context)) != (SHARED_ERROR_OK))
+    if((err = admin_booking_list_render(&context)) != (SHARED_OK))
     {
         admin_booking_list_error_handler(req, err);
     }

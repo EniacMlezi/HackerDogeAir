@@ -29,7 +29,7 @@ admin(struct http_request *req)
     }
     
     //a GET receives the home form and renders the page
-    if((err = admin_render(&context)) != (SHARED_ERROR_OK))
+    if((err = admin_render(&context)) != (SHARED_OK))
     {
         admin_error_handler(req, err);
     }

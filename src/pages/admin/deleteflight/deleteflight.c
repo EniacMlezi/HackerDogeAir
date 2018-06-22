@@ -8,39 +8,67 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
-#include "pages/admin/deleteflight/deleteflight_render.h"
-#include "model/user.h"
+#include "model/flight.h"
 #include "assets.h"
 
-int    admin_delete_flight(struct http_request *);
-void   admin_delete_flight_error_handler(struct http_request *, int);
+int         admin_delete_flight(struct http_request *);
+int         admin_delete_flight_parseparams(struct http_request *, int *);
+void        admin_delete_flight_error_handler(struct http_request *, int);
+int    admin_try_delete_flight(uint32_t);
 
 int 
 admin_delete_flight(struct http_request *req)
 {
-    int err;
-    PartialContext context = {
-        .session_id = 0  //TODO: fill from request cookie
-    };
+    int err;    
 
     if(req->method != HTTP_METHOD_GET)
     {
         return(KORE_RESULT_ERROR); //No methods besides GET exist on the home page
     }
-    
-    //a GET receives the home form and renders the page
-    if((err = admin_delete_flight_render(&context)) != (SHARED_ERROR_OK))
+
+    int flightid = 0;
+    if ((err = admin_delete_flight_parseparams(req, &flightid)) != (SHARED_OK))
+    {
+        admin_delete_flight_error_handler(req, err);
+    }
+    kore_log(LOG_ERR, "admin_delete_flight: id %i", flightid);
+
+    if ((err = admin_try_delete_flight(flightid)) != (SHARED_OK))
     {
         admin_delete_flight_error_handler(req, err);
     }
 
     http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, 
-        context.dst_context->string,
-        strlen(context.dst_context->string));
+    http_response(req, HTTP_STATUS_OK,
+        asset_flight_delete_success_html,
+        asset_len_flight_delete_success_html);
+    return (KORE_RESULT_OK);
+}
 
-    admin_delete_flight_render_clean(&context);
-    return (KORE_RESULT_OK);    
+int admin_delete_flight_parseparams(struct http_request *req, int *flightid)
+{
+    http_populate_get(req);
+    int err = (SHARED_OK);
+    if(!http_argument_get_int32(req, "id", flightid))
+    {
+        err = (ADMIN_DELETE_FLIGHT_ID_INVALID);
+    }
+
+    return err;
+}
+
+int
+admin_try_delete_flight(uint32_t flight_identifier)
+{
+    int err = (SHARED_OK);
+    if (flight_identifier == 3) {
+        err = (ADMIN_DELETE_FLIGHT_ERROR);
+    }
+    /*if(!flight_delete_by_flight_identifier(flight_identifier))
+    {
+        err = (ADMIN_DELETE_FLIGHT_ERROR);
+    }*/
+    return err;
 }
 
 void
@@ -49,6 +77,14 @@ admin_delete_flight_error_handler(struct http_request *req, int errcode)
     bool handled = true;
     switch(errcode) 
     {
+        case (ADMIN_DELETE_FLIGHT_ID_INVALID):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Unknown Flight Identifier. Please try again.", "/admin/flightlist", 10);
+            break;
+        case (ADMIN_DELETE_FLIGHT_ERROR):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Flight couldn't be deleted. Please try again.", "/admin/flightlist", 10);
+            break;
         default:
             handled = false;
     }

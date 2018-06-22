@@ -4,11 +4,12 @@
 #include <mustache.h>
 
 #include "pages/partial/partial_render.h"
+#include "pages/shared/shared_user_render.h"
 
 int
-admin_give_points_render(PartialContext *context);
+admin_give_points_render(UserContext *context);
 
 void         
-admin_give_points_render_clean(PartialContext *context);
+admin_give_points_render_clean(UserContext *context);
 
 #endif

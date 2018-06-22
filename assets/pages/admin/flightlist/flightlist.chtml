@@ -20,12 +20,12 @@
                         </tr>
                         {{#flightlist}}
                         <tr>
-                            <td>{{flightid}}</td>
+                            <td>{{id}}</td>
                             <td>{{departurelocation}}</td>
                             <td>{{departuredatetime}}</td>
                             <td>{{arrivallocation}}</td>
                             <td>{{arrivaldatetime}}</td>
-                            <td><a href="/deleteflight?id={{id}}">Book Now!</a></td>
+                            <td><a href="/admin/deleteflight?id={{id}}">Delete this flight</a></td>
                         </tr>
                         {{/flightlist}}
                     </table>
