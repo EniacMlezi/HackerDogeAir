@@ -25,7 +25,6 @@ shared_time_tm_to_database_string(const struct tm *time, char *destination_strin
 uint32_t
 shared_time_database_string_to_tm(const char *source_location, struct tm *destination)
 {
-    printf("converting: %s", source_location);
     if(strptime(source_location, "%Y-%m-%d %H:%M:%S", destination) == NULL)
     {
         return (SHARED_ERROR_TIME_CONVERSION);

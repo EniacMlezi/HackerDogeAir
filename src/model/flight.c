@@ -62,8 +62,8 @@ flight_create(uint32_t flight_identifier, char *departure_location, char *arriva
     uint32_t *error)
 {
     /* Allocating space for the structure and the strings appended to it. */
-    uint8_t departure_location_size = strlen(departure_location);
-    uint8_t arrival_location_size = strlen(arrival_location);
+    uint8_t departure_location_size = strlen(departure_location) + 1;
+    uint8_t arrival_location_size = strlen(arrival_location) + 1;
 
     Flight *flight = malloc(sizeof(Flight) + departure_location_size + arrival_location_size); 
 

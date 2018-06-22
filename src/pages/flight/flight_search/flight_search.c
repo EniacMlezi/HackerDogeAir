@@ -91,7 +91,7 @@ flight_search(struct http_request *req)
             return_code = (KORE_RESULT_ERROR);
             break;
     }
-
+    // flight_collection_destroy(context.flights);
     flight_search_render_clean(&context);
     return return_code;
 }
