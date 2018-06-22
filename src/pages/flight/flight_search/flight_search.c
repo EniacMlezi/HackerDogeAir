@@ -24,6 +24,12 @@ void    flight_search_error_handler(struct http_request *, int, FlightSearchCont
 int
 flight_search(struct http_request *req)
 {
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
+    int return_code;
     int err = 0;
     time_t zero_epoch = 0;
     struct tm *zero_arrivaldate = localtime(&zero_epoch);
@@ -32,69 +38,81 @@ flight_search(struct http_request *req)
         .params = {.arrivaldate = *zero_arrivaldate}
     };
     SLIST_INIT(&context.flightlist);
-    if(req->method == HTTP_METHOD_GET)
+
+    switch(req->method)
     {
-        if((err = flight_search_render(&context)))
+        case (HTTP_METHOD_GET):
         {
-            flight_search_error_handler(req, err, &context);
+            if((err = flight_search_render(&context)))
+            {
+                flight_search_error_handler(req, err, &context);
+            }
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK,
+                context.partial_context.dst_context->string,
+                strlen(context.partial_context.dst_context->string));
+                
+            return_code = (KORE_RESULT_OK);
+            break;
         }
-        http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK,
-            context.partial_context.dst_context->string,
-            strlen(context.partial_context.dst_context->string));
-        flight_search_render_clean(&context);
-        return (KORE_RESULT_OK);
-    }
-    else if(req->method != HTTP_METHOD_POST)
-    {
-        return (KORE_RESULT_ERROR);
-    }
+        case (HTTP_METHOD_POST):
+        {
+            if((err = flight_search_parseparams(req, &context.params)) != (SHARED_OK))
+            {
+                flight_search_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
-    if((err = flight_search_parseparams(req, &context.params)) != (SHARED_OK))
-    {
-        flight_search_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);
-    }
+            //TODO: DataAccess layer search using context.params
+            char *departure0 = "</td><h1>Hello there</h1><td>";
+            char *arrival0 = "UitjeHol";
 
-    //TODO: DataAccess layer search using context.params
-    char *departure0 = "</td><h1>Hello there</h1><td>";
-    char *arrival0 = "UitjeHol";
+            FlightSearchListNode flight_node0 = {
+                .flight = {
+                    .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
+                    .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
+                    .arrival_location = arrival0,
+                    .departure_location = departure0
+                }
+            };
+            SLIST_INSERT_HEAD(&context.flightlist, &flight_node0, flights);
 
-    FlightSearchListNode flight_node0 = {
-        .flight = {
-            .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
-            .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
-            .arrival_location = arrival0,
-            .departure_location = departure0
+            char *departure1 = "SchipUitJeHol";
+            char *arrival1 = "InjeHol";
+
+            FlightSearchListNode flight_node1 = {
+                .flight = {
+                    .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
+                    .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
+                    .arrival_location = arrival1,
+                    .departure_location = departure1
+                }
+            };
+            SLIST_INSERT_HEAD(&context.flightlist, &flight_node1, flights);
+
+            if((err = flight_search_render(&context)) != (SHARED_OK))
+            {
+                flight_search_error_handler(req, err, &context);  
+                return_code = (KORE_RESULT_OK);
+                break; 
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK,
+                context.partial_context.dst_context->string,
+                strlen(context.partial_context.dst_context->string));
+            flight_search_render_clean(&context);
+            return_code = (KORE_RESULT_OK);
+            break;
         }
-    };
-    SLIST_INSERT_HEAD(&context.flightlist, &flight_node0, flights);
-
-    char *departure1 = "SchipUitJeHol";
-    char *arrival1 = "InjeHol";
-
-    FlightSearchListNode flight_node1 = {
-        .flight = {
-            .arrival_datetime = {0, 15, 13, 18, 12, 2018-1900, 0, 0},
-            .departure_datetime = {0, 10, 13, 18, 12, 2018-1900, 0, 0},
-            .arrival_location = arrival1,
-            .departure_location = departure1
-        }
-    };
-    SLIST_INSERT_HEAD(&context.flightlist, &flight_node1, flights);
-
-    if((err = flight_search_render(&context)) != (SHARED_OK))
-    {
-        flight_search_error_handler(req, err, &context);  
-        return (KORE_RESULT_OK); 
+        default:
+            return_code = (KORE_RESULT_ERROR);
+            break;
     }
 
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK,
-        context.partial_context.dst_context->string,
-        strlen(context.partial_context.dst_context->string));
     flight_search_render_clean(&context);
-    return (KORE_RESULT_OK);
+    return return_code;
 }
 
 int flight_search_parseparams(struct http_request *req, FlightSearchParams *search_params)

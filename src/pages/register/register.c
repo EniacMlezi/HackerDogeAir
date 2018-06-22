@@ -20,7 +20,14 @@ void    register_error_handler(struct http_request *req, int errcode, UserContex
 int
 register_user(struct http_request *req)
 {
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
     int err;
+    int return_code;
+
     User user = (User) {
         .identifier = 0, 
         .role = 0,
@@ -43,46 +50,63 @@ register_user(struct http_request *req)
     }};
 
     UserContext context = {
-        .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
+        .partial_context = { 
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session_id = 0 }, //TODO: fill from request cookie
         .user = &user
     };
 
-    if(req->method == HTTP_METHOD_GET)
-    {   //a GET request receives the register form
-        if((err = register_render(&context)) != (SHARED_OK))
+    switch(req->method)
+    {
+        case (HTTP_METHOD_GET):
         {
-            register_error_handler(req, err, &context);
+            if((err = register_render(&context)) != (SHARED_OK))
+            {
+                register_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                context.partial_context.dst_context->string, 
+                strlen(context.partial_context.dst_context->string));
+
+            return_code = (KORE_RESULT_OK);
+            break;
         }
+        case (HTTP_METHOD_POST):
+        {
+            if((err = register_parse_params(req, context.user)) != (SHARED_OK)) 
+            {
+                register_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
-        http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, 
-            context.partial_context.dst_context->string, 
-            strlen(context.partial_context.dst_context->string));
+            if((err = register_try_register(context.user)) != (SHARED_OK))
+            {
+                register_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
-        register_render_clean(&context);
-        return (KORE_RESULT_OK);
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                asset_register_success_html,
+                asset_len_register_success_html);
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        default:
+            return_code = (KORE_RESULT_ERROR);
+            break;
     }
-    else if(req->method != HTTP_METHOD_POST)
-    {   //only serve GET and POST requests
-        return (KORE_RESULT_ERROR);
-    }
 
-    if((err = register_parse_params(req, context.user)) != (SHARED_OK)) 
-    {
-        register_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit
-    }
-
-    if((err = register_try_register(context.user)) != (SHARED_OK))
-    {
-        register_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
-    }
-
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, asset_register_success_html, asset_len_register_success_html);
-
-    return (KORE_RESULT_OK);
+    register_render_clean(&context);
+    return return_code;
 }
 
 int
@@ -141,7 +165,6 @@ register_try_register(User *user)
 void
 register_error_handler(struct http_request *req, int errcode, UserContext *context)
 {
-    kore_log(LOG_ERR, "error encountered: %d", errcode);
     bool handled = true;
     int err = 0;
     switch (errcode)

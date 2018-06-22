@@ -18,7 +18,13 @@
 uint32_t 
 login(struct http_request *req)
 {
-    int err;
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
+    int return_code = (KORE_RESULT_OK);
+    int err = 0;
     
     User user = (User) {
         .identifier = 0, 
@@ -42,53 +48,69 @@ login(struct http_request *req)
         }};
 
     UserContext context = {
-        .partial_context = { .session_id = 0 }, //TODO: fill from request cookie
+        .partial_context = { 
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session_id = 0 
+            }, //TODO: fill from request cookie
         .user = &user
     };
 
-    if(req->method == HTTP_METHOD_GET)
-    {   
-        //a GET receives the login form
-        if((err = login_render(&context)) != (SHARED_OK))
+    switch(req->method)
+    {
+        case (HTTP_METHOD_GET):
         {
-            login_error_handler(req, err, &context);
+            if((err = login_render(&context)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+            }
+
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                context.partial_context.dst_context->string, 
+                strlen(context.partial_context.dst_context->string));
+
+            return_code = (KORE_RESULT_OK);
+            break;
         }
+        case (HTTP_METHOD_POST):
+        {
+            if((err = login_parse_params(req, context.user)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
-        http_response_header(req, "content-type", "text/html");
-        http_response(req, HTTP_STATUS_OK, 
-            context.partial_context.dst_context->string, 
-            strlen(context.partial_context.dst_context->string));
+            if((err = login_try_login(context.user)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
+            
+            if((err = login_create_session(req, context.user->identifier)) != (SHARED_OK))
+            {
+                login_error_handler(req, err, &context);
+                return_code = (KORE_RESULT_OK);
+                break;
+            }
 
-        login_render_clean(&context);
-        return (KORE_RESULT_OK);
+            http_response_header(req, "content-type", "text/html");
+            http_response(req, HTTP_STATUS_OK, 
+                asset_login_success_html,
+                asset_len_login_success_html);
+
+            return_code = (KORE_RESULT_OK);
+            break;
+        }
+        default:
+            return_code = (KORE_RESULT_ERROR);
+            break;
     }
-    else if(req->method != HTTP_METHOD_POST)
-    {   //only serve GET and POST requests
-        return (KORE_RESULT_ERROR);
-    }
 
-    if((err = login_parse_params(req, context.user)) != (SHARED_OK))
-    {
-        login_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit
-    }
-
-    if((err = login_try_login(context.user)) != (SHARED_OK))
-    {   //when not logged in correctly, notify user.
-        login_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);    //KORE_OK for graceful exit  
-    }
-    
-    if((err = login_create_session(req, context.user->identifier)) != (SHARED_OK))
-    {
-        login_error_handler(req, err, &context);
-        return (KORE_RESULT_OK);
-    }
-
-    http_response_header(req, "content-type", "text/html");
-    http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
-
-    return (KORE_RESULT_OK);
+    login_render_clean(&context);
+    return return_code;
 }
 
 uint32_t

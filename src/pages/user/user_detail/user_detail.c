@@ -27,7 +27,7 @@ void    user_detail_error_handler(struct http_request *req, int errcode, UserCon
 int
 user_detail(struct http_request *req)
 {
-    if(req->method != HTTP_METHOD_GET || req->method != HTTP_METHOD_POST)
+    if(req->method != HTTP_METHOD_GET && req->method != HTTP_METHOD_POST)
     {
         return (KORE_RESULT_ERROR);
     }
@@ -57,7 +57,6 @@ user_detail(struct http_request *req)
             {
                 user_detail_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_OK);
-                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
@@ -66,23 +65,20 @@ user_detail(struct http_request *req)
                 strlen(context.partial_context.dst_context->string));
 
             return_code = (KORE_RESULT_OK);
-            goto exit;
+            break;
         }
-        break;
         case (HTTP_METHOD_POST):
-
+        {
             if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
             {
                 user_detail_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_OK);
-                goto exit;
             }
 
             if((err = user_update_details(context.user)) != (SHARED_OK))
             {
                 user_detail_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_ERROR);
-                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
@@ -91,13 +87,12 @@ user_detail(struct http_request *req)
                 asset_len_user_detail_success_html);
 
             return_code = (KORE_RESULT_OK);
-            goto exit;
             break;
+        }
         default:
             return_code = (KORE_RESULT_ERROR);
-            goto exit;
+            break;
     }
-exit:
     user_detail_render_clean(&context);
     user_destroy(context.user);
     return return_code;
