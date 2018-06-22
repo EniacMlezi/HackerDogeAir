@@ -27,6 +27,11 @@ void    user_detail_error_handler(struct http_request *req, int errcode, UserCon
 int
 user_detail(struct http_request *req)
 {
+    if(req->method != HTTP_METHOD_GET || req->method != HTTP_METHOD_POST)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
     int return_code = (KORE_RESULT_OK);
     int err = 0;
     
