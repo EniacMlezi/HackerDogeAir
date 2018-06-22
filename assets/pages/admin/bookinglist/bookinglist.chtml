@@ -1,0 +1,37 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Booking list - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+            <div class="admin-bookinglist-page">
+                <h1>Booking list</h1>
+                <table>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Flight ID</th>
+                            <th>Departure Location</th>
+                            <th>Departure Time</th>
+                            <th>Arrival Location</th>
+                            <th>Arrival Time</th>
+                        </tr>
+                        {{#flightsbooking}}
+                        <tr>
+                            <td>{{userid}}</td>
+                            <td>{{username}}</td>
+                            <td>{{flightid}}</td>
+                            <td>{{departurelocation}}</td>
+                            <td>{{departuredatetime}}</td>
+                            <td>{{arrivallocation}}</td>
+                            <td>{{arrivaldatetime}}</td>
+                        </tr>
+                        {{/flightsbooking}}
+                    </table>
+            </div>
+        </div>
+    </body>
+</html>

@@ -3,6 +3,7 @@
 
 #include "pages/partial/partial_render.h"
 #include "model/user.h"
+#include "model/role.h"
 
 typedef struct UserContext
 {

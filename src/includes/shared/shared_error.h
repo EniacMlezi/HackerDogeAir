@@ -44,6 +44,12 @@
 #define REGISTER_ERROR_TELNUMBER_VALIDATOR_INVALID  205
 #define REGISTER_ERROR_USERNAME_VALIDATOR_INVALID   206
 
+/* Admin domain specific error codes. */
+#define ADMIN_DELETE_FLIGHT_ID_INVALID              501
+#define ADMIN_DELETE_FLIGHT_ERROR                   502
+#define ADMIN_GIVE_POINTS_ID_INVALID                503
+#define ADMIN_GIVE_POINTS_ID_NOT_FOUND              504
+
 //generates a generic error response for given error.
 void shared_error_handler(struct http_request *request, int status_code, const char *redirect_uri);
 void shared_error_response(struct http_request *request,

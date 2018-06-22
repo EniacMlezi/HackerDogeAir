@@ -1,0 +1,26 @@
+<!DOCTYPE>
+<html>
+    <head>
+        <title>Admin - HackerDogeAir</title>
+    <link rel="stylesheet" href="/css/style.css" type="text/css">   
+    </head>
+    <body>
+        {{PARTIAL_HEADER}}
+        <div class="content">
+            <div class="admin-page">
+                <h1>Admin page</h1>
+                <table>
+                    <tr>
+                        <td>List all registerd users in database: <a href="/admin/userlist">User list</a></td>
+                    </tr>
+                    <tr>
+                        <td>List all flights from database: <a href="/admin/flightlist">Flight list</a></td>
+                    </tr>
+                    <tr>
+                        <td>List all booked flights in database: <a href="/admin/bookinglist">Bookings list</a></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>
