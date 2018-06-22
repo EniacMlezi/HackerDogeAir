@@ -93,4 +93,9 @@ ticket_collection_find_by_ticket_identifier(
     uint32_t *error
     );
 
+TicketCollection *
+ticket_get_all_tickets(
+    uint32_t *error
+    );
+
 #endif

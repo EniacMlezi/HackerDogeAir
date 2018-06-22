@@ -22,7 +22,7 @@ Session *
 session_create(
     uint32_t session_identifier,
     uint32_t user_identifier,
-    struct tm experiation_time,
+    struct tm *experiation_time,
     uint32_t *error
     );
 

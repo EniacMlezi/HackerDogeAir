@@ -30,7 +30,7 @@ static const char session_update_query[] =
     "WHERE sessionidentifier = $1;"; 
 
 Session *
-session_create(uint32_t session_identifier, uint32_t user_identifier, struct tm experiation_time,
+session_create(uint32_t session_identifier, uint32_t user_identifier, struct tm *experiation_time,
     uint32_t *error)
 {
     Session *session = malloc(sizeof(Session));
@@ -44,7 +44,7 @@ session_create(uint32_t session_identifier, uint32_t user_identifier, struct tm 
 
     session->session_identifier = session_identifier;
     session->user_identifier = user_identifier;
-    session->experiation_time = experiation_time;
+    session->experiation_time = *experiation_time;
 
     *error = (SHARED_OK);
     return session;
@@ -86,7 +86,7 @@ session_create_from_query(void *source_location, uint32_t *error)
     shared_time_database_string_to_tm(temp_experation_time, &experation_time);
 
     uint32_t create_session_result = 0;
-    void *temp_session = session_create(session_identifier, user_identifier, experation_time, 
+    void *temp_session = session_create(session_identifier, user_identifier, &experation_time, 
         &create_session_result);
 
     if(temp_session == NULL)

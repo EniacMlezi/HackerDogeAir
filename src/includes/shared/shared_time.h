@@ -1,12 +1,14 @@
 #ifndef SHARED_TIME_H
 #define SHARED_TIME_H
 
+#define SHARED_TIME_TM_TO_DATABASE_FORMAT_STRING_SIZE 17
+
 #include <stdint.h>
 #include <time.h>
 
 char *
 shared_time_tm_to_database_string(
-    struct tm *time,
+    const struct tm *time,
     char *destination_string,
     uintmax_t size, 
     uint32_t *error
@@ -20,7 +22,7 @@ shared_time_database_string_to_tm(
 
 uint32_t
 shared_time_tm_to_string(
-    struct tm *source,
+    const struct tm *source,
     char *destination,
     uintmax_t size,
     const char *__restrict __format

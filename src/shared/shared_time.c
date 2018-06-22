@@ -9,7 +9,7 @@
 #include "shared/shared_error.h"
 
 char *
-shared_time_tm_to_database_string(struct tm *time, char *destination_string, uintmax_t size, 
+shared_time_tm_to_database_string(const struct tm *time, char *destination_string, uintmax_t size, 
     uint32_t *error)
 {
     if(strftime(destination_string, size, "%Y-%m-%d %H:%M:%S", time) != size)
@@ -32,7 +32,7 @@ shared_time_database_string_to_tm(const char *source_location, struct tm *destin
 }
 
 uint32_t
-shared_time_tm_to_string(struct tm *source, char *destination, uintmax_t size, 
+shared_time_tm_to_string(const struct tm *source, char *destination, uintmax_t size, 
     const char *__restrict __format)
 {
     if(strftime(destination, size, __format, source) == 0)

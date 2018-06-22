@@ -38,7 +38,7 @@ user_create(
     const char    *telephone_number,
     const char    *password,
     uint32_t       doge_coin,
-    struct tm      registration_datetime,
+    struct tm     *registration_datetime,
     uint32_t *error
     );
 
@@ -100,6 +100,11 @@ user_find_by_user_name(
 User *
 user_find_by_identifier(
     uint32_t identifier,
+    uint32_t *error
+    );
+
+UserCollection *
+user_get_all_users(
     uint32_t *error
     );
 

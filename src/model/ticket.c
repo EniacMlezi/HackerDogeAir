@@ -37,6 +37,9 @@ static const char ticket_update_query[] =
 static const char ticket_delete_query[] =
     "DELETE FROM \"Session\" WHERE sessionidentifier = $1";
 
+static const char ticket_get_all_tickets_query[] = 
+    "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\";";
+
 Ticket *
 ticket_create(uint32_t ticket_identifier, uint32_t flight_identifier, uint32_t user_identifier,
     uint32_t cost, uint32_t *error)
@@ -324,7 +327,7 @@ ticket_collection_find_by_flight_identifier(uint32_t flight_identifier, uint32_t
     uint32_t query_result = 0;
 
     result = database_engine_execute_read(ticket_select_by_flight_identifier, 
-        &ticket_create_from_query, &database_flight_identifier, 1, 
+        &ticket_create_collection_from_query, &database_flight_identifier, 1, 
         sizeof(database_flight_identifier), 1);
 
     if(result == NULL)
@@ -352,7 +355,7 @@ ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t
     uint32_t query_result = 0;
 
     result = database_engine_execute_read(ticket_select_by_ticket_identifier, 
-        &ticket_create_from_query, &database_ticket_identifier, 1, 
+        &ticket_create_collection_from_query, &database_ticket_identifier, 1, 
         sizeof(database_ticket_identifier), 1);
 
     if(result == NULL)
@@ -369,4 +372,23 @@ ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t
 
     *error = (SHARED_OK);  
     return result; 
+}
+
+
+TicketCollection *
+ticket_get_all_tickets(uint32_t *error)
+{
+    uint32_t query_result;
+    void *result;
+
+    result = database_engine_execute_read(ticket_get_all_tickets_query, 
+        &ticket_create_collection_from_query, &query_result, 0); 
+
+    if(result == NULL)
+    {
+        database_engine_log_error("ticket_get_all_tickets", query_result);
+        *error = query_result;
+    }
+
+    return result;
 }

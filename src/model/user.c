@@ -48,10 +48,15 @@ static const char user_select_by_email_or_username[] =
     "FROM \"User\" " \
     "WHERE emailaddress = $1 OR username = $1;";
 
+static const char user_get_all_users_query[] = 
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber " \
+    "FROM \"User\";";
+
 User *
 user_create(uint32_t identifier, Role role, const char *username, const char *email, 
     const char *first_name, const char *last_name, const char *telephone_number, 
-    const char *password, uint32_t doge_coins, struct tm registration_datetime, uint32_t *error)
+    const char *password, uint32_t doge_coins, struct tm *registration_datetime, uint32_t *error)
 {
     uint8_t name_size = strlen(username) + 1;
     uint8_t email_size = strlen(email) + 1;
@@ -102,7 +107,7 @@ user_create(uint32_t identifier, Role role, const char *username, const char *em
     strncpy(user->first_name, first_name, first_name_size);
     strncpy(user->last_name, last_name, last_name_size);
     strncpy(user->telephone_number, telephone_number, telephone_number_size);
-    user->registration_datetime = registration_datetime;
+    user->registration_datetime = *registration_datetime;
 
     return user;
 }
@@ -166,7 +171,7 @@ user_create_from_query(void *source_location, uint32_t *error)
 
     uint32_t create_user_result;
     User *temp_user = user_create(identifier, role, user_name, email, user_first_name, 
-        user_last_name, telephone_number, password, doge_coin, registration_datetime, 
+        user_last_name, telephone_number, password, doge_coin, &registration_datetime, 
         &create_user_result);
 
     if(temp_user == NULL)
@@ -238,7 +243,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 
         uint32_t create_user_result;
         temp_user = user_create(identifier, role, user_name, email, user_first_name, user_last_name, 
-            telephone_number, password, doge_coin, registration_datetime, &create_user_result);
+            telephone_number, password, doge_coin, &registration_datetime, &create_user_result);
 
         if(temp_user == NULL)
         {
@@ -382,14 +387,33 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     uint32_t query_result;
     void *result;
 
-    uint32_t cast_identifier = htonl(identifier);
+    uint32_t database_identifier = htonl(identifier);
 
     result = database_engine_execute_read(user_select_by_identifier_query, user_create_from_query, 
-        &query_result, 1, &cast_identifier, sizeof(cast_identifier), 1);
+        &query_result, 1, 
+        &database_identifier, sizeof(database_identifier), 1);
 
     if(result == NULL)
     {
         database_engine_log_error("user_find_by_identifier", query_result);
+        *error = query_result;
+    }
+
+    return result;
+}
+
+UserCollection *
+user_get_all_users(uint32_t *error)
+{
+    uint32_t query_result;
+    void *result;
+
+    result = database_engine_execute_read(user_get_all_users_query, 
+        &user_collection_create_from_query, &query_result, 0); 
+
+    if(result == NULL)
+    {
+        database_engine_log_error("user_get_all_users", query_result);
         *error = query_result;
     }
 
