@@ -62,8 +62,8 @@ flight_create(uint32_t flight_identifier, char *departure_location, char *arriva
     uint32_t *error)
 {
     /* Allocating space for the structure and the strings appended to it. */
-    uint8_t departure_location_size = strlen(departure_location);
-    uint8_t arrival_location_size = strlen(arrival_location);
+    uint8_t departure_location_size = strlen(departure_location) + 1;
+    uint8_t arrival_location_size = strlen(arrival_location) + 1;
 
     Flight *flight = malloc(sizeof(Flight) + departure_location_size + arrival_location_size); 
 
@@ -346,6 +346,11 @@ flight_delete_by_identifier(uint32_t flight_identifier)
 uint32_t
 flight_collection_destroy(struct FlightCollection **flight_collection)
 {
+    if (flight_collection == NULL)
+    {
+        return (SHARED_OK);
+    }
+
     FlightCollectionNode *temp = NULL;
     while(!TAILQ_EMPTY(*flight_collection))
     {
