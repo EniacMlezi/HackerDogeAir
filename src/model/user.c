@@ -32,7 +32,7 @@ static const char user_update_query[] =
     "firstname = $7," \
     "lastname = $8," \
     "telephonenumber = $9" \
-    "WHERE useridentifier = $ 1;";
+    "WHERE useridentifier = $1;";
 
 static const char user_delete_query[] = "DELETE FROM \"User\" WHERE useridentifier = $1;";
 
@@ -253,6 +253,16 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         }
 
         UserCollection *temp_collection = malloc(sizeof(UserCollection));
+
+        if(temp_collection == NULL)
+        {
+            kore_log(LOG_ERR, "user_collection_create_from_query: Could not allocate memory for " \
+                "temp_collection.");
+            user_destroy(&temp_user);
+            free(temp_collection);
+            return NULL;
+        }
+
         temp_collection->user = temp_user;
 
         TAILQ_INSERT_TAIL(user_collection, temp_collection, user_collection);
@@ -333,6 +343,22 @@ user_update(const User *user)
     if (query_result != (SHARED_OK))
     {
         database_engine_log_error("user_update", query_result);
+        return query_result;
+    }
+
+    return (SHARED_OK);
+}
+
+uint32_t 
+user_update_doge_coin(uint32_t doge_coin)
+{
+    uint32_t database_doge_coin = htonl(doge_coin);
+
+    uint32_t query_result = database_engine_execute_write(user_update_query, 1, 
+        &database_doge_coin, sizeof(database_doge_coin), 1);
+    if (query_result != (SHARED_OK))
+    {
+        database_engine_log_error("user_update_doge_coin", query_result);
         return query_result;
     }
 

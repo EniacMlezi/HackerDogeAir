@@ -64,10 +64,12 @@ flight_create(uint32_t flight_identifier, char *departure_location, char *arriva
     /* Allocating space for the structure and the strings appended to it. */
     uint8_t departure_location_size = strlen(departure_location);
     uint8_t arrival_location_size = strlen(arrival_location);
+
     Flight *flight = malloc(sizeof(Flight) + departure_location_size + arrival_location_size); 
+
     if(flight == NULL)
     {
-        perror("user_create: Could not allocate memory for the user object.\n");
+        kore_log(LOG_ERR, "user_create: Could not allocate memory for the user object.\n");
         *error = (SHARED_ERROR_ALLOC_ERROR);
         return NULL;
     }
@@ -78,9 +80,10 @@ flight_create(uint32_t flight_identifier, char *departure_location, char *arriva
     #pragma GCC diagnostic ignored "-Wpointer-arith"
 
     /* Initializing the flight structure. */
-    flight->departure_location = (void *)flight + memory_offset;
+    flight->departure_location = (void *) flight + memory_offset;
     memory_offset += departure_location_size;
-    flight->arrival_location = (void *)flight + memory_offset;
+    
+    flight->arrival_location = (void *) flight + memory_offset;
     memory_offset += arrival_location_size;
 
     #pragma GCC diagnostic pop
@@ -101,7 +104,7 @@ flight_create_from_query(void *source_location, uint32_t *error)
 {
     if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 7)
     {
-        kore_log(LOG_ERR, "flight_create_from_query: Invalid source location");
+        kore_log(LOG_ERR, "flight_create_from_query: Invalid source location.");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
@@ -132,7 +135,7 @@ flight_create_from_query(void *source_location, uint32_t *error)
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_distance string to " \
-            "uint32_t.\n");
+            "uint32_t.");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
@@ -142,7 +145,7 @@ flight_create_from_query(void *source_location, uint32_t *error)
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_seatsavailable string" \
-            " to uint32_t.\n");
+            " to uint32_t.");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
@@ -153,7 +156,7 @@ flight_create_from_query(void *source_location, uint32_t *error)
 
     if(temp_flight == NULL)
     {
-        kore_log(LOG_ERR, "flight_create_from_query: Could not create a flight structure");
+        kore_log(LOG_ERR, "flight_create_from_query: Could not create a flight structure.");
         *error = create_flight_result;
         return NULL;
     }
@@ -167,7 +170,7 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    TAILQ_HEAD(flight_collection_s, FlightCollection) *flight_collection = 
+    TAILQ_HEAD(flight_collection, FlightCollection) *flight_collection = 
         malloc(sizeof(FlightCollection));
     TAILQ_INIT(flight_collection);
 
@@ -188,32 +191,35 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 
         int err = 0;
         uint32_t flight_identifier = kore_strtonum64(kore_pgsql_getvalue(
-            (struct kore_pgsql *) source_location, 0, 0), 0, &err);
+            (struct kore_pgsql *) source_location, i, 0), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_flight_id string to " \
-                "uint32_t.\n");
+                "uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
+            free(flight_collection);
             return NULL;
         }
 
         uint32_t distance = kore_strtonum64(kore_pgsql_getvalue(
-            (struct kore_pgsql *) source_location, 0, 5), 0, &err);
+            (struct kore_pgsql *) source_location, i, 5), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_distance string to " \
-                "uint32_t.\n");
+                "uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
+            free(flight_collection);
             return NULL;
         }
 
         uint32_t seats_available = kore_strtonum64(kore_pgsql_getvalue(
-            (struct kore_pgsql *) source_location, 0, 6), 0, &err);
+            (struct kore_pgsql *) source_location, i, 6), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_seatsavailable string" \
-                " to uint32_t.\n");
+                " to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
+            free(flight_collection);
             return NULL;
         }
 
@@ -225,10 +231,22 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not create a flight structure");
             *error = create_flight_result;
+            free(flight_collection);
             return NULL;
         }        
 
         FlightCollection *temp_flight_collection = malloc(sizeof(FlightCollection));
+
+        if(temp_flight_collection == NULL)
+        {
+            kore_log(LOG_ERR, "flight_create_from_query: Could not allocate memory for " \
+                "temp_flight_collection.");
+            flight_destroy(&temp_flight);
+            //flight_collection_destroy(flight_collection);
+            free(flight_collection);
+            return NULL;   
+        }
+
         temp_flight_collection->flight = temp_flight;
 
         TAILQ_INSERT_TAIL(flight_collection, temp_flight_collection, flight_collection);
@@ -311,7 +329,7 @@ flight_delete(Flight *flight)
 uint32_t
 flight_collection_destroy(FlightCollection *flight_collection)
 {
-    TAILQ_HEAD(flight_collection_s, FlightCollection) head;
+    TAILQ_HEAD(flight_collection, FlightCollection) head;
 
     while(!TAILQ_EMPTY(&head))
     {
@@ -322,6 +340,9 @@ flight_collection_destroy(FlightCollection *flight_collection)
         free(temp);
         temp = NULL;
     }
+
+    free(flight_collection);
+    flight_collection = NULL;
 
     return (SHARED_OK);
 }

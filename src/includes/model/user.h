@@ -74,6 +74,11 @@ user_update(
     const User *user
     );
 
+uint32_t 
+user_update_doge_coin(
+    uint32_t doge_coin
+    );
+
 uint32_t
 user_delete(
     User *user

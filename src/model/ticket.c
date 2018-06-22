@@ -149,42 +149,46 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
 
         int err = 0;
         uint32_t ticket_identifier = kore_strtonum64(
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 0), 0, &err);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 0), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_ticket_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            free(ticket_collection);
             return NULL;
         }
 
         uint32_t flight_identifier = kore_strtonum64(
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1), 0, &err);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 1), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_flight_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            free(ticket_collection);
             return NULL;
         }
 
         uint32_t user_identifier = kore_strtonum64(
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2), 0, &err);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_user_identifier " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            free(ticket_collection);
             return NULL;
         }
 
         uint32_t cost = kore_strtonum64(
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3), 0, &err);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not translate db_cost " \
                 "string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+            free(ticket_collection);
             return NULL;
         }
 
@@ -196,10 +200,21 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "ticket_create_from_query: Could not create a ticket structure.");
             *error = create_ticket_result;
+            free(ticket_collection);
             return NULL;
         } 
 
         TicketCollection *temp_ticket_collection = malloc(sizeof(TicketCollection));
+
+        if(temp_ticket_collection == NULL)
+        {
+            kore_log(LOG_ERR, "ticket_create_from_queryL Could not allocate memory for " \
+                "temp_ticket_collection.");
+            ticket_destroy(&temp_ticket);
+            free(ticket_collection);
+            return NULL;
+        }
+
         temp_ticket_collection->ticket = temp_ticket;
 
         TAILQ_INSERT_TAIL(ticket_collection, temp_ticket_collection, ticket_collection);
