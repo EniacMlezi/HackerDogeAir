@@ -3,8 +3,8 @@
         <h2>HackerDogeAir</h2>
             <nav>
                 <a href="/">Home</a>
-                <a href="">Flights</a>
+                <a href="/flight/search">Flights</a>
             </nav>
-        <p><a href="">login/register</a></p>
+        <p><a href="/login">login/register</a></p>
     </header>
 </div>

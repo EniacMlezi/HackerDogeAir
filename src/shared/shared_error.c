@@ -30,6 +30,9 @@ shared_error_handler(struct http_request *req, int errcode, const char *redirect
         case (SHARED_ERROR_HASH_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Failed to produce a hash for given password.", redirect_uri, 5);
+        case (SHARED_ERROR_TIME_CONVERSION):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. Time conversion failed.", redirect_uri, 5);
         case (SHARED_RENDER_ERROR_TEMPLATE):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Bad template.", redirect_uri, 5);

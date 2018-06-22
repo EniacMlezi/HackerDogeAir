@@ -42,6 +42,11 @@ static const char user_select_by_identifier_query[] =
     "FROM \"User\" " \
     "WHERE useridentifier = $1;";
 
+static const char user_select_by_session[] = 
+    "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
+    "firstname,lastname,telephonenumber FROM \"User\" WHERE useridentifier = " \
+    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1);";
+
 static const char user_select_by_email_or_username[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
@@ -349,6 +354,30 @@ user_delete(User *user)
     }
 
     return (SHARED_OK);
+}
+
+User *
+user_find_by_session_identifier(const char *session_identifier, uint32_t *error)
+{
+    uint32_t query_result;
+    void *result;
+
+    result = database_engine_execute_read(user_select_by_session, user_create_from_query,
+        &query_result, 1, session_identifier, strlen(session_identifier), 0);
+
+    if(result == NULL)
+    {
+        // No results is a special case that does not require logging
+        if(query_result == (DATABASE_ENGINE_ERROR_NO_RESULTS))
+        {
+            *error = query_result;
+            return result;
+        }
+        database_engine_log_error("user_find_by_session_identifier", query_result);
+        *error = query_result;
+    }
+
+    return result; 
 }
 
 User *

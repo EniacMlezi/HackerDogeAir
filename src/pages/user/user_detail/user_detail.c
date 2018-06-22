@@ -7,6 +7,7 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/user/user_detail/user_detail_render.h"
 #include "model/user.h"
 #include "assets.h"
@@ -27,33 +28,17 @@ int
 user_detail(struct http_request *req)
 {
     int err = 0;
-    User user = (User) {
-        .identifier = 0, 
-        .role = 0,
-        .email = NULL, 
-        .username = NULL, 
-        .first_name = NULL, 
-        .last_name = NULL, 
-        .telephone_number = NULL, 
-        .password = NULL, 
-        .doge_coin = 0, 
-        .registration_datetime = (struct tm) {
-            .tm_year     = 0,
-            .tm_mon      = 0,
-            .tm_mday     = 0,
-            .tm_hour     = 0,
-            .tm_min      = 0,
-            .tm_sec      = 0,  
-            .tm_wday     = 0,
-            .tm_yday     = 0
-    }};
     
     UserContext context = {
-        .partial_context = {.session_id = 0},
-        .user = &user
+        .partial_context = {.session_id = 0}
     };
     if(req->method == HTTP_METHOD_GET)
     {
+        if((err = shared_http_get_user_from_request(req, &context.user)) != (SHARED_OK))
+        {
+            return err;
+        }
+       
         //TODO: fill context.user with DataAccess Layer
         if((err = user_detail_render(&context)) != (SHARED_OK))
         {

@@ -98,6 +98,12 @@ user_find_by_user_name(
     );
 
 User *
+user_find_by_session_identifier(
+    const char *session_identifier,
+    uint32_t *error
+    );
+
+User *
 user_find_by_identifier(
     uint32_t identifier,
     uint32_t *error

@@ -16,6 +16,7 @@
 #define SHARED_ERROR_HASH_ERROR                     20
 #define SHARED_ERROR_ALLOC_ERROR                    21
 #define SHARED_ERROR_TIME_CONVERSION                22
+#define SHARED_ERROR_COOKIE_NOT_FOUND               23
 
 /* Data model specific error codes. */
 
