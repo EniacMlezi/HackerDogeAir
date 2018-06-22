@@ -75,6 +75,11 @@ user_update(
     );
 
 uint32_t
+user_update_details(
+    const User *user
+    );
+
+uint32_t
 user_delete(
     User *user
     );
