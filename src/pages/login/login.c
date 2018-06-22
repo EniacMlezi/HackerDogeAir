@@ -150,6 +150,8 @@ login_try_login(User *input_user)
         return_code = (LOGIN_ERROR_LOG_ATTEMPT_ERROR);
     }
 
+    user_destroy(database_user);
+
     return return_code;
 }
 
@@ -197,7 +199,20 @@ login_log_attempt(uint32_t user_identifier, bool success)
     uint32_t error;
     uint32_t result;
 
-    LoginAttempt *login_attempt = login_attempt_create(user_identifier, success, &error);
+    struct tm login_time = (struct tm) {
+        .tm_year     = 0,
+        .tm_mon      = 0,
+        .tm_mday     = 0,
+        .tm_hour     = 0,
+        .tm_min      = 0,
+        .tm_sec      = 0,  
+        .tm_wday     = 0,
+        .tm_yday     = 0
+    };
+
+    LoginAttempt *login_attempt = login_attempt_create(user_identifier, success, login_time, 
+        &error);
+
     if(error != (SHARED_OK))
     {
         result = (LOGIN_ERROR_LOG_ATTEMPT_ERROR);
@@ -212,7 +227,7 @@ login_log_attempt(uint32_t user_identifier, bool success)
 
     result = (SHARED_OK);
 
-out:
+    out:
     login_attempt_destroy(login_attempt);
     return result; 
 }

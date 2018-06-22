@@ -21,7 +21,7 @@ static const char user_insert_query[] =
     " VALUES ($1, $2, $3, $4, $5, now(), $6, $7, $8);";
 
 static const char user_update_query[] =
-    "UPDATE User " \
+    "UPDATE \"User\" " \
     "SET " \
     "useridentifier = $1, " \
     "userrole = $2, " \
@@ -34,7 +34,7 @@ static const char user_update_query[] =
     "telephonenumber = $9" \
     "WHERE useridentifier = $ 1;";
 
-static const char user_delete_query[] = "DELETE FROM User WHERE useridentifier = $1;";
+static const char user_delete_query[] = "DELETE FROM \"User\" WHERE useridentifier = $1;";
 
 static const char user_select_by_identifier_query[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
@@ -102,15 +102,7 @@ user_create(uint32_t identifier, Role role, const char *username, const char *em
     strncpy(user->first_name, first_name, first_name_size);
     strncpy(user->last_name, last_name, last_name_size);
     strncpy(user->telephone_number, telephone_number, telephone_number_size);
-
-    user->registration_datetime.tm_year     = registration_datetime.tm_year;
-    user->registration_datetime.tm_mon      = registration_datetime.tm_mon;
-    user->registration_datetime.tm_mday     = registration_datetime.tm_mday;
-    user->registration_datetime.tm_hour     = registration_datetime.tm_hour;
-    user->registration_datetime.tm_min      = registration_datetime.tm_min;
-    user->registration_datetime.tm_sec      = registration_datetime.tm_sec;
-    user->registration_datetime.tm_wday     = registration_datetime.tm_wday;
-    user->registration_datetime.tm_yday     = registration_datetime.tm_yday;
+    user->registration_datetime = registration_datetime;
 
     return user;
 }
@@ -195,7 +187,6 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 
     TAILQ_HEAD(user_collection_s, UserCollection) *user_collection = malloc(sizeof(UserCollection));
     TAILQ_INIT(user_collection);
-
 
     uint32_t i;
     for(i =0; i < number_of_results; ++i)
