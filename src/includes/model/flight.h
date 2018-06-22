@@ -74,6 +74,11 @@ flight_find_by_arrival_airport(
     uint32_t *error
     );
 
+uint32_t
+flight_delete_by_flight_identifier(
+    uint32_t flight_identifier
+    );
+
 Flight *
 flight_find_by_arrival_airport_and_departure_time(
     uint32_t arrival_airport_identifier,

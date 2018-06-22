@@ -13,9 +13,10 @@
 #include "model/user.h"
 #include "model/database_engine.h"
 #include "shared/shared_error.h"
+#include "shared/shared_time.h"
 
 static const char login_attempt_insert_query[] = 
-    "INSERT INTO \"LoginAttempt\" (useridentifier,datetime,success) " \
+    "INSERT INTO \"LoginAttempt\" (useridentifier, datetime, success) " \
     "VALUES ($1, now(), $2);";
 
 static const char login_attempt_delete_query[] = 
@@ -29,19 +30,22 @@ static const char login_attempt_retrieve_attempts_query[] =
 //static const char login_attempt_select_by_identifier[] = "";
 
 LoginAttempt *
-login_attempt_create(uint32_t user_identifier, bool login_result, uint32_t *error)
+login_attempt_create(uint32_t user_identifier, bool login_result, struct tm login_attempt_date_time,
+ uint32_t *error)
 {
     LoginAttempt *login_attempt = malloc(sizeof(LoginAttempt));
 
     if(login_attempt == NULL)
     {
-        kore_log(LOG_ERR, "login_attempt_create: Could not allocate memory for a login_attempt structure.");
+        kore_log(LOG_ERR, "login_attempt_create: Could not allocate memory for a login_attempt " \
+            "structure.");
         *error = (LOGIN_ATTEMPT_ERROR_CREATE);
         return NULL;
     }
 
     login_attempt->user_identifier = user_identifier;
     login_attempt->login_result = login_result;
+    login_attempt->login_attempt_date_time = login_attempt_date_time;
 
     *error = (SHARED_OK);
     return login_attempt;
@@ -57,38 +61,43 @@ login_attempt_destroy(LoginAttempt *login_attempt)
 void *
 login_attempt_create_from_query(void *source_location, uint32_t *error)
 {
-    if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 1)
+    if(kore_pgsql_nfields((struct kore_pgsql *) source_location) != 3)
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Invalid source location");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
 
-    int err;
+    int err = 0;
 
     uint32_t identifier = kore_strtonum64(
         kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 0), 0, &err);
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Could not translate db_identifier " \
-            "string to uint32_t");
+            "string to uint32_t.");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
 
     uint32_t success_integer = kore_strtonum64(
-        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 0), 0, &err);
+        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2), 0, &err);
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "login_attempt_create_from_query: Could not translate db_success " \
-            "string to uint32_t");
+            "string to uint32_t.");
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }    
 
-    uint32_t create_login_attemp_result;
+    char *temp_login_attempt_date_time = 
+        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1);
+    struct tm login_attempt_date_time;
+    shared_time_database_string_to_tm(temp_login_attempt_date_time, &login_attempt_date_time);
+
+    uint32_t create_login_attemp_result = 0;
     void *temp_login_attempt = login_attempt_create(identifier, success_integer, 
-        &create_login_attemp_result);
+        login_attempt_date_time, &create_login_attemp_result);
 
     if(temp_login_attempt == NULL)
     {
