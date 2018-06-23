@@ -3,6 +3,7 @@
 .flavor
 .objs
 HackerDogeAir.so
+HackerDogeAir
 assets.h
 cert
 

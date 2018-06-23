@@ -154,8 +154,6 @@ user_create_from_query(void *source_location, uint32_t *error)
     struct tm registration_datetime;
     shared_time_database_string_to_tm(registration_time, &registration_datetime);
 
-    /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
-    proper behaviour of the following code segment. */
     int err;
 
     uint32_t identifier = kore_strtonum64(
@@ -514,7 +512,7 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
 struct UserCollection *
 user_get_all_users(uint32_t *error)
 {
-    uint32_t query_result;
+    uint32_t query_result = (SHARED_OK);
     void *result;
 
     result = database_engine_execute_read(user_get_all_users_query, 
@@ -522,8 +520,19 @@ user_get_all_users(uint32_t *error)
 
     if(result == NULL)
     {
-        database_engine_log_error("user_get_all_users", query_result);
-        *error = query_result;
+        switch(query_result)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                *error = query_result;
+                break;
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+            default:
+                database_engine_log_error("user_get_all_users", query_result);
+                *error = query_result;
+                break;
+        }
     }
 
     return result;

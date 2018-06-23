@@ -4,7 +4,7 @@
 #include <kore/http.h>
 
 /* Shared error codes. */
-#define SHARED_OK                             0
+#define SHARED_OK                                   0
 
 /* Database access specific error codes. */
 #define DATABASE_ENGINE_ERROR_NO_RESULTS            11
@@ -45,8 +45,8 @@
 #define REGISTER_ERROR_USERNAME_VALIDATOR_INVALID   206
 
 /* Flight Book specific error codes. */
-#define FLIGHT_BOOK_ERROR_ID_VALIDATOR_INVALID 400
-#define FLIGHT_BOOK_ERROR_INSUFFICIENT_FUNDS 401
+#define FLIGHT_BOOK_ERROR_ID_VALIDATOR_INVALID      400
+#define FLIGHT_BOOK_ERROR_INSUFFICIENT_FUNDS        401
 
 /* Admin domain specific error codes. */
 #define ADMIN_DELETE_FLIGHT_ID_INVALID              501

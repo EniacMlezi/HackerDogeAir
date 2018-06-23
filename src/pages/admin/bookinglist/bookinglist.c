@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <time.h>
+#include <stdint.h>
 #include <libscrypt.h>
 
 #include <kore/kore.h>
@@ -18,43 +19,29 @@ void   admin_booking_list_error_handler(struct http_request *, int);
 int 
 admin_booking_list(struct http_request *req)
 {
-    int err;
+    uint32_t err;
     BookingListContext context = {
         .partial_context = { .session_id = 0 }  //TODO: fill from request cookie
     };
-    SLIST_INIT(&context.bookinglist);
 
     switch(req->method)
     {
         case (HTTP_METHOD_GET):
         {
-            BookingListNode booking_node0 = {
-                .booking = {
-                    .ticket_identifier = 2,
-                    .user_identifier = 1,
-                    .flight_identifier = 3
-                }
-            };
+            context.ticket_collection = ticket_get_all_tickets(&err);
 
-            BookingListNode booking_node1 = {
-                .booking = {
-                    .ticket_identifier = 7,
-                    .user_identifier = 1,
-                    .flight_identifier = 4
+            if(context.ticket_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                        admin_booking_list_error_handler(req, err);
+                        break;
                 }
-            };
-
-            BookingListNode booking_node2 = {
-                .booking = {
-                    .ticket_identifier = 3,
-                    .user_identifier = 89,
-                    .flight_identifier = 33
-                }
-            };
-
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node0, bookings);
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node1, bookings);
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node2, bookings);
+            }
 
             if((err = admin_booking_list_render(&context)) != (SHARED_OK))
             {

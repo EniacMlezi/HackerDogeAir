@@ -517,8 +517,19 @@ flight_get_all_flights(uint32_t *error)
 
     if(result == NULL)
     {
-        database_engine_log_error("flight_get_all_flights", query_result);
-        *error = query_result;
+        switch(query_result)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                *error = query_result;
+                break; 
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+            default:
+                database_engine_log_error("flight_get_all_flights", query_result);
+                *error = query_result;
+                break;
+        }
     }
 
     return result;

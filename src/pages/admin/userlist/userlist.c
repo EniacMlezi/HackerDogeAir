@@ -29,7 +29,22 @@ admin_user_list(struct http_request *req)
         case HTTP_METHOD_GET:
         {
             context.user_collection = user_get_all_users(&err);
-            if (err != (SHARED_OK)) {
+
+            if(context.user_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                       admin_user_list_error_handler(req, err);
+                       break; 
+                }
+            }
+
+            if (err != (SHARED_OK)) 
+            {
                 admin_user_list_error_handler(req, err);
             }
 

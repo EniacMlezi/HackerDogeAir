@@ -28,6 +28,20 @@ admin_flight_list(struct http_request *req)
         case HTTP_METHOD_GET:
         {
             context.flight_collection = flight_get_all_flights(&err);
+
+            if(context.flight_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                        admin_flight_list_error_handler(req, err);
+                        break;
+                }
+            }
+
             //a GET receives the home form and renders the page
             if((err = admin_flight_list_render(&context)) != (SHARED_OK))
             {

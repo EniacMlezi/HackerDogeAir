@@ -1,21 +1,20 @@
-#ifndef SHARED_FLIGHT_RENDER_H
-#define SHARED_FLIGHT_RENDER_H
+#ifndef SHARED_BOOKING_RENDER_H
+#define SHARED_BOOKING_RENDER_H
 
 #include "pages/partial/partial_render.h"
-#include "model/flight.h"
+#include "model/ticket.h"
 
-typedef struct FlightContext
+typedef struct BookingContext
 {
     PartialContext partial_context;
     const char *error_message;
-    Flight *flight;
-} FlightContext;
+    Ticket *ticket;
+} BookingContext;
 
 uintmax_t
-flight_varget(
+booking_varget(
     mustache_api_t *api, 
-    void *userdata, 
+    void *userdate, 
     mustache_token_variable_t *token
     );
-
 #endif

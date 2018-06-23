@@ -88,12 +88,15 @@ database_engine_execute_read(const char *sql_query,
     va_list parameters;
     va_start(parameters, count);
 
-    void *return_value = (SHARED_OK);
+    void *return_value = NULL;
+    *error = (SHARED_OK);
+
     struct kore_pgsql database_connection;
 
     if(database_engine_initialize(&database_connection, DATABASE_NAME) != (SHARED_OK))
     {
         *error = (DATABASE_ENGINE_ERROR_INITIALIZATION);
+        return_value = NULL;
         goto error_exit;
     }
 
@@ -102,18 +105,20 @@ database_engine_execute_read(const char *sql_query,
     {
         kore_pgsql_logerror(&database_connection);
         *error = (DATABASE_ENGINE_ERROR_QUERY_ERROR);
+        return_value = NULL;
         goto error_exit; 
     }
 
     if(kore_pgsql_ntuples(&database_connection) == 0)
     {
         *error = (DATABASE_ENGINE_ERROR_NO_RESULTS);
+        return_value = NULL;
         goto error_exit;
     }
 
     return_value = model_build_from_query(&database_connection, error);  
 
-error_exit:
+    error_exit:
     va_end(parameters);
     database_engine_close_connection(&database_connection);
     return return_value;

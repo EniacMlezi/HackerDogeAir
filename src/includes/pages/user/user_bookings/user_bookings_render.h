@@ -7,19 +7,14 @@
 #include <time.h>
 
 #include "pages/partial/partial_render.h"
-#include "model/flight.h"
-
-typedef struct UserBookingListNode
-{
-    Flight flight;
-    SLIST_ENTRY(UserBookingListNode) userbookings;
-} UserBookingListNode;
+//#include "model/flight.h"
+#include "model/ticket.h"
 
 typedef struct UserBookingsContext
 {
     PartialContext partial_context;
     const char *error_message;
-    SLIST_HEAD(head_s, UserBookingListNode) userbookinglist;
+    struct TicketCollection *ticket_collection;
 } UserBookingsContext;
 
 int
