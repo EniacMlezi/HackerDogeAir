@@ -14,12 +14,14 @@
                             <th>User ID</th>
                             <th>Flight ID</th>
                             <th>Ticket ID</th>
+                            <th>Cost</th>
                         </tr>
                         {{#bookingslist}}
                         <tr>
                             <td>{{userid}}</td>
                             <td>{{flightid}}</td>
                             <td>{{ticketid}}</td>
+                            <td>{{cost}}</td>
                         </tr>
                         {{/bookingslist}}
                     </table>

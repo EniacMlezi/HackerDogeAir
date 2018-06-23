@@ -42,7 +42,6 @@ admin_flight_list(struct http_request *req)
                 }
             }
 
-            //a GET receives the home form and renders the page
             if((err = admin_flight_list_render(&context)) != (SHARED_OK))
             {
                 admin_flight_list_error_handler(req, err);

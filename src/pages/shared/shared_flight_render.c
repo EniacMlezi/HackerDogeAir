@@ -42,14 +42,6 @@ flight_varget(mustache_api_t *api, void *user_data, mustache_token_variable_t *t
         }
         else
         {
-            /* TESTED */
-            /*
-            if(strftime(date_conversion_ouput,
-            sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->arrival_datetime) == (SHARED_OK))
-            */
-
-            /* NOT YET TESTED */
             if((err = shared_time_tm_to_string(&ctx->flight->arrival_datetime, date_conversion_ouput,
                 SHARED_TIME_TM_TO_FORMAT_STRING_SIZE, "%d-%m-%Y %T")) != (SHARED_OK))
             {
@@ -69,14 +61,6 @@ flight_varget(mustache_api_t *api, void *user_data, mustache_token_variable_t *t
         }
         else
         {
-            /* TESTED*/ 
-            /*
-            if(strftime(date_conversion_ouput,
-            sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->departure_datetime) == (SHARED_OK))
-            */
-
-            /* NOT YET TESTED */
             if((err = shared_time_tm_to_string(&ctx->flight->departure_datetime, date_conversion_ouput,
                 SHARED_TIME_TM_TO_FORMAT_STRING_SIZE, "%d-%m-%Y %T")) != (SHARED_OK))
             {

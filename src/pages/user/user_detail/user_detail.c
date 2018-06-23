@@ -32,7 +32,6 @@ user_detail(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    int return_code = (KORE_RESULT_OK);
     int err = 0;
     
     UserContext context = {
@@ -56,46 +55,44 @@ user_detail(struct http_request *req)
             if((err = user_detail_render(&context)) != (SHARED_OK))
             {
                 user_detail_error_handler(req, err, &context);
-                return_code = (KORE_RESULT_OK);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
                 context.partial_context.dst_context->string, 
                 strlen(context.partial_context.dst_context->string));
-
-            return_code = (KORE_RESULT_OK);
-            break;
+            goto exit;
         }
         case (HTTP_METHOD_POST):
         {
             if((err = user_detail_parseparams(req, context.user)) != (SHARED_OK))
             {
                 user_detail_error_handler(req, err, &context);
-                return_code = (KORE_RESULT_OK);
+                goto exit;
             }
 
             if((err = user_update_details(context.user)) != (SHARED_OK))
             {
                 user_detail_error_handler(req, err, &context);
-                return_code = (KORE_RESULT_ERROR);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
                 asset_user_detail_success_html, 
                 asset_len_user_detail_success_html);
-
-            return_code = (KORE_RESULT_OK);
-            break;
+            goto exit;
         }
         default:
-            return_code = (KORE_RESULT_ERROR);
+            user_destroy(&context.user);
+            return (KORE_RESULT_ERROR);
             break;
     }
+exit:
     user_detail_render_clean(&context);
     user_destroy(&context.user);
-    return return_code;
+    return (KORE_RESULT_OK);
 }
 
 int

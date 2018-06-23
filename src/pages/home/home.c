@@ -25,7 +25,6 @@ home(struct http_request *req)
         return(KORE_RESULT_ERROR); //No methods besides GET exist on the home page
     }
 
-    int return_code = (KORE_RESULT_OK);
     int err = 0;
     PartialContext context = {
         .src_context = NULL,
@@ -37,7 +36,6 @@ home(struct http_request *req)
     if((err = home_render(&context)) != (SHARED_OK))
     {
         home_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
@@ -47,7 +45,7 @@ home(struct http_request *req)
         strlen(context.dst_context->string));
 exit:
     home_render_clean(&context);
-    return return_code;    
+    return (KORE_RESULT_OK);    
 }
 
 void

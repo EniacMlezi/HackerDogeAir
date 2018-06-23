@@ -317,17 +317,17 @@ ticket_delete(Ticket *ticket)
     return (SHARED_OK);  
 }
 
-Ticket *
-ticket_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
+struct TicketCollection *
+ticket_collection_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
 {
     uint32_t database_user_identifier = htonl(user_identifier);
 
-    void *result;
+    void *result = NULL;
     uint32_t query_result = 0;
 
     result = database_engine_execute_read(ticket_select_by_user_identifier, 
-        &ticket_create_from_query, &database_user_identifier, 1, sizeof(database_user_identifier), 
-        1);
+        &ticket_create_collection_from_query, &query_result, 1,
+        &database_user_identifier, sizeof(database_user_identifier), 1);
 
     if(result == NULL)
     {

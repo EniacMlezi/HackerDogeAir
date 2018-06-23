@@ -7,8 +7,10 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/user/user_bookings/user_bookings_render.h"
 #include "model/user.h"
+#include "model/ticket.h"
 #include "assets.h"
 
 int     user_bookings(struct http_request *);
@@ -23,16 +25,45 @@ user_bookings(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    int return_code = (KORE_RESULT_OK);
-    int err = 0;
+    uint32_t err = 0;
     UserBookingsContext context = {
-        .partial_context = {.session_id = 0}
+        .partial_context = {
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session_id = 0,
+        }
     };
-    
+
+    uint32_t userid = 0;
+    if((err = shared_http_get_userid_from_request(req, &userid)) != (SHARED_OK))
+    {
+        user_bookings_error_handler(req, err);
+        goto exit;
+    }
+
+    context.ticket_collection = ticket_collection_find_by_user_identifier(userid, &err);
+    if(context.ticket_collection == NULL)
+    {
+        switch(err)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                break;
+            default:
+               user_bookings_error_handler(req, err);
+               goto exit; 
+        }
+    }
+
+    if(err != (SHARED_OK))
+    {
+        user_bookings_error_handler(req, err);
+        goto exit;
+    }
+
     if((err = user_bookings_render(&context)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
@@ -41,9 +72,10 @@ user_bookings(struct http_request *req)
         context.partial_context.dst_context->string, 
         strlen(context.partial_context.dst_context->string));
     
-    exit:
+exit:
     user_bookings_render_clean(&context);
-    return return_code;
+    ticket_collection_destroy(&context.ticket_collection);
+    return (KORE_RESULT_OK);
 }
 
 void

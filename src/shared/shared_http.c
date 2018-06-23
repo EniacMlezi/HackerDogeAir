@@ -37,3 +37,25 @@ shared_http_get_session_from_request(struct http_request *req, Session **session
     *session = session_find_by_session_identifier(session_identifier, &error);
     return error;
 }
+
+uint32_t
+shared_http_get_userid_from_request(struct http_request *req, uint32_t *userid)
+{
+    uint32_t error = 0;
+    char *session_identifier;
+    http_populate_cookies(req);
+    if(http_request_cookie(req, "session", &session_identifier) != (KORE_RESULT_OK))
+    {
+        kore_log(LOG_ERR, "get_userid_from_request: Session cookie not found");
+        return (SHARED_ERROR_COOKIE_NOT_FOUND);
+    }
+
+    Session *session = session_find_by_session_identifier(session_identifier, &error);
+    if(error != (SHARED_OK))
+    {
+        return error;
+    }
+    *userid = session->user_identifier;
+    session_destroy(&session);
+    return (SHARED_OK);
+}

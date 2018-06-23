@@ -29,7 +29,6 @@ flight_search(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    int return_code;
     int err = 0;
     time_t zero_epoch = 0;
     struct tm *zero_arrivaldate = localtime(&zero_epoch);
@@ -45,22 +44,21 @@ flight_search(struct http_request *req)
             if((err = flight_search_render(&context)))
             {
                 flight_search_error_handler(req, err, &context);
+                goto exit;
             }
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK,
                 context.partial_context.dst_context->string,
                 strlen(context.partial_context.dst_context->string));
-                
-            return_code = (KORE_RESULT_OK);
-            break;
+            
+            goto exit;
         }
         case (HTTP_METHOD_POST):
         {
             if((err = flight_search_parseparams(req, &context.params)) != (SHARED_OK))
             {
                 flight_search_error_handler(req, err, &context);
-                return_code = (KORE_RESULT_OK);
-                break;
+                goto exit;
             }
 
             uint32_t db_error = 0;
@@ -68,32 +66,30 @@ flight_search(struct http_request *req)
             if(db_error != (SHARED_OK))
             {
                 flight_search_error_handler(req, db_error, &context);
-                return_code = (KORE_RESULT_OK);
-                break;
+                goto exit;
             }
 
             if((err = flight_search_render(&context)) != (SHARED_OK))
             {
-                flight_search_error_handler(req, err, &context);  
-                return_code = (KORE_RESULT_OK);
-                break; 
+                flight_search_error_handler(req, err, &context);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK,
                 context.partial_context.dst_context->string,
                 strlen(context.partial_context.dst_context->string));
-            flight_search_render_clean(&context);
-            return_code = (KORE_RESULT_OK);
-            break;
+            goto exit;
         }
         default:
-            return_code = (KORE_RESULT_ERROR);
+            return (KORE_RESULT_ERROR);
             break;
     }
+
+exit:
     flight_collection_destroy(&context.flights);
     flight_search_render_clean(&context);
-    return return_code;
+    return (KORE_RESULT_OK);
 }
 
 int flight_search_parseparams(struct http_request *req, FlightSearchParams *search_params)

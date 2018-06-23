@@ -68,6 +68,7 @@ admin_booking_list(struct http_request *req)
 
 exit: 
     admin_booking_list_render_clean(&context);
+    ticket_collection_destroy(&context.ticket_collection);
     return (KORE_RESULT_OK);
 }
 

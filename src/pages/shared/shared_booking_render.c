@@ -24,7 +24,7 @@ booking_varget(mustache_api_t *api,  void *booking_data, mustache_token_variable
             if(snprintf(userid_string, 12, "%d", ctx->ticket->user_identifier) <= 0)
             {
                 kore_log(LOG_ERR, 
-                    "booking_varget: failed int to string conversion for timeout. input: %d",
+                    "booking_varget: failed int to string conversion for userid. input: %d",
                     ctx->ticket->user_identifier);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
@@ -43,7 +43,7 @@ booking_varget(mustache_api_t *api,  void *booking_data, mustache_token_variable
             if(snprintf(flightid_string, 12, "%d", ctx->ticket->flight_identifier) <= 0)
             {
                 kore_log(LOG_ERR, 
-                    "booking_varget: failed int to string conversion for timeout. input: %d",
+                    "booking_varget: failed int to string conversion for flight_identifier. input: %d",
                     ctx->ticket->flight_identifier);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
@@ -62,11 +62,30 @@ booking_varget(mustache_api_t *api,  void *booking_data, mustache_token_variable
             if(snprintf(ticketid_string, 12, "%d", ctx->ticket->ticket_identifier) <= 0)
             {
                 kore_log(LOG_ERR, 
-                    "booking_varget: failed int to string conversion for timeout. input: %d",
+                    "booking_varget: failed int to string conversion for ticket_identifier. input: %d",
                     ctx->ticket->ticket_identifier);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
             }
             output_string = ticketid_string;
+        }
+    }
+    else if(strncmp("cost", token->text, token->text_length) == 0)
+    {
+        if(NULL == ctx->ticket)
+        {
+            output_string = (SHARED_RENDER_EMPTY_STRING);
+        }
+        else
+        {
+            char cost_string[12];
+            if(snprintf(cost_string, 12, "%d", ctx->ticket->cost) <= 0)
+            {
+                kore_log(LOG_ERR, 
+                    "booking_varget: failed int to string conversion for cost. input: %d",
+                    ctx->ticket->cost);
+                return (SHARED_RENDER_MUSTACHE_FAIL);
+            }
+            output_string = cost_string;
         }
     }
 

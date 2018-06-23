@@ -11,7 +11,7 @@
 #include "shared/shared_error.h"
 #include "shared/shared_time.h"
 #include "pages/partial/partial_render.h"
-#include "pages/shared/shared_flight_render.h"
+#include "pages/shared/shared_booking_render.h"
 
 int         user_bookings_render(UserBookingsContext *);
 uintmax_t   user_bookings_varget(mustache_api_t *, void *, mustache_token_variable_t *);
@@ -59,13 +59,13 @@ user_bookings_sectget(mustache_api_t *api, void *userdata, mustache_token_sectio
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        TicketCollectionNode *user_booking_node = NULL;
-        api->varget = &flight_varget;
+        TicketCollectionNode *ticket_node = NULL;
+        api->varget = &booking_varget;
         BookingContext ticket_context;
         memcpy(&ticket_context.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        TAILQ_FOREACH(user_booking_node, ctx->ticket_collection, ticket_collection)
+        TAILQ_FOREACH(ticket_node, ctx->ticket_collection, ticket_collection)
         {
-            ticket_context.ticket = user_booking_node->ticket;
+            ticket_context.ticket = ticket_node->ticket;
             if(!mustache_render(api, &ticket_context, token->section))
             {
                 kore_log(LOG_ERR, "user_bookings_sectget: failed to render a userbooking");

@@ -11,20 +11,15 @@
                 <h1>My Bookings</h1>
                  <table>
                     <tr>
-                        <th>ID</th>
-                        <th>Departure Location</th>
-                        <th>Departure Time</th>
-                        <th>Arrival Location</th>
-                        <th>Arrival Time</th>
-                        <th></th>
+                        <th>Ticket Identifier</th>
+                        <th>Flight Identifier</th>
+                        <th>Cost</th>
                     </tr>
                     {{#userbookings}}
                     <tr>
-                        <td>{{id}}</td>
-                        <td>{{departurelocation}}</td>
-                        <td>{{departuredatetime}}</td>
-                        <td>{{arrivallocation}}</td>
-                        <td>{{arrivaldatetime}}</td>
+                        <td>{{ticketid}}</td>
+                        <td>{{flightid}}</td>
+                        <td>{{cost}}</td>
                     </tr>
                     {{/userbookings}}
                 </table>
