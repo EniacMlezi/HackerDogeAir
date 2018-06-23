@@ -288,12 +288,18 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
         temp_user_node = NULL;
     }
 
+    *error = (SHARED_OK);
     return (void *) user_collection;
 }
 
 void
 user_destroy(User **user)
 {
+    if(user == NULL)
+    {
+        return;
+    }
+
     free(*user);
     *user = NULL;
 }
@@ -301,6 +307,11 @@ user_destroy(User **user)
 uint32_t
 user_collection_destroy(struct UserCollection **user_collection)
 {
+    if(user_collection == NULL || *user_collection == NULL)
+    {
+        return (SHARED_OK);
+    }
+
     UserCollectionNode *temp = NULL;
 
     while(!TAILQ_EMPTY(*user_collection))

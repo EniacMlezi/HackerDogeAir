@@ -115,8 +115,7 @@ airport_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_result = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    TAILQ_HEAD(airport_collection_s, AirportCollection) *airport_collection = 
-        malloc(sizeof(airport_collection)); 
+    struct AirportCollection *airport_collection = malloc(sizeof(struct AirportCollection));
     TAILQ_INIT(airport_collection);
 
     uint32_t i;
@@ -133,7 +132,7 @@ airport_collection_create_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "airport_create_from_query: Could not translate db_identifier " \
                 " string to uin32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(airport_collection);
+            airport_collection_destroy(&airport_collection);
             return NULL;
         }
 
@@ -144,18 +143,20 @@ airport_collection_create_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "airport_create_from_query: Could not create a airport structure.");
             *error = create_airport_result;
-            free(airport_collection);
+            airport_collection_destroy(&airport_collection);
             return NULL;
         }       
 
-        AirportCollection *temp_airport_collection = malloc(sizeof(AirportCollection));
+        AirportCollectionNode *temp_airport_collection = malloc(sizeof(AirportCollectionNode));
 
         if(temp_airport_collection == NULL)
         {
             kore_log(LOG_ERR, "airport_collection_create_from_query: Could not allocate memory " \
                 "for temp_airport_colection.");
             airport_destroy(&temp_airport);
-            free(airport_collection);
+            airport_collection_destroy(&airport_collection);
+            *error = (SHARED_ERROR_ALLOC_ERROR);
+            return NULL;
         } 
 
         temp_airport_collection->airport = temp_airport; 
@@ -165,33 +166,44 @@ airport_collection_create_from_query(void *source_location, uint32_t *error)
         temp_airport_collection = NULL;
     }
 
+    *error = (SHARED_OK);
     return (void *) airport_collection;
 }
 
 void
 airport_destroy(Airport **airport)
 {
+    if(airport == NULL)
+    {
+        return;
+    }
+
     free(*airport);
     *airport = NULL;
 }
 
 uint32_t
-airport_collection_destroy(AirportCollection *airport_collection)
+airport_collection_destroy(struct AirportCollection **airport_collection)
 {
-    TAILQ_HEAD(airport_collection, AirportCollection) head;
-
-    while(!TAILQ_EMPTY(&head))
+    if(airport_collection == NULL || *airport_collection == NULL)
     {
-        AirportCollection *temp = TAILQ_FIRST(&head);
-        TAILQ_REMOVE(&head, temp, airport_collection);
+        return (SHARED_OK);
+    }
+
+    AirportCollectionNode *temp = NULL;
+
+    while(!TAILQ_EMPTY(*airport_collection))
+    {
+        temp = TAILQ_FIRST(*airport_collection);
+        TAILQ_REMOVE(*airport_collection, temp, airport_collection);
 
         airport_destroy(&temp->airport);
         free(temp);
         temp = NULL;
     }
 
-    free(airport_collection);
-    airport_collection = NULL;
+    free(*airport_collection);
+    *airport_collection = NULL;
 
     return (SHARED_OK);
 }
@@ -306,7 +318,7 @@ airport_find_by_location(const char *location, uint32_t *error)
     return result; 
 }
 
-AirportCollection *
+struct AirportCollection *
 airport_get_all_airports(uint32_t *error)
 {
     uint32_t query_result = 0; 

@@ -11,11 +11,13 @@ typedef struct _Airport
     char        *location;   
 } Airport; 
 
-typedef struct AirportCollection
+typedef struct AirportCollectionNode
 {
     Airport *airport; 
-    TAILQ_ENTRY(AirportCollection) airport_collection;
-} AirportCollection;
+    TAILQ_ENTRY(AirportCollectionNode) airport_collection;
+} AirportCollectionNode;
+
+TAILQ_HEAD(AirportCollection, AirportCollectionNode);
 
 Airport *
 airport_create(
@@ -44,7 +46,7 @@ airport_destroy(
 
 uint32_t
 airport_collection_destroy(
-    AirportCollection *airport_collection
+    struct AirportCollection **airport_collection
     );
 
 uint32_t
@@ -80,7 +82,7 @@ airport_find_by_location(
     uint32_t *error
     );
 
-AirportCollection *
+struct AirportCollection *
 airport_get_all_airports(
     uint32_t *error
     );
