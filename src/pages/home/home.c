@@ -10,8 +10,10 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/home/home_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 int    home(struct http_request *);
@@ -26,11 +28,23 @@ home(struct http_request *req)
     }
 
     int err = 0;
-    PartialContext context = {
-        .src_context = NULL,
-        .dst_context = NULL,
-        .session_id = 0  //TODO: fill from request cookie
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
     };
+    PartialContext context = {
+        .session = &session  //TODO: fill from request cookie
+    };
+
+    err = shared_http_find_session_from_request(req, &context.session);
+    if(err != DATABASE_ENGINE_ERROR_NO_RESULTS) {
+        if (err != (SHARED_OK))
+        {
+            home_error_handler(req, err);
+            return_code = (KORE_RESULT_OK);
+            goto exit;
+        }
+    }
     
     //a GET receives the home form and renders the page
     if((err = home_render(&context)) != (SHARED_OK))

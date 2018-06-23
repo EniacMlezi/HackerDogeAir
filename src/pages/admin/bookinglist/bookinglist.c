@@ -9,8 +9,10 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/admin/bookinglist/bookinglist_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 int    admin_booking_list(struct http_request *);
@@ -20,6 +22,10 @@ int
 admin_booking_list(struct http_request *req)
 {
     uint32_t err;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
 
     if(req->method != HTTP_METHOD_GET)
     {
@@ -27,8 +33,17 @@ admin_booking_list(struct http_request *req)
     }
 
     BookingListContext context = {
-        .partial_context = { .session_id = 0 }  //TODO: fill from request cookie
+        .partial_context = { 
+            .session = &session,
+            .src_context = NULL,
+            .dst_context = NULL
+        }
     };
+
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        admin_booking_list_error_handler(req, err);
+    }
 
     switch(req->method)
     {

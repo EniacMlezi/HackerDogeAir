@@ -8,9 +8,11 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/admin/givepoints/givepoints_render.h"
 #include "pages/shared/shared_user_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 typedef struct AdminGivePointsParams
@@ -56,18 +58,31 @@ admin_give_points(struct http_request *req)
             .tm_yday     = 0
         }};
 
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
+
     UserContext context = {
         .partial_context = { 
             .src_context = NULL,
             .dst_context = NULL,
-            .session_id = 0 
-        }, //TODO: fill from request cookie
+            .session = &session 
+        },
         .user = &user
     };
 
+    if ((err = shared_http_find_session_from_request(
+        req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        admin_give_points_error_handler(req, err);
+        return(KORE_RESULT_OK);
+    }
+
     AdminGivePointsParams params = { 0, 0 };
+
     if((err = admin_give_points_parse_params(req, &params, req->method == HTTP_METHOD_POST)) 
-        != (SHARED_OK)) 
+        != (SHARED_OK))
     {
         admin_give_points_error_handler(req, err);
         goto exit;

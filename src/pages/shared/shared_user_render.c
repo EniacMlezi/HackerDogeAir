@@ -105,10 +105,10 @@ user_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *toke
             Role role = ctx->user->role;
             switch(role)
             {
-                case 1:
+                case USER:
                     output_string = "User";
                     break;
-                case 2:
+                case ADMIN:
                     output_string = "Admin";
                     break;
                 default:

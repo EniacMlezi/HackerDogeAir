@@ -9,6 +9,7 @@
 
 #include "shared/shared_time.h"
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/flight/flight_search/flight_search_render.h"
 #include "model/user.h"
 #include "assets.h"
@@ -30,12 +31,21 @@ flight_search(struct http_request *req)
     }
 
     int err = 0;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
     time_t zero_epoch = 0;
     struct tm *zero_arrivaldate = localtime(&zero_epoch);
     FlightSearchContext context = {
-        .partial_context = {.session_id = 0},
+        .partial_context = {.session = &session},
         .params = {.arrivaldate = *zero_arrivaldate}
     };
+
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        flight_search_error_handler(req, err, &context);
+    }
 
     switch(req->method)
     {

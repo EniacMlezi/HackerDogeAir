@@ -8,6 +8,7 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/login/login_render.h"
 #include "model/user.h"
 #include "model/login_attempt.h"
@@ -25,6 +26,10 @@ login(struct http_request *req)
 
     int return_code = (KORE_RESULT_OK);
     int err = 0;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
     
     User user = (User) {
         .identifier = 0, 
@@ -52,12 +57,18 @@ login(struct http_request *req)
             .partial_context = { 
                 .src_context = NULL,
                 .dst_context = NULL,
-                .session_id = 0 
+                .session = &session 
                 }, //TODO: fill from request cookie
             .user = &user
         },
         .login_lockout = false
     };
+
+    if ((err = shared_http_find_session_from_request(
+        req, &context.user_context.partial_context.session)) != (SHARED_OK))
+    {
+        login_error_handler(req, err, &context);
+    }
 
     switch(req->method)
     {

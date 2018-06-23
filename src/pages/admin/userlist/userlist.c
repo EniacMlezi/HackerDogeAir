@@ -8,9 +8,11 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/admin/userlist/userlist_render.h"
 #include "model/user.h"
 #include "model/role.h"
+#include "model/session.h"
 #include "assets.h"
 
 int    admin_user_list(struct http_request *);
@@ -20,9 +22,18 @@ int
 admin_user_list(struct http_request *req)
 {
     uint32_t err = (SHARED_OK);
-    UserListContext context = {
-        .partial_context = { .session_id = 0 }  //TODO: fill from request cookie
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
     };
+    UserListContext context = {
+        .partial_context = { .session = &session }  //TODO: fill from request cookie
+    };
+
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        admin_user_list_error_handler(req, err);
+    }
 
     switch(req->method)
     {

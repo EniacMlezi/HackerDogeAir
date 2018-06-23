@@ -10,6 +10,7 @@
 #include "shared/shared_http.h"
 #include "pages/user/user_bookings/user_bookings_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "model/ticket.h"
 #include "assets.h"
 
@@ -26,22 +27,29 @@ user_bookings(struct http_request *req)
     }
 
     uint32_t err = 0;
+
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
+    
     UserBookingsContext context = {
         .partial_context = {
             .src_context = NULL,
             .dst_context = NULL,
-            .session_id = 0,
+            .session = &session
         }
     };
 
-    uint32_t userid = 0;
-    if((err = shared_http_get_userid_from_request(req, &userid)) != (SHARED_OK))
+    if ((err = shared_http_find_session_from_request(
+        req, &context.partial_context.session)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
         goto exit;
     }
 
-    context.ticket_collection = ticket_collection_find_by_user_identifier(userid, &err);
+    context.ticket_collection = ticket_collection_find_by_user_identifier(
+        context->session->user_identifier, &err);
     if(context.ticket_collection == NULL)
     {
         switch(err)

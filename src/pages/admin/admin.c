@@ -8,8 +8,10 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/admin/admin_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 int    admin(struct http_request *);
@@ -19,9 +21,18 @@ int
 admin(struct http_request *req)
 {
     int err;
-    PartialContext context = {
-        .session_id = 0  //TODO: fill from request cookie
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
     };
+    PartialContext context = {
+        .session = &session  //TODO: fill from request cookie
+    };
+
+    if ((err = shared_http_find_session_from_request(req, &context.session)) != (SHARED_OK))
+    {
+        admin_error_handler(req, err);
+    }
 
     if(req->method != HTTP_METHOD_GET)
     {
