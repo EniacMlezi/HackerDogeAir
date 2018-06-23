@@ -8,6 +8,7 @@
 #include "shared/shared_http.h"
 #include "model/user.h"
 #include "model/ticket.h"
+#include "model/flight.h"
 #include "assets.h"
 
 int     flight_book(struct http_request *);
@@ -41,6 +42,9 @@ flight_book(struct http_request *req)
         goto exit;
     }
 
+    Flight *flight = NULL;
+    if((err = flight_find_by_identifier(flightid, uint32_t *error))
+
     //check funds
     kore_log(LOG_DEBUG, "coins: %d", user->doge_coin);
     if(user->doge_coin < 250)
@@ -71,7 +75,7 @@ flight_book(struct http_request *req)
     http_response(req, HTTP_STATUS_OK,
         asset_flight_book_success_html,
         asset_len_flight_book_success_html);
-
+    return_code = (KORE_RESULT_OK);
 exit:
     user_destroy(&user);
     return return_code;

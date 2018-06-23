@@ -177,10 +177,9 @@ user_create_from_query(void *source_location, uint32_t *error)
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL; 
     }
-    char * coins_string =kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 5);
-    kore_log(LOG_DEBUG, "coins string: %s", coins_string);
+    
     uint32_t doge_coin = kore_strtonum64(
-        coins_string, 0, &err);
+        kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 5), 0, &err);
     if(err != (KORE_RESULT_OK))
     {
         kore_log(LOG_ERR, "user_create_from_query: Could not translate db_user_coins string to " \
@@ -188,7 +187,6 @@ user_create_from_query(void *source_location, uint32_t *error)
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
-    kore_log(LOG_DEBUG, "translated coins: %d", doge_coin);
 
     uint32_t create_user_result;
     User *temp_user = user_create(identifier, role, user_name, email, user_first_name, 
