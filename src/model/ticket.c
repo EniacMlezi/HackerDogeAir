@@ -65,6 +65,11 @@ ticket_create(uint32_t ticket_identifier, uint32_t flight_identifier, uint32_t u
 void
 ticket_destroy(Ticket **ticket)
 {
+    if(ticket == NULL)
+    {
+        return;
+    }
+
     free(*ticket);
     *ticket = NULL;
 }
@@ -211,6 +216,7 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
                 "temp_ticket_collection.");
             ticket_destroy(&temp_ticket);
             ticket_collection_destroy(&ticket_collection);
+            *error = (SHARED_ERROR_ALLOC_ERROR);
             return NULL;
         }
 
@@ -220,12 +226,18 @@ ticket_create_collection_from_query(void *source_location, uint32_t *error)
         temp_ticket_node = NULL;
     }
 
+    *error = (SHARED_OK);
     return (void *) ticket_collection;
 }
 
 uint32_t
 ticket_collection_destroy(struct TicketCollection **ticket_collection)
 {
+    if(ticket_collection == NULL || *ticket_collection == NULL)
+    {
+        return (SHARED_OK);
+    }
+
     TicketCollectionNode *temp = NULL;
 
     while(!TAILQ_EMPTY(*ticket_collection))

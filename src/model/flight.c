@@ -260,6 +260,11 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 void
 flight_destroy(Flight **flight)
 {
+    if(flight == NULL)
+    {
+        return;
+    }
+
     free(*flight);
     *flight = NULL;
 }
@@ -346,7 +351,7 @@ flight_delete_by_identifier(uint32_t flight_identifier)
 uint32_t
 flight_collection_destroy(struct FlightCollection **flight_collection)
 {
-    if (flight_collection == NULL)
+    if (flight_collection == NULL || *flight_collection == NULL)
     {
         return (SHARED_OK);
     }
