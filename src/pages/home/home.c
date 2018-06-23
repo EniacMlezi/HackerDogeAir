@@ -37,11 +37,14 @@ home(struct http_request *req)
         .session = &session  //TODO: fill from request cookie
     };
 
-    if ((err = shared_http_find_session_from_request(req, &context.session)) != (SHARED_OK))
-    {
-        home_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
-        goto exit;
+    err = shared_http_find_session_from_request(req, &context.session);
+    if(err != DATABASE_ENGINE_ERROR_NO_RESULTS) {
+        if (err != (SHARED_OK))
+        {
+            home_error_handler(req, err);
+            return_code = (KORE_RESULT_OK);
+            goto exit;
+        }
     }
     
     //a GET receives the home form and renders the page

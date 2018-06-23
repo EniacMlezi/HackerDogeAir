@@ -36,7 +36,10 @@ user_detail(struct http_request *req)
     int return_code = (KORE_RESULT_OK);
     int err = 0;
 
-    Session session;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
     
     UserContext context = {
         .partial_context = { 
@@ -45,6 +48,11 @@ user_detail(struct http_request *req)
             .session = &session
         }
     };
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK)){
+        user_detail_error_handler(req, err, &context);
+        return (KORE_RESULT_OK);
+    }
+
     if((err = shared_http_get_user_from_request(req, &context.user)) != (SHARED_OK))
     {
         user_detail_error_handler(req, err, &context);

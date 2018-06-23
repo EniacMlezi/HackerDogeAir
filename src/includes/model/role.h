@@ -2,8 +2,8 @@
 #define ROLE_H
 
 typedef enum{
-    USER    = 1,
-    ADMIN   = 2,
+    USER    = 0,
+    ADMIN   = 1,
 } Role;
 
 #endif

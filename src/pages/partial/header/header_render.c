@@ -56,9 +56,11 @@ header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     PartialContext *ctx = (PartialContext *)userdata;
 
     User *user = NULL;
-    if (ctx->session->identifier != NULL) {
-        kore_log(LOG_INFO, "header: id %s", ctx->session->identifier);
-        user = user_find_by_session_identifier(ctx->session->identifier, &err);
+    if (ctx->session != NULL) {
+        if (ctx->session->identifier != NULL) {
+            kore_log(LOG_INFO, "header: id %s", ctx->session->identifier);
+            user = user_find_by_session_identifier(ctx->session->identifier, &err);
+        }
     }
     
     if(strncmp("NAVBAR", token->text, token->text_length) == 0)

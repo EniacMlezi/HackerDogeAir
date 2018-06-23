@@ -49,7 +49,7 @@ shared_http_find_session_from_request(struct http_request *req, Session **sessio
         return (SHARED_OK);
     }
     kore_log(LOG_ERR, "shared_http: session_identifier %s", session_identifier);
-    if (session_identifier == NULL || session_identifier == "") {
+    if (session_identifier == NULL) {
         return (SHARED_OK);
     }
     *session = session_find_by_session_identifier(session_identifier, &error);
