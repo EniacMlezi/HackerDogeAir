@@ -13,7 +13,7 @@ flight_varget(mustache_api_t *api, void *user_data, mustache_token_variable_t *t
     FlightContext *ctx = (FlightContext *) user_data;
     
     const char *output_string = NULL;
-    char date_conversion_ouput[30];
+    char date_conversion_ouput[20];
 
     if(strncmp("id", token->text, token->text_length) == 0)
     {

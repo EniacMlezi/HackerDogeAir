@@ -8,7 +8,7 @@
         {{PARTIAL_HEADER}}
         <div class="content">
             <div class="admin-bookinglist-page">
-                <h1>Booking list</h1>
+                <h1>Booking List</h1>
                 <table>
                         <tr>
                             <th>User ID</th>

@@ -6,25 +6,15 @@
     </head>
     <body>
         {{PARTIAL_HEADER}}
-        <div class="content">
+        <div class="content" style="width: 400px;">
             <div class="add-coins-page">
-                <h1>User Details</h1>
+                <h1>Give Points</h1>
                 <form method="post">
-                    <table>
-                        <tr>
-                            User id: {{id}}. <br />
-                        </tr>
-                        <tr>
-                            Username: {{username}}.
-                        </tr>
-                        <tr>
-                            <input type="number" name="dogecoins" value="{{dogecoins}}" placeholder="Enter DogeCoins" maxlength="10" title="DogeCoins" pattern="[0-9]{1,10}" required>
-                        </tr>
-                        <tr>
-                            <button type="submit">Save</button>
-                        </tr>
-                    </table>
-                
+                    User id: {{id}}. <br />
+                    Username: {{username}}. <br />
+                    <input type="hidden" name="id" value={{id}} required>
+                    <input type="number" name="dogecoins" value="{{dogecoins}}" placeholder="Enter DogeCoins" maxlength="10" title="DogeCoins" pattern="[0-9]{1,10}" required> <br />
+                    <button type="submit">Save</button>
                 </form>
             </div>
         </div>

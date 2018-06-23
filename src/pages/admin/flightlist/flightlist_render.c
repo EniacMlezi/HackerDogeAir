@@ -29,7 +29,8 @@ admin_flight_list_render(FlightListContext *context)
         .error = &partial_error,
     };
 
-    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_flightlist_chtml))
+    if((err = full_render((PartialContext *)context, &api, 
+        (const char* const)asset_flightlist_chtml))
      != (SHARED_OK))
     {
         return err;

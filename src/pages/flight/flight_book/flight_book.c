@@ -6,10 +6,12 @@
 
 #include "shared/shared_error.h"
 #include "shared/shared_http.h"
-#include "model/user.h"
-#include "model/ticket.h"
 #include "model/flight.h"
 #include "assets.h"
+
+#define FLIGHT_BOOK_RESULT_OK                   0
+#define FLIGHT_BOOK_RESULT_NO_SEATS_AVAILABLE   1
+#define FLIGHT_BOOK_RESULT_INSUFFICIENT_FUNDS   2
 
 int     flight_book(struct http_request *);
 int     flight_book_parseparams(struct http_request *, int *);
@@ -18,8 +20,7 @@ void    flight_book_error_handler(struct http_request *, int);
 int 
 flight_book(struct http_request *req)
 {
-    int return_code;
-    int err;
+    uint32_t err;
 
     if(req->method != HTTP_METHOD_GET)
     {
@@ -30,55 +31,46 @@ flight_book(struct http_request *req)
     if((err = flight_book_parseparams(req, &flightid)) != (SHARED_OK))
     {
         flight_book_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
-    User *user = NULL;
-    if((err = shared_http_get_user_from_request(req, &user)) != (SHARED_OK))
+    Session *session = NULL;
+    if((err = shared_http_get_session_from_request(req, &session)) != (SHARED_OK))
     {
         flight_book_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
-    // Flight *flight = NULL;
-    // if((err = flight_find_by_identifier(flightid, uint32_t *error))
-
-    //check funds
-    kore_log(LOG_DEBUG, "coins: %d", user->doge_coin);
-    if(user->doge_coin < 250)
-    {
-        flight_book_error_handler(req, (FLIGHT_BOOK_ERROR_INSUFFICIENT_FUNDS));
-        return_code = (KORE_RESULT_OK);
-        goto exit;
-    }
-
-    user->doge_coin -= 250;
-    kore_log(LOG_DEBUG, "coins decremented");
-    if((err = user_update_coins(user)) != (SHARED_OK))
+    uint32_t book_result = flight_book_for_user(flightid, session->user_identifier, &err);
+    if(err != (SHARED_OK))
     {
         flight_book_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
-    Ticket ticket = {0, flightid, user->identifier, 250};
-    if((err = ticket_insert(&ticket)))
+    switch(book_result)
     {
-        flight_book_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
-        goto exit;
+        case (FLIGHT_BOOK_RESULT_NO_SEATS_AVAILABLE):
+            flight_book_error_handler(req, (FLIGHT_BOOK_ERROR_NO_SEATS_AVAILABLE));
+            goto exit;
+        case (FLIGHT_BOOK_RESULT_INSUFFICIENT_FUNDS):
+            flight_book_error_handler(req, (FLIGHT_BOOK_ERROR_INSUFFICIENT_FUNDS));
+            goto exit;
+        case (FLIGHT_BOOK_RESULT_OK):
+            break;
+        default:
+            flight_book_error_handler(req, (FLIGHT_BOOK_ERROR_UNKNOWN_RESULT));
+            goto exit;
     }
 
     http_response_header(req, "content-type", "text/html");
     http_response(req, HTTP_STATUS_OK,
         asset_flight_book_success_html,
         asset_len_flight_book_success_html);
-    return_code = (KORE_RESULT_OK);
+
 exit:
-    user_destroy(&user);
-    return return_code;
+    session_destroy(&session);
+    return (KORE_RESULT_OK);
 }
 
 int
@@ -107,6 +99,14 @@ flight_book_error_handler(struct http_request *req, int errcode)
         case (FLIGHT_BOOK_ERROR_INSUFFICIENT_FUNDS):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
                 "Insufficient DogeCoins.", "/flight/search", 10);
+            break;
+        case (FLIGHT_BOOK_ERROR_NO_SEATS_AVAILABLE):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "No more seats are available for the selected flight.", "/flight/search", 10);
+            break;
+        case (FLIGHT_BOOK_ERROR_UNKNOWN_RESULT):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. Unknown Flight Booking result", "/flight/search", 10);
             break;
         default:
             handled = false;
