@@ -30,9 +30,19 @@ shared_error_handler(struct http_request *req, int errcode, const char *redirect
         case (SHARED_ERROR_HASH_ERROR):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Failed to produce a hash for given password.", redirect_uri, 5);
+            break;
         case (SHARED_ERROR_TIME_CONVERSION):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
                 "Internal Server error. Time conversion failed.", redirect_uri, 5);
+            break;
+        case (SHARED_ERROR_COOKIE_NOT_FOUND):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. Session Cookie not found.", redirect_uri, 5);
+            break;
+        case (SHARED_ERROR_SESSION_NOT_FOUND):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. Session not found.", redirect_uri, 5);
+            break;
         case (SHARED_RENDER_ERROR_TEMPLATE):
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR,
                 "Internal Server error. Bad template.", redirect_uri, 5);
@@ -46,7 +56,12 @@ shared_error_handler(struct http_request *req, int errcode, const char *redirect
                 "Internal Server error. Render allocation failure.", redirect_uri, 5);
             break;
 
+        case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
+                "Internal Server error. No Database results.", redirect_uri, 5);
+
         default:
+            kore_log(LOG_ERR, "shared_error_handler: Unhandled error. code: %d", errcode);
             shared_error_response(req, HTTP_STATUS_INTERNAL_ERROR, 
                 "Internal Server error. Generic unhandled error.", redirect_uri, 5);
     }

@@ -43,6 +43,11 @@ static const char user_update_details_query[] =
     "telephonenumber = $6 " \
     "WHERE useridentifier = $1;";
 
+static const char user_update_coins_query[] =
+    "UPDATE \"User\" SET " \
+    "dogecoin = $2 " \
+    "WHERE useridentifier = $1;";
+
 static const char user_delete_query[] = "DELETE FROM \"User\" WHERE useridentifier = $1;";
 
 static const char user_select_by_identifier_query[] = 
@@ -172,7 +177,7 @@ user_create_from_query(void *source_location, uint32_t *error)
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL; 
     }
-
+    
     uint32_t doge_coin = kore_strtonum64(
         kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 5), 0, &err);
     if(err != (KORE_RESULT_OK))
@@ -377,22 +382,6 @@ user_update(const User *user)
     return (SHARED_OK);
 }
 
-uint32_t 
-user_update_doge_coin(uint32_t doge_coin)
-{
-    uint32_t database_doge_coin = htonl(doge_coin);
-
-    uint32_t query_result = database_engine_execute_write(user_update_query, 1, 
-        &database_doge_coin, sizeof(database_doge_coin), 1);
-    if (query_result != (SHARED_OK))
-    {
-        database_engine_log_error("user_update_doge_coin", query_result);
-        return query_result;
-    }
-
-    return (SHARED_OK);
-}
-
 uint32_t
 user_update_details(const User *user)
 {
@@ -408,12 +397,33 @@ user_update_details(const User *user)
     
     if (query_result != (SHARED_OK))
     {
-        database_engine_log_error("user_update", query_result);
+        database_engine_log_error("user_update_details", query_result);
         return query_result;
     }
 
     return (SHARED_OK);
 }
+
+uint32_t
+user_update_coins(const User *user)
+{
+    uint32_t identifier = htonl(user->identifier);
+    uint32_t coins = htonl(user->doge_coin);
+
+    kore_log(LOG_DEBUG, "updating coins");
+
+    uint32_t query_result = database_engine_execute_write(user_update_coins_query, 2,
+        &identifier, sizeof(identifier), 1,
+        &coins, sizeof(coins), 1);
+    
+    if (query_result != (SHARED_OK))
+    {
+        database_engine_log_error("user_update_coins", query_result);
+        return query_result;
+    }
+
+    return (SHARED_OK);
+} 
 
 uint32_t
 user_delete(User *user)
@@ -437,7 +447,6 @@ user_find_by_session_identifier(const char *session_identifier, uint32_t *error)
 {
     uint32_t query_result;
     void *result;
-
     result = database_engine_execute_read(user_select_by_session, user_create_from_query,
         &query_result, 1, session_identifier, strlen(session_identifier), 0);
 
@@ -452,7 +461,7 @@ user_find_by_session_identifier(const char *session_identifier, uint32_t *error)
         database_engine_log_error("user_find_by_session_identifier", query_result);
         *error = query_result;
     }
-
+    *error = (SHARED_OK);
     return result; 
 }
 

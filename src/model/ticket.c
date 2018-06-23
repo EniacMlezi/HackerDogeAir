@@ -15,8 +15,8 @@
 #include "shared/shared_time.h"
 
 static const char ticket_insert_query[] = 
-    "INSERT INTO \"Ticket\" (ticketidentifier, flightidentifier useridentifier, cost) " \
-    "VALUES ($1, $2, $3, $4)";
+    "INSERT INTO \"Ticket\" (flightidentifier, useridentifier, cost) " \
+    "VALUES ($1, $2, $3)";
 
 static const char ticket_select_by_ticket_identifier[] = 
     "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\" " \
@@ -259,13 +259,11 @@ ticket_collection_destroy(struct TicketCollection **ticket_collection)
 uint32_t
 ticket_insert(const Ticket *ticket)
 {
-    uint32_t ticket_identifier = htonl(ticket->ticket_identifier);
     uint32_t flight_identifier = htonl(ticket->flight_identifier);
     uint32_t user_identifier   = htonl(ticket->user_identifier);
     uint32_t cost = htonl(ticket->cost);
 
-    uint32_t query_result = database_engine_execute_write(ticket_insert_query, 4,
-        &ticket_identifier, sizeof(ticket_identifier), 1,
+    uint32_t query_result = database_engine_execute_write(ticket_insert_query, 3,
         &flight_identifier, sizeof(flight_identifier), 1,
         &user_identifier, sizeof(user_identifier), 1,
         &cost, sizeof(cost), 1);
