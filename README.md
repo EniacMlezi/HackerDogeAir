@@ -88,3 +88,11 @@ De Kore IO loggin functionaliteiten maken in hun onderliggende logica gebruik va
 De gebruikte compiler maakt gebruik van binary hardening en stack canaries om buffer overflow exploitatie te bemoeilijken.
  
 ![alt text](https://github.com/LarsGardien/HackerDogeAir/blob/master/assets/images/froggo.gif "Logo Title Text 1")
+
+## 4. Prerequisites
+  * [kore.io](https://github.com/jorisvink/kore)
+  * postgres (sudo apt install postgresql postgresql-contrib libpq-dev)
+  * [libscrypt](https://github.com/technion/libscrypt)
+  * [mustache](https://github.com/x86-64/mustache-c)
+  * DogeAirDB.sql imported into postgres (pg_import)
+
