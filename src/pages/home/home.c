@@ -41,7 +41,6 @@ home(struct http_request *req)
         if (err != (SHARED_OK))
         {
             home_error_handler(req, err);
-            return_code = (KORE_RESULT_OK);
             goto exit;
         }
     }

@@ -37,6 +37,8 @@ admin_give_points(struct http_request *req)
     }
 
     uint32_t err;
+    User *db_user = NULL;
+    
     User user = (User) {
         .identifier = 0, 
         .role = 0, 
@@ -88,7 +90,6 @@ admin_give_points(struct http_request *req)
         goto exit;
     }
 
-    User *db_user;
     db_user = user_find_by_identifier(params.user_identifier, &err);
     if(db_user == NULL)
     {

@@ -49,7 +49,7 @@ user_bookings(struct http_request *req)
     }
 
     context.ticket_collection = ticket_collection_find_by_user_identifier(
-        context->session->user_identifier, &err);
+        context.partial_context.session->user_identifier, &err);
     if(context.ticket_collection == NULL)
     {
         switch(err)
