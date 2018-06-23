@@ -4,7 +4,7 @@ body {
   font-family: "Roboto", sans-serif;
 }
 
-body .failed-login {
+.login-lockout {
   background-image:url('/images/froggo.gif');
   background-size: cover;
   background-repeat: no-repeat;

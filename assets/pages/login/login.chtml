@@ -2,9 +2,9 @@
 <html>
     <head>
         <title>Login - HackerDogeAir</title>
-	<link rel="stylesheet" href="/css/style.css" type="text/css">	
+	   <link rel="stylesheet" href="/css/style.css" type="text/css">	
     </head>
-    <body>
+    <body class="{{login-lockout}}">
         {{PARTIAL_HEADER}}
 		<div class="content" style="width: 360px;">
     		<div class="login-page">
@@ -12,7 +12,7 @@
     			<div class="form">
     				<form method="post">
                         <p class="error">{{error_message}}</p>
-    			    	<input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" title="Please enter a valid email address." required>
+    			    	<input type="email" name="email" value="{{email}}" placeholder="Enter email" maxlength="255" title="Please enter a valid email address." autofocus="" required="">
     		      		<input type="password" name="password" placeholder="Enter password" pattern="[a-zA-Z0-9._%+-@#$^&*()]{8,32}" title="Please enter a password between 8 and 32 characters long. May contain any of: a-zA-Z0-9._%+-@#$^&*()" required>
     		      		<button type="submit">Login</button>
     		      		<p class="message">Not registered? <a href="/register">Create an account</a></p>

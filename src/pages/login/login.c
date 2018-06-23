@@ -47,13 +47,16 @@ login(struct http_request *req)
             .tm_yday     = 0
         }};
 
-    UserContext context = {
-        .partial_context = { 
-            .src_context = NULL,
-            .dst_context = NULL,
-            .session_id = 0 
-            }, //TODO: fill from request cookie
-        .user = &user
+    LoginContext context = {
+        .user_context = {
+            .partial_context = { 
+                .src_context = NULL,
+                .dst_context = NULL,
+                .session_id = 0 
+                }, //TODO: fill from request cookie
+            .user = &user
+        },
+        .login_lockout = false
     };
 
     switch(req->method)
@@ -67,29 +70,30 @@ login(struct http_request *req)
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
-                context.partial_context.dst_context->string, 
-                strlen(context.partial_context.dst_context->string));
+                context.user_context.partial_context.dst_context->string, 
+                strlen(context.user_context.partial_context.dst_context->string));
 
             return_code = (KORE_RESULT_OK);
             break;
         }
         case (HTTP_METHOD_POST):
         {
-            if((err = login_parse_params(req, context.user)) != (SHARED_OK))
+            if((err = login_parse_params(req, context.user_context.user)) != (SHARED_OK))
             {
                 login_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_OK);
                 break;
             }
 
-            if((err = login_try_login(context.user)) != (SHARED_OK))
+            if((err = login_try_login(context.user_context.user)) != (SHARED_OK))
             {
                 login_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_OK);
                 break;
             }
             
-            if((err = login_create_session(req, context.user->identifier)) != (SHARED_OK))
+            if((err = login_create_session(req, context.user_context.user->identifier)) 
+                != (SHARED_OK))
             {
                 login_error_handler(req, err, &context);
                 return_code = (KORE_RESULT_OK);
@@ -298,27 +302,28 @@ login_create_session(struct http_request *req, uint32_t user_identifier)
 }
 
 void
-login_error_handler(struct http_request *req, uint32_t errcode, UserContext *context)
+login_error_handler(struct http_request *req, uint32_t errcode, LoginContext *context)
 {
     bool handled = true;
     int err = 0;
     switch (errcode)
     {
         case (LOGIN_ERROR_EMAIL_VALIDATOR_INVALID):
-                context->error_message = 
+                context->user_context.error_message = 
                 "Please use a correct email address. (e.g. test@example.com)";
             break;
         case (LOGIN_ERROR_PASSWORD_VALIDATOR_INVALID):
-                context->error_message = 
+                context->user_context.error_message = 
                 "Please use a correct password (length: 8-32, may contain: a-zA-Z0-9._%+-@#$^&*() )";
             break;
         case (LOGIN_ERROR_BRUTEFORCE_CHECK_INVALID):
-                context->error_message = 
+                context->user_context.error_message = 
                 "Your account has been locked. Please try again in several minutes.";
+                context->login_lockout = true;
             break;
         case (LOGIN_ERROR_EMAIL_INCORRECT):
         case (LOGIN_ERROR_PASSWORD_INCORRECT):
-                context->error_message = 
+                context->user_context.error_message = 
                 "Incorrect Email or Password.";
             break;
         case (LOGIN_ERROR_LOG_ATTEMPT_ERROR):
@@ -343,8 +348,8 @@ login_error_handler(struct http_request *req, uint32_t errcode, UserContext *con
 
         http_response_header(req, "content-type", "text/html");
         http_response(req, HTTP_STATUS_OK, 
-            context->partial_context.dst_context->string, 
-            strlen(context->partial_context.dst_context->string));
+            context->user_context.partial_context.dst_context->string, 
+            strlen(context->user_context.partial_context.dst_context->string));
 
         login_render_clean(context);
     }
