@@ -30,12 +30,13 @@ admin_delete_flight(struct http_request *req)
     if ((err = admin_delete_flight_parseparams(req, &flightid)) != (SHARED_OK))
     {
         admin_delete_flight_error_handler(req, err);
+        return (KORE_RESULT_OK);
     }
-    kore_log(LOG_ERR, "admin_delete_flight: id %i", flightid);
 
     if ((err = admin_try_delete_flight(flightid)) != (SHARED_OK))
     {
         admin_delete_flight_error_handler(req, err);
+        return (KORE_RESULT_OK);
     }
 
     http_response_header(req, "content-type", "text/html");
@@ -61,9 +62,6 @@ int
 admin_try_delete_flight(uint32_t flight_identifier)
 {
     int err = (SHARED_OK);
-    if (flight_identifier == 3) {
-        err = (ADMIN_DELETE_FLIGHT_ERROR);
-    }
     
     if(flight_delete_by_identifier(flight_identifier) != (SHARED_OK))
     {
@@ -91,6 +89,6 @@ admin_delete_flight_error_handler(struct http_request *req, int errcode)
     }
     if (!handled) 
     {
-        shared_error_handler(req, errcode, "");
+        shared_error_handler(req, errcode, "/admin/flightlist");
     }
 }

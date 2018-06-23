@@ -32,13 +32,15 @@ admin(struct http_request *req)
     if((err = admin_render(&context)) != (SHARED_OK))
     {
         admin_error_handler(req, err);
+        goto exit;
     }
 
     http_response_header(req, "content-type", "text/html");
     http_response(req, HTTP_STATUS_OK, 
         context.dst_context->string,
         strlen(context.dst_context->string));
-
+    
+exit:
     admin_render_clean(&context);
     return (KORE_RESULT_OK);    
 }
