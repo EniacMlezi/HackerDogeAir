@@ -7,13 +7,13 @@
 #include "shared/shared_time.h"
 
 uintmax_t
-flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
+flight_varget(mustache_api_t *api, void *user_data, mustache_token_variable_t *token)
 {
     int err = 0;
-    FlightContext *ctx = (FlightContext *) userdata;
+    FlightContext *ctx = (FlightContext *) user_data;
     
     const char *output_string = NULL;
-    char date_conversion_ouput[30];
+    char date_conversion_ouput[20];
 
     if(strncmp("id", token->text, token->text_length) == 0)
     {
@@ -24,8 +24,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         else
         {
             char id_string[12];
-            if(snprintf(id_string, 12, "%d", ctx->flight->flight_identifier) 
-                <= 0)
+            if(snprintf(id_string, 12, "%d", ctx->flight->flight_identifier) <= 0)
             {
                 kore_log(LOG_ERR, "flight_varget: failed int to string conversion for flightid."\
                     " input: %d", ctx->flight->flight_identifier);
@@ -43,9 +42,8 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         }
         else
         {
-           if(strftime(date_conversion_ouput,
-            sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->arrival_datetime) == (SHARED_OK))
+            if((err = shared_time_tm_to_string(&ctx->flight->arrival_datetime, date_conversion_ouput,
+                SHARED_TIME_TM_TO_FORMAT_STRING_SIZE, "%d-%m-%Y %T")) != (SHARED_OK))
             {
                 kore_log(LOG_ERR, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
@@ -63,9 +61,8 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         }
         else
         {
-            if(strftime(date_conversion_ouput,
-            sizeof(date_conversion_ouput), "%d-%m-%Y %T", 
-            &ctx->flight->departure_datetime) == (SHARED_OK))
+            if((err = shared_time_tm_to_string(&ctx->flight->departure_datetime, date_conversion_ouput,
+                SHARED_TIME_TM_TO_FORMAT_STRING_SIZE, "%d-%m-%Y %T")) != (SHARED_OK))
             {
                 kore_log(LOG_ERR, "flight_varget: time conversion error %d", err);
                 return (SHARED_RENDER_MUSTACHE_FAIL);
@@ -105,7 +102,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     }
     
     ctx->partial_context.should_html_escape = true;
-    if(api->write(api, userdata, output_string, strlen(output_string)) 
+    if(api->write(api, user_data, output_string, strlen(output_string)) 
         != (SHARED_RENDER_MUSTACHE_OK))
     {
         kore_log(LOG_ERR, "flight_varget: failed to write");

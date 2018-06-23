@@ -6,24 +6,11 @@
 #include "pages/partial/partial_render.h"
 #include "model/ticket.h"
 
-typedef struct BookingContext
-{
-    PartialContext partial_context;
-    const char *error_message;
-    Ticket *booking;
-} BookingContext;
-
-typedef struct BookingListNode
-{
-    Ticket booking;
-    SLIST_ENTRY(BookingListNode) bookings;
-} BookingListNode;
-
 typedef struct BookingListContext
 {
     PartialContext partial_context;
     const char *error_message;
-    SLIST_HEAD(head_s, BookingListNode) bookinglist;
+    struct TicketCollection *ticket_collection;
 } BookingListContext;
 
 int

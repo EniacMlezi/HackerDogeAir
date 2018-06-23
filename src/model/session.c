@@ -24,7 +24,7 @@ static const char session_delete_query[] =
 
 static const char session_select_by_session_identifier[] = 
     "SELECT sessionidentifier, useridentifier, validuntil FROM \"Session\" " \
-    "WHERE sessionidentifier = $1; ";
+    "WHERE sessionidentifier = $1 ORDER BY sessionidentifier ASC;";
 
 static const char session_update_query[] = 
     "UPDATE \"Session\" SET sessionidentifier = $1, useridentifier = $2, validuntil = $3 " \

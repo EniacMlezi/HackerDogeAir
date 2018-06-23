@@ -66,11 +66,11 @@ ticket_delete(
     Ticket *ticket
     );
 
-Ticket *
-ticket_find_by_user_identifier(
+struct TicketCollection *
+ticket_collection_find_by_user_identifier(
     uint32_t user_identifier,
-    uint32_t *error
-    );
+     uint32_t *error
+     );
 
 struct TicketCollection *
 ticket_collection_find_by_flight_identifier(

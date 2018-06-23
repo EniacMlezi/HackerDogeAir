@@ -8,18 +8,20 @@
         {{PARTIAL_HEADER}}
         <div class="content">
             <div class="admin-bookinglist-page">
-                <h1>Booking list</h1>
+                <h1>Booking List</h1>
                 <table>
                         <tr>
                             <th>User ID</th>
                             <th>Flight ID</th>
                             <th>Ticket ID</th>
+                            <th>Cost</th>
                         </tr>
                         {{#bookingslist}}
                         <tr>
                             <td>{{userid}}</td>
                             <td>{{flightid}}</td>
                             <td>{{ticketid}}</td>
+                            <td>{{cost}}</td>
                         </tr>
                         {{/bookingslist}}
                     </table>

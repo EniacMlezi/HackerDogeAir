@@ -39,24 +39,40 @@ admin_flight_list(struct http_request *req)
         case HTTP_METHOD_GET:
         {
             context.flight_collection = flight_get_all_flights(&err);
-            //a GET receives the home form and renders the page
+
+            if(context.flight_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                        admin_flight_list_error_handler(req, err);
+                        goto exit;
+                }
+            }
+
             if((err = admin_flight_list_render(&context)) != (SHARED_OK))
             {
                 admin_flight_list_error_handler(req, err);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
                 context.partial_context.dst_context->string,
                 strlen(context.partial_context.dst_context->string));
-
-            admin_flight_list_render_clean(&context);
-            return (KORE_RESULT_OK);
+            goto exit;
         }
 
         default:
             return(KORE_RESULT_ERROR); //No methods besides GET exist on this page
-    }    
+    }  
+
+exit:
+    admin_flight_list_render_clean(&context);
+    return (KORE_RESULT_OK);  
 }
 
 void
@@ -70,7 +86,7 @@ admin_flight_list_error_handler(struct http_request *req, int errcode)
     }
     if (!handled) 
     {
-        shared_error_handler(req, errcode, "");
+        shared_error_handler(req, errcode, "/admin");
     }    
 }
 

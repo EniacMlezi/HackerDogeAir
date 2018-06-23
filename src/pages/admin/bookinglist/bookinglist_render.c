@@ -8,6 +8,7 @@
 #include "assets.h"
 #include "shared/shared_error.h"
 #include "pages/partial/partial_render.h"
+#include "pages/shared/shared_booking_render.h"
 #include "model/ticket.h"
 
 int         admin_booking_list_render(BookingListContext *);
@@ -15,7 +16,7 @@ void        admin_booking_list_render_clean(BookingListContext *);
 void        admin_booking_list_error(mustache_api_t *, void *, uintmax_t, char const *);
 
 uintmax_t   admin_booking_list_sectget(mustache_api_t *, void *, mustache_token_section_t *);
-uintmax_t   admin_booking_list_varget(mustache_api_t *, void *, mustache_token_variable_t *);
+//uintmax_t   admin_booking_list_varget(mustache_api_t *, void *, mustache_token_variable_t *);
 
 int
 admin_booking_list_render(BookingListContext *context)
@@ -25,7 +26,7 @@ admin_booking_list_render(BookingListContext *context)
     mustache_api_t api={
         .read = &partial_strread,
         .write = &partial_strwrite,
-        .varget = &admin_booking_list_varget,
+        .varget = &booking_varget,
         .sectget = &admin_booking_list_sectget,
         .error = &partial_error,
     };
@@ -45,6 +46,7 @@ admin_booking_list_render_clean(BookingListContext *context)
     partial_render_clean(&context->partial_context);
 }
 
+/*
 uintmax_t
 admin_booking_list_varget(mustache_api_t *api, void *bookingdata, mustache_token_variable_t *token)
 {
@@ -123,25 +125,26 @@ admin_booking_list_varget(mustache_api_t *api, void *bookingdata, mustache_token
     }
     return (SHARED_RENDER_MUSTACHE_OK);
 }
+*/
 
 uintmax_t
 admin_booking_list_sectget(mustache_api_t *api, void *bookingdata, mustache_token_section_t *token) 
 {
-    BookingListContext *ctx = (BookingListContext *)bookingdata;
+    BookingListContext *ctx = (BookingListContext *) bookingdata;
     if (strcmp("bookingslist", token->name) == 0)
     {
-        if (SLIST_EMPTY(&ctx->bookinglist))
+        if(ctx->ticket_collection == NULL || TAILQ_EMPTY(ctx->ticket_collection))
         { 
             return (SHARED_RENDER_MUSTACHE_OK);
         }
 
-        BookingListNode *booking_node = NULL;
-        BookingContext bookingcontext;
-        memcpy(&bookingcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
-        SLIST_FOREACH(booking_node, &ctx->bookinglist, bookings)
+        TicketCollectionNode *booking_node = NULL;
+        BookingContext booking_context;
+        memcpy(&booking_context.partial_context, &ctx->partial_context, sizeof(PartialContext));
+        TAILQ_FOREACH(booking_node, ctx->ticket_collection, ticket_collection)
         {
-            bookingcontext.booking = &booking_node->booking;
-            if(!mustache_render(api, &bookingcontext, token->section))
+            booking_context.ticket = booking_node->ticket;
+            if(!mustache_render(api, &booking_context, token->section))
             {
                 kore_log(LOG_ERR, "admin_booking_list_sectget: failed to render a booking");
                 return (SHARED_RENDER_MUSTACHE_FAIL);

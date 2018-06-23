@@ -8,27 +8,27 @@
         {{PARTIAL_HEADER}}
         <div class="content">
            <div class="admin-userlist-page">
-                <h1>Flight list</h1>
+                <h1>User List</h1>
                 <table>
+                    <tr>
+                        <th>User ID</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>DogeCoins</th>
+                        <th></th>
+                    </tr>
+                    {{#userlist}}
                         <tr>
-                            <th>User ID</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Role</th>
-                            <th>DogeCoins</th>
-                            <th></th>
+                            <td>{{id}}</td>
+                            <td>{{email}}</td>
+                            <td>{{username}}</td>
+                            <td>{{role}}</td>
+                            <td>{{dogecoins}}</td>
+                            <td><a href="/admin/givepoints?id={{id}}">Add DogeCoins</a></td>
                         </tr>
-                        {{#userlist}}
-                            <tr>
-                                <td>{{id}}</td>
-                                <td>{{email}}</td>
-                                <td>{{username}}</td>
-                                <td>{{role}}</td>
-                                <td>{{dogecoins}}</td>
-                                <td><a href="/admin/givepoints?id={{id}}">Add DogeCoins</a></td>
-                            </tr>
-                        {{/userlist}}
-                    </table>
+                    {{/userlist}}
+                </table>
             </div>
         </div>
     </body>

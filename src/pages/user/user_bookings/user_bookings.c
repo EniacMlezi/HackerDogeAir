@@ -11,6 +11,7 @@
 #include "pages/user/user_bookings/user_bookings_render.h"
 #include "model/user.h"
 #include "model/session.h"
+#include "model/ticket.h"
 #include "assets.h"
 
 int     user_bookings(struct http_request *);
@@ -25,64 +26,52 @@ user_bookings(struct http_request *req)
         return (KORE_RESULT_ERROR);
     }
 
-    int return_code = (KORE_RESULT_OK);
-    int err = 0;
+    uint32_t err = 0;
+
     Session session = (Session) {
         .identifier = NULL,
         .user_identifier = 0
     };
-
+    
     UserBookingsContext context = {
-        .partial_context = {.session = &session}
-    };
-
-    //TODO: get user bookings from DataAccess layer
-    SLIST_INIT(&context.userbookinglist);
-    char *departure0 = "SchipInJeHol";
-    char *arrival0 = "UitjeHol";
-
-    struct tm departuretime0 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
-    struct tm arrivaltime0 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
-
-    UserBookingListNode booking_node0 = {
-        .flight = {
-            .arrival_datetime = arrivaltime0,
-            .departure_datetime = departuretime0,
-            .arrival_location = arrival0,
-            .departure_location = departure0
+        .partial_context = {
+            .src_context = NULL,
+            .dst_context = NULL,
+            .session = &session
         }
     };
 
-    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    if ((err = shared_http_find_session_from_request(
+        req, &context.partial_context.session)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
-    SLIST_INSERT_HEAD(&context.userbookinglist, &booking_node0, userbookings);
-
-    char *departure1 = "SchipUitJeHol";
-    char *arrival1 = "InjeHol";
-
-    struct tm departuretime1 = {0, 10, 13, 18, 12, 2018-1900, 0, 0};
-    struct tm arrivaltime1 = {0, 15, 13, 18, 12, 2018-1900, 0, 0};
-
-    UserBookingListNode booking_node1 = {
-        .flight = {
-            .arrival_datetime = arrivaltime1,
-            .departure_datetime = departuretime1,
-            .arrival_location = arrival1,
-            .departure_location = departure1
+    context.ticket_collection = ticket_collection_find_by_user_identifier(
+        context->session->user_identifier, &err);
+    if(context.ticket_collection == NULL)
+    {
+        switch(err)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                break;
+            default:
+               user_bookings_error_handler(req, err);
+               goto exit; 
         }
-    };
-    
-    SLIST_INSERT_HEAD(&context.userbookinglist, &booking_node1, userbookings);
-    
+    }
+
+    if(err != (SHARED_OK))
+    {
+        user_bookings_error_handler(req, err);
+        goto exit;
+    }
+
     if((err = user_bookings_render(&context)) != (SHARED_OK))
     {
         user_bookings_error_handler(req, err);
-        return_code = (KORE_RESULT_OK);
         goto exit;
     }
 
@@ -93,7 +82,8 @@ user_bookings(struct http_request *req)
     
 exit:
     user_bookings_render_clean(&context);
-    return return_code;
+    ticket_collection_destroy(&context.ticket_collection);
+    return (KORE_RESULT_OK);
 }
 
 void

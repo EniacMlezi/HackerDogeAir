@@ -19,26 +19,27 @@ static const char ticket_insert_query[] =
     "VALUES ($1, $2, $3)";
 
 static const char ticket_select_by_ticket_identifier[] = 
-    "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\" " \
-    "WHERE ticketidentifier = $1;";
+    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
+    "WHERE ticketidentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_select_by_flight_identifier[] =
-    "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\" " \
-    "WHERE flightidentifier = $1;";
+    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
+    "WHERE flightidentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_select_by_user_identifier[] =
-    "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\" " \
-    "WHERE useridentifer = $1;";
+    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
+    "WHERE useridentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_update_query[] = 
-    "UPDATE \"Ticket\" SET ticketidentifier = $1, flightidentifier = $2, useridentifer = $3, " \
+    "UPDATE \"Ticket\" SET ticketidentifier = $1, flightidentifier = $2, useridentifier = $3, " \
     "cost = $4 WHERE ticketidentifier = $1";
 
 static const char ticket_delete_query[] =
     "DELETE FROM \"Session\" WHERE sessionidentifier = $1";
 
 static const char ticket_get_all_tickets_query[] = 
-    "SELECT ticketidentifier, flightidentifier, useridentifer, cost FROM \"Ticket\";";
+    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
+    "ORDER BY ticketidentifier ASC;";
 
 Ticket *
 ticket_create(uint32_t ticket_identifier, uint32_t flight_identifier, uint32_t user_identifier,
@@ -317,17 +318,17 @@ ticket_delete(Ticket *ticket)
     return (SHARED_OK);  
 }
 
-Ticket *
-ticket_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
+struct TicketCollection *
+ticket_collection_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
 {
     uint32_t database_user_identifier = htonl(user_identifier);
 
-    void *result;
+    void *result = NULL;
     uint32_t query_result = 0;
 
     result = database_engine_execute_read(ticket_select_by_user_identifier, 
-        &ticket_create_from_query, &database_user_identifier, 1, sizeof(database_user_identifier), 
-        1);
+        &ticket_create_collection_from_query, &query_result, 1,
+        &database_user_identifier, sizeof(database_user_identifier), 1);
 
     if(result == NULL)
     {
@@ -348,7 +349,7 @@ ticket_find_by_user_identifier(uint32_t user_identifier, uint32_t *error)
 struct TicketCollection *
 ticket_collection_find_by_flight_identifier(uint32_t flight_identifier, uint32_t *error)
 {
-      uint32_t database_flight_identifier = htonl(flight_identifier);
+    uint32_t database_flight_identifier = htonl(flight_identifier);
 
     void *result;
     uint32_t query_result = 0;
@@ -387,14 +388,11 @@ ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t
 
     if(result == NULL)
     {
-        if(query_result == (DATABASE_ENGINE_ERROR_NO_RESULTS))
+        if(query_result != (DATABASE_ENGINE_ERROR_NO_RESULTS))
         {
+            database_engine_log_error("ticket_collection_find_by_ticket_identifier", query_result);
             *error = query_result;
-            return result;
         }
-
-        database_engine_log_error("ticket_collection_find_by_ticket_identifier", query_result);
-        *error = query_result;
     }
 
     *error = (SHARED_OK);  
@@ -405,7 +403,7 @@ ticket_collection_find_by_ticket_identifier(uint32_t ticket_identifier, uint32_t
 struct TicketCollection *
 ticket_get_all_tickets(uint32_t *error)
 {
-    uint32_t query_result;
+    uint32_t query_result = (SHARED_OK);
     void *result;
 
     result = database_engine_execute_read(ticket_get_all_tickets_query, 
@@ -413,8 +411,19 @@ ticket_get_all_tickets(uint32_t *error)
 
     if(result == NULL)
     {
-        database_engine_log_error("ticket_get_all_tickets", query_result);
-        *error = query_result;
+        switch(query_result)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                *error = query_result;
+                break; 
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+            default:
+                database_engine_log_error("ticket_get_all_tickets", query_result);
+                *error = query_result;
+                break;
+        }
     }
 
     return result;

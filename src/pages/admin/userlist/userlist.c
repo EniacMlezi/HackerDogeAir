@@ -40,27 +40,39 @@ admin_user_list(struct http_request *req)
         case HTTP_METHOD_GET:
         {
             context.user_collection = user_get_all_users(&err);
-            if (err != (SHARED_OK)) {
-                admin_user_list_error_handler(req, err);
+
+            if(context.user_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                       admin_user_list_error_handler(req, err);
+                       goto exit; 
+                }
             }
 
             if((err = admin_user_list_render(&context)) != (SHARED_OK))
             {
                 admin_user_list_error_handler(req, err);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
                 context.partial_context.dst_context->string,
                 strlen(context.partial_context.dst_context->string));
-
-            admin_user_list_render_clean(&context);
-            return (KORE_RESULT_OK);
+            goto exit;
         }
 
         default:
             return(KORE_RESULT_ERROR); //No methods besides GET exist on this page
     }
+exit:
+    admin_user_list_render_clean(&context);
+    return (KORE_RESULT_OK);
 }
 
 void
@@ -74,6 +86,6 @@ admin_user_list_error_handler(struct http_request *req, int errcode)
     }
     if (!handled) 
     {
-        shared_error_handler(req, errcode, "");
+        shared_error_handler(req, errcode, "/admin");
     }
 }

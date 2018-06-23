@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <limits.h>
 #include <time.h>
+#include <stdint.h>
 #include <libscrypt.h>
 
 #include <kore/kore.h>
@@ -20,13 +21,23 @@ void   admin_booking_list_error_handler(struct http_request *, int);
 int 
 admin_booking_list(struct http_request *req)
 {
-    int err;
+    uint32_t err;
     Session session = (Session) {
         .identifier = NULL,
         .user_identifier = 0
     };
+
+    if(req->method != HTTP_METHOD_GET)
+    {
+        return (KORE_RESULT_ERROR);
+    }
+
     BookingListContext context = {
-        .partial_context = { .session = &session }  //TODO: fill from request cookie
+        .partial_context = { 
+            .session = &session,
+            .src_context = NULL,
+            .dst_context = NULL
+        }
     };
 
     if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
@@ -34,57 +45,46 @@ admin_booking_list(struct http_request *req)
         admin_booking_list_error_handler(req, err);
     }
 
-    SLIST_INIT(&context.bookinglist);
-
     switch(req->method)
     {
         case (HTTP_METHOD_GET):
         {
-            BookingListNode booking_node0 = {
-                .booking = {
-                    .ticket_identifier = 2,
-                    .user_identifier = 1,
-                    .flight_identifier = 3
-                }
-            };
+            context.ticket_collection = ticket_get_all_tickets(&err);
 
-            BookingListNode booking_node1 = {
-                .booking = {
-                    .ticket_identifier = 7,
-                    .user_identifier = 1,
-                    .flight_identifier = 4
+            if(context.ticket_collection == NULL)
+            {
+                switch(err)
+                {
+                    case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+                    case (SHARED_OK):
+                        break;
+                    default:
+                        admin_booking_list_error_handler(req, err);
+                        goto exit;
                 }
-            };
-
-            BookingListNode booking_node2 = {
-                .booking = {
-                    .ticket_identifier = 3,
-                    .user_identifier = 89,
-                    .flight_identifier = 33
-                }
-            };
-
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node0, bookings);
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node1, bookings);
-            SLIST_INSERT_HEAD(&context.bookinglist, &booking_node2, bookings);
+            }
 
             if((err = admin_booking_list_render(&context)) != (SHARED_OK))
             {
                 admin_booking_list_error_handler(req, err);
+                goto exit;
             }
 
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, 
                 context.partial_context.dst_context->string,
                 strlen(context.partial_context.dst_context->string));
-
-            admin_booking_list_render_clean(&context);
-            return (KORE_RESULT_OK);
+            goto exit;
         }
 
         default:
             return(KORE_RESULT_ERROR); //No methods besides GET exist on this page
     }
+
+exit: 
+    admin_booking_list_render_clean(&context);
+    ticket_collection_destroy(&context.ticket_collection);
+    return (KORE_RESULT_OK);
 }
 
 void
@@ -98,6 +98,6 @@ admin_booking_list_error_handler(struct http_request *req, int errcode)
     }
     if (!handled) 
     {
-        shared_error_handler(req, errcode, "");
+        shared_error_handler(req, errcode, "/admin");
     }
 }

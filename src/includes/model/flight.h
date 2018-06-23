@@ -107,6 +107,13 @@ flight_find_by_arrival_date(
     uint32_t *error
     );
 
+uint32_t
+flight_book_for_user(
+    uint32_t flight_identifier,
+    uint32_t user_identifier,
+    uint32_t *error
+    );
+
 struct FlightCollection *
 flight_get_all_flights(
     uint32_t *error

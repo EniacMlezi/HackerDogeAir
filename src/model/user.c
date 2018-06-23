@@ -54,23 +54,26 @@ static const char user_select_by_identifier_query[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
     "FROM \"User\" " \
-    "WHERE useridentifier = $1;";
+    "WHERE useridentifier = $1 " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_select_by_session[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber FROM \"User\" WHERE useridentifier = " \
-    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1);";
+    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1) " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_select_by_email_or_username[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
     "FROM \"User\" " \
-    "WHERE emailaddress = $1 OR username = $1;";
+    "WHERE emailaddress = $1 OR username = $1 " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_get_all_users_query[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
-    "FROM \"User\";";
+    "FROM \"User\" ORDER BY useridentifier ASC;";
 
 User *
 user_create(uint32_t identifier, Role role, const char *username, const char *email, 
@@ -154,8 +157,6 @@ user_create_from_query(void *source_location, uint32_t *error)
     struct tm registration_datetime;
     shared_time_database_string_to_tm(registration_time, &registration_datetime);
 
-    /* Potential conversion errors in the code block below, Testing must be performed to confirm the 
-    proper behaviour of the following code segment. */
     int err;
 
     uint32_t identifier = kore_strtonum64(
@@ -410,8 +411,6 @@ user_update_coins(const User *user)
     uint32_t identifier = htonl(user->identifier);
     uint32_t coins = htonl(user->doge_coin);
 
-    kore_log(LOG_DEBUG, "updating coins");
-
     uint32_t query_result = database_engine_execute_write(user_update_coins_query, 2,
         &identifier, sizeof(identifier), 1,
         &coins, sizeof(coins), 1);
@@ -514,7 +513,7 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
 struct UserCollection *
 user_get_all_users(uint32_t *error)
 {
-    uint32_t query_result;
+    uint32_t query_result = (SHARED_OK);
     void *result;
 
     result = database_engine_execute_read(user_get_all_users_query, 
@@ -522,8 +521,19 @@ user_get_all_users(uint32_t *error)
 
     if(result == NULL)
     {
-        database_engine_log_error("user_get_all_users", query_result);
-        *error = query_result;
+        switch(query_result)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                *error = query_result;
+                break;
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_RESULT_PARSE):
+            default:
+                database_engine_log_error("user_get_all_users", query_result);
+                *error = query_result;
+                break;
+        }
     }
 
     return result;

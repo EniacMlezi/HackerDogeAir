@@ -16,7 +16,8 @@ static const char flight_find_by_arrival_date_query[] =
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE arrivaldatetime::date = $1;";
+"WHERE arrivaldatetime::date = $1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_insert_query[] =
     "INSERT INTO \"Flight\" " \
@@ -30,34 +31,38 @@ static const char flight_delete_query[] =
 static const char flight_get_all_flights_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier;";
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_identifier_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE flightidentifier=$1;";
+"WHERE flightidentifier=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_departure_airport_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE d.name=$1;";
-
-static const char flight_get_user_bookings_query[] =
-"";
+"WHERE d.name=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_arrival_airport_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE a.name=$1;";
+"WHERE a.name=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_arrival_airport_and_departure_time_query[] =     
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE a.name=$1 AND departuredatetime = $2;";
+"WHERE a.name=$1 AND departuredatetime = $2 " \
+"ORDER BY flightidentifier ASC;";
+
+static const char flight_book_for_user_query[] = "SELECT bookflight($1, $2);";
 
 Flight *
 flight_create(uint32_t flight_identifier, char *departure_location, char *arrival_location,
@@ -181,12 +186,12 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
     {
         Flight *temp_flight = NULL;
 
-        char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1);
-        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
+        char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 1);
+        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2);
         char *arrival_time_string = 
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3);
         char *departure_time_string = 
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4);
 
         struct tm arrival_time;
         struct tm departure_time;
@@ -474,13 +479,12 @@ flight_find_by_arrival_airport_and_departure_time(char *arrival_airport,
     return result;
 }
 
-
 struct FlightCollection *
 flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
 {
     uint32_t err = 0;
     uint32_t query_result = 0;
-    void *result;
+    void *result = NULL;
 
     char arrival_datetime[30];
 
@@ -506,6 +510,52 @@ flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
     return result;
 }
 
+static void *
+flight_book_get_errorcode_from_query(void *source_location, uint32_t *error)
+{
+    struct kore_pgsql*pgsql = (struct kore_pgsql *)source_location;
+    int err = 0;
+
+
+    uint32_t result = kore_strtonum64(kore_pgsql_getvalue(pgsql, 0, 0), 0, &err);
+    if(err != (KORE_RESULT_OK))
+    {
+        kore_log(LOG_ERR, "flight_book_get_errorcode_from_query: Could not translate result " \
+            "string to uint32_t.");
+        *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
+        return NULL;
+    }
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+    return (void *)result;
+#pragma GCC diagnostic pop
+}
+
+uint32_t
+flight_book_for_user(uint32_t flight_identifier, uint32_t user_identifier, uint32_t *error)
+{
+    uint32_t query_result = 0;
+    void *result = NULL;
+
+    flight_identifier = htonl(flight_identifier);
+    user_identifier = htonl(user_identifier);
+
+    result = database_engine_execute_read(flight_book_for_user_query, 
+        flight_book_get_errorcode_from_query, &query_result, 2, 
+        &flight_identifier, sizeof(flight_identifier), 1,
+        &user_identifier, sizeof(user_identifier), 1);
+
+    if(result == NULL)
+    {
+        database_engine_log_error("flight_book_for_user", query_result);
+        *error = query_result;
+    }
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
+    return (uint32_t)result;
+#pragma GCC diagnostic pop
+}
+
 struct FlightCollection *
 flight_get_all_flights(uint32_t *error)
 {
@@ -517,8 +567,19 @@ flight_get_all_flights(uint32_t *error)
 
     if(result == NULL)
     {
-        database_engine_log_error("flight_get_all_flights", query_result);
-        *error = query_result;
+        switch(query_result)
+        {
+            case (DATABASE_ENGINE_ERROR_NO_RESULTS):
+            case (SHARED_OK):
+                *error = query_result;
+                break; 
+            case (DATABASE_ENGINE_ERROR_INITIALIZATION):
+            case (DATABASE_ENGINE_ERROR_QUERY_ERROR):
+            default:
+                database_engine_log_error("flight_get_all_flights", query_result);
+                *error = query_result;
+                break;
+        }
     }
 
     return result;

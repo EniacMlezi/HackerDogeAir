@@ -20,7 +20,7 @@ int
 admin_flight_list_render(FlightListContext *context)
 {
     int err = 0;
-
+    
     mustache_api_t api={
         .read = &partial_strread,
         .write = &partial_strwrite,
@@ -29,7 +29,8 @@ admin_flight_list_render(FlightListContext *context)
         .error = &partial_error,
     };
 
-    if((err = full_render((PartialContext *)context, &api, (const char* const)asset_flightlist_chtml))
+    if((err = full_render((PartialContext *)context, &api, 
+        (const char* const)asset_flightlist_chtml))
      != (SHARED_OK))
     {
         return err;
@@ -47,7 +48,7 @@ admin_flight_list_render_clean(FlightListContext *context)
 uintmax_t
 admin_flight_list_sectget(mustache_api_t *api, void *flightdata, mustache_token_section_t *token) 
 {
-    FlightListContext *ctx = (FlightListContext *)flightdata;
+    FlightListContext *ctx = (FlightListContext *) flightdata;
     if (strcmp("flightlist", token->name) == 0)
     {
         if (ctx->flight_collection == NULL || TAILQ_EMPTY(ctx->flight_collection))
@@ -57,12 +58,12 @@ admin_flight_list_sectget(mustache_api_t *api, void *flightdata, mustache_token_
 
         FlightCollectionNode *flight_node = NULL;
         api->varget = &flight_varget;
-        FlightContext flightcontext;
-        memcpy(&flightcontext.partial_context, &ctx->partial_context, sizeof(PartialContext));
+        FlightContext flight_context;
+        memcpy(&flight_context.partial_context, &ctx->partial_context, sizeof(PartialContext));
         TAILQ_FOREACH(flight_node, ctx->flight_collection, flight_collection)
         {
-            flightcontext.flight = flight_node->flight;
-            if(!mustache_render(api, &flightcontext, token->section))
+            flight_context.flight = flight_node->flight;
+            if(!mustache_render(api, &flight_context, token->section))
             {
                 kore_log(LOG_ERR, "admin_flight_list_sectget: failed to render a flight");
                 api->varget = &partial_varget;

@@ -10,7 +10,7 @@
 
 #include "model/user.h"
 
-#include "pages/shared/shared_user_render.h"
+#include "pages/login/login_render.h"
 
 uint32_t   
 login(
@@ -55,6 +55,6 @@ void
 login_error_handler(
     struct http_request *rec, 
     uint32_t error, 
-    UserContext *context
+    LoginContext *context
     );
 #endif
