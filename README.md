@@ -43,6 +43,22 @@ HackerDogeAir ondersteund deze functionaliteit niet.
 #### 2.1.11 Optioneel: vergeten gebruikersnaam functie	
 HackerDogeAir ondersteund deze functionaliteit niet.
 
+### 2.1 Tabel geimplementeerde functionliteiten
+
+| Functionaliteiten        	| Link om the testen|
+| ------------- 		|:-------------:|
+| Inloggen     			| /login |
+| Accountinformatie bekijken    | /user/userdetails |
+| InHollaandMiles (Doge Coin) Toevoegen | /admin/userlist -> “add DogeCoins”t |
+|Een vlucht kiezen op een bepaalde datum| /flight/searchflight |
+|De vlucht betalen met InhollandMiles (Doge Coin)| Vindt automatisch plaats. |
+|Een vlucht annuleren| /admin/flightlist -> “Delete flight” |
+|Een vlucht toevoegen| Staat niet op blackboard, alleen in de powerpoint.  |
+|Account aanmaken, registreren| /register |
+|Bestellingen inzien (user alleen de eigen vlucht)| /user/bookings    -> voor de gebruiker /admin/bookingslist -> Voor de admin (Laat alle bestellingen zien)|
+|Optioneel: vergeten wachtwoord functie| Niet geïmplementeerd (mailserver) |
+|Optioneel: vergeten gebruikersnaam functie| Niet geïmplementeerd (mailserver) |
+
 ## 3. Genomen Beveiligingsmaatregelen	
 ### 3.1 Regex clientside validatie	
 Om er voor te zorgen dat alle input van een gebruiker wordt gevalideerd, wordt er binnen HackerDogeAir met HTML5 validatie gewerkt. Hierbij wordt een <input> gebruikt. Hieraan wordt een pattern=”” meegegeven. Binnen deze pattern staat een regex die de waarde van de input valideert.
@@ -70,3 +86,5 @@ De Kore IO loggin functionaliteiten maken in hun onderliggende logica gebruik va
 
 ### 3.9 Gebruikte compiler protective flags	
 De gebruikte compiler maakt gebruik van binary hardening en stack canaries om buffer overflow exploitatie te bemoeilijken.
+ 
+![alt text](https://github.com/LarsGardien/HackerDogeAir/blob/master/assets/images/froggo.gif "Logo Title Text 1")
