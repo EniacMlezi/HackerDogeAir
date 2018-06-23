@@ -42,8 +42,8 @@ flight_book(struct http_request *req)
         goto exit;
     }
 
-    Flight *flight = NULL;
-    if((err = flight_find_by_identifier(flightid, uint32_t *error))
+    // Flight *flight = NULL;
+    // if((err = flight_find_by_identifier(flightid, uint32_t *error))
 
     //check funds
     kore_log(LOG_DEBUG, "coins: %d", user->doge_coin);
