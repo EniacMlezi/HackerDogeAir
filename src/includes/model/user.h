@@ -21,11 +21,13 @@ typedef struct
     struct tm   registration_datetime; 
 } User;
 
-typedef struct UserCollection
+typedef struct UserCollectionNode
 {
     User *user;
-    TAILQ_ENTRY(UserCollection) user_collection;
-} UserCollection;
+    TAILQ_ENTRY(UserCollectionNode) user_collection;
+} UserCollectionNode;
+
+TAILQ_HEAD(UserCollection, UserCollectionNode);
 
 User *
 user_create(
@@ -61,7 +63,7 @@ user_destroy(
 
 uint32_t
 user_collection_destroy(
-    UserCollection *user_collection
+    struct UserCollection **user_collection
     );
 
 uint32_t 
@@ -120,7 +122,7 @@ user_find_by_identifier(
     uint32_t *error
     );
 
-UserCollection *
+struct UserCollection *
 user_get_all_users(
     uint32_t *error
     );

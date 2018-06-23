@@ -84,7 +84,7 @@ admin_give_points(struct http_request *req)
                 strlen(context.partial_context.dst_context->string));
 
             admin_give_points_render_clean(&context);
-            user_destroy(context.user);
+            user_destroy(&context.user);
             return (KORE_RESULT_OK);
         }
 
@@ -99,7 +99,7 @@ admin_give_points(struct http_request *req)
             http_response_header(req, "content-type", "text/html");
             http_response(req, HTTP_STATUS_OK, asset_login_success_html, asset_len_login_success_html);
 
-            user_destroy(context.user);
+            user_destroy(&context.user);
             return (KORE_RESULT_OK);
         }
 

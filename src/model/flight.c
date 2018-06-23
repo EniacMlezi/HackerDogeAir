@@ -28,35 +28,35 @@ static const char flight_delete_query[] =
     "DELETE FROM \"Flight\" WHERE flightidentifier = $1;";
 
 static const char flight_get_all_flights_query[] = 
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier;";
 
 static const char flight_find_by_identifier_query[] = 
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
 "WHERE flightidentifier=$1;";
 
 static const char flight_find_by_departure_airport_query[] = 
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
 "WHERE d.name=$1;";
 
 static const char flight_get_user_bookings_query[] =
 "";
 
 static const char flight_find_by_arrival_airport_query[] = 
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
 "WHERE a.name=$1;";
 
 static const char flight_find_by_arrival_airport_and_departure_time_query[] =     
-"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable" \
-"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier" \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier"\
+"SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
+"FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
 "WHERE a.name=$1 AND departuredatetime = $2;";
 
 Flight *
@@ -173,8 +173,8 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    struct FlightCollection *flightcollection = malloc(sizeof(struct FlightCollection));
-    TAILQ_INIT(flightcollection);
+    struct FlightCollection *flight_collection = malloc(sizeof(struct FlightCollection));
+    TAILQ_INIT(flight_collection);
 
     uint32_t i;
     for(i = 0; i < number_of_results; ++i)
@@ -183,8 +183,10 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
 
         char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1);
         char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
-        char *arrival_time_string = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
-        char *departure_time_string = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
+        char *arrival_time_string = 
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+        char *departure_time_string = 
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
 
         struct tm arrival_time;
         struct tm departure_time;
@@ -196,10 +198,10 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             (struct kore_pgsql *) source_location, i, 0), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
-            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_flight_id string to " \
-                "uint32_t.");
+            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_flight_id string " \
+                "to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flightcollection);
+            flight_collection_destroy(&flight_collection);
             return NULL;
         }
 
@@ -207,10 +209,10 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             (struct kore_pgsql *) source_location, i, 5), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
-            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_distance string to " \
-                "uint32_t.");
+            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_distance string " \
+                "to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flightcollection);
+            flight_collection_destroy(&flight_collection);
             return NULL;
         }
 
@@ -218,10 +220,10 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             (struct kore_pgsql *) source_location, i, 6), 0, &err);
         if(err != (KORE_RESULT_OK))
         {
-            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_seatsavailable string" \
-                " to uint32_t.");
+            kore_log(LOG_ERR, "flight_create_from_query: Could not translate db_seatsavailable " \
+                " string to uint32_t.");
             *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
-            free(flightcollection);
+            flight_collection_destroy(&flight_collection);
             return NULL;
         }
 
@@ -233,7 +235,7 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
         {
             kore_log(LOG_ERR, "flight_create_from_query: Could not create a flight structure");
             *error = create_flight_result;
-            free(flightcollection);
+            flight_collection_destroy(&flight_collection);
             return NULL;
         }        
 
@@ -244,19 +246,18 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
             kore_log(LOG_ERR, "flight_create_from_query: Could not allocate memory for " \
                 "temp_flight_collection.");
             flight_destroy(&temp_flight);
-            //flight_collection_destroy(flight_collection);
-            free(flightcollection);
+            flight_collection_destroy(&flight_collection);
             return NULL;   
         }
 
         temp_flight_node->flight = temp_flight;
 
-        TAILQ_INSERT_TAIL(flightcollection, temp_flight_node, flight_collection);
+        TAILQ_INSERT_TAIL(flight_collection, temp_flight_node, flight_collection);
         
         temp_flight_node = NULL;
     }
 
-    return (void *) flightcollection;
+    return (void *) flight_collection;
 }
 
 void
@@ -329,7 +330,24 @@ flight_delete(Flight *flight)
 }
 
 uint32_t
-flight_collection_destroy(struct FlightCollection *flight_collection)
+flight_delete_by_identifier(uint32_t flight_identifier)
+{
+    uint32_t database_flight_identifier = htonl(flight_identifier);
+
+    uint32_t query_result = database_engine_execute_write(flight_delete_query, 1, 
+        &database_flight_identifier, sizeof(database_flight_identifier), 1);
+
+    if(query_result != (SHARED_OK))
+    {
+        database_engine_log_error("flight_delete", query_result);
+        return query_result;
+    }
+
+    return (SHARED_OK);  
+}
+
+uint32_t
+flight_collection_destroy(struct FlightCollection **flight_collection)
 {
     if (flight_collection == NULL)
     {
@@ -337,18 +355,18 @@ flight_collection_destroy(struct FlightCollection *flight_collection)
     }
 
     FlightCollectionNode *temp = NULL;
-    while(!TAILQ_EMPTY(flight_collection))
+    while(!TAILQ_EMPTY(*flight_collection))
     {
-        temp = TAILQ_FIRST(flight_collection);
-        TAILQ_REMOVE(flight_collection, temp, flight_collection);
+        temp = TAILQ_FIRST(*flight_collection);
+        TAILQ_REMOVE(*flight_collection, temp, flight_collection);
 
         flight_destroy(&temp->flight);
         free(temp);
         temp = NULL;
     }
 
-    free(flight_collection);
-    flight_collection = NULL;
+    free(*flight_collection);
+    *flight_collection = NULL;
 
     return (SHARED_OK);
 }

@@ -209,7 +209,7 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
 {
     uint32_t number_of_results = kore_pgsql_ntuples((struct kore_pgsql *) source_location);
 
-    TAILQ_HEAD(user_collection_s, UserCollection) *user_collection = malloc(sizeof(UserCollection));
+    struct UserCollection *user_collection = malloc(sizeof(struct UserCollection));
     TAILQ_INIT(user_collection);
 
     uint32_t i;
@@ -271,21 +271,21 @@ user_collection_create_from_query(void *source_location, uint32_t *error)
             return NULL;
         }
 
-        UserCollection *temp_collection = malloc(sizeof(UserCollection));
+        UserCollectionNode *temp_user_node = malloc(sizeof(UserCollectionNode));
 
-        if(temp_collection == NULL)
+        if(temp_user_node == NULL)
         {
             kore_log(LOG_ERR, "user_collection_create_from_query: Could not allocate memory for " \
                 "temp_collection.");
             user_destroy(&temp_user);
-            free(temp_collection);
+            user_collection_destroy(&user_collection);
             return NULL;
         }
 
-        temp_collection->user = temp_user;
+        temp_user_node->user = temp_user;
 
-        TAILQ_INSERT_TAIL(user_collection, temp_collection, user_collection);
-        temp_collection = NULL;
+        TAILQ_INSERT_TAIL(user_collection, temp_user_node, user_collection);
+        temp_user_node = NULL;
     }
 
     return (void *) user_collection;
@@ -299,19 +299,22 @@ user_destroy(User **user)
 }
 
 uint32_t
-user_collection_destroy(UserCollection *user_collection)
+user_collection_destroy(struct UserCollection **user_collection)
 {
-    TAILQ_HEAD(user_collection, UserCollection) head;
+    UserCollectionNode *temp = NULL;
 
-    while(!TAILQ_EMPTY(&head))
+    while(!TAILQ_EMPTY(*user_collection))
     {
-        UserCollection *temp = TAILQ_FIRST(&head);
-        TAILQ_REMOVE(&head, temp, user_collection);
+        temp = TAILQ_FIRST(*user_collection);
+        TAILQ_REMOVE(*user_collection, temp, user_collection);
 
         user_destroy(&temp->user);
         free(temp);
         temp = NULL;
     }
+
+    free(*user_collection);
+    *user_collection = NULL;
 
     return (SHARED_OK);
 }
@@ -497,7 +500,7 @@ user_find_by_identifier(uint32_t identifier, uint32_t *error)
     return result;
 }
 
-UserCollection *
+struct UserCollection *
 user_get_all_users(uint32_t *error)
 {
     uint32_t query_result;

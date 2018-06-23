@@ -88,7 +88,7 @@ database_engine_execute_read(const char *sql_query,
     va_list parameters;
     va_start(parameters, count);
 
-    void *return_value = NULL;
+    void *return_value = (SHARED_OK);
     struct kore_pgsql database_connection;
 
     if(database_engine_initialize(&database_connection, DATABASE_NAME) != (SHARED_OK))
