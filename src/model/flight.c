@@ -183,12 +183,12 @@ flight_collection_create_from_query(void *source_location, uint32_t *error)
     {
         Flight *temp_flight = NULL;
 
-        char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 1);
-        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 2);
+        char *arrival_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 1);
+        char *departure_location = kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 2);
         char *arrival_time_string = 
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 3);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 3);
         char *departure_time_string = 
-            kore_pgsql_getvalue((struct kore_pgsql *) source_location, 0, 4);
+            kore_pgsql_getvalue((struct kore_pgsql *) source_location, i, 4);
 
         struct tm arrival_time;
         struct tm departure_time;
@@ -522,8 +522,10 @@ flight_book_get_errorcode_from_query(void *source_location, uint32_t *error)
         *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
         return NULL;
     }
-
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
     return (void *)result;
+#pragma GCC diagnostic pop
 }
 
 uint32_t
@@ -545,8 +547,10 @@ flight_book_for_user(uint32_t flight_identifier, uint32_t user_identifier, uint3
         database_engine_log_error("flight_book_for_user", query_result);
         *error = query_result;
     }
-
+#pragma GCC diagnostic push  // require GCC 4.6
+#pragma GCC diagnostic ignored "-Wpointer-to-int-cast"
     return (uint32_t)result;
+#pragma GCC diagnostic pop
 }
 
 struct FlightCollection *
