@@ -13,7 +13,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
     FlightContext *ctx = (FlightContext *) userdata;
     
     const char *output_string = NULL;
-    char date_conversion_ouput[30];
+    char date_conversion_ouput[20];
 
     if(strncmp("id", token->text, token->text_length) == 0)
     {
@@ -24,8 +24,7 @@ flight_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *to
         else
         {
             char id_string[12];
-            if(snprintf(id_string, 12, "%d", ctx->flight->flight_identifier) 
-                <= 0)
+            if(snprintf(id_string, 12, "%d", ctx->flight->flight_identifier) <= 0)
             {
                 kore_log(LOG_ERR, "flight_varget: failed int to string conversion for flightid."\
                     " input: %d", ctx->flight->flight_identifier);

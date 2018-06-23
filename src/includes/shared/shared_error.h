@@ -55,7 +55,8 @@
 #define ADMIN_DELETE_FLIGHT_ERROR                   502
 #define ADMIN_GIVE_POINTS_ID_INVALID                503
 #define ADMIN_GIVE_POINTS_ID_NOT_FOUND              504
-#define ADMIN_GIVE_POINTS_INTEGER_CONVERSION_ERROR  505
+#define ADMIN_GIVE_POINTS_COINS_INVALID             505
+#define ADMIN_GIVE_POINTS_INTEGER_CONVERSION_ERROR  506
 
 //generates a generic error response for given error.
 void shared_error_handler(struct http_request *request, int status_code, const char *redirect_uri);

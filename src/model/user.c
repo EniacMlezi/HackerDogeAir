@@ -410,8 +410,6 @@ user_update_coins(const User *user)
     uint32_t identifier = htonl(user->identifier);
     uint32_t coins = htonl(user->doge_coin);
 
-    kore_log(LOG_DEBUG, "updating coins");
-
     uint32_t query_result = database_engine_execute_write(user_update_coins_query, 2,
         &identifier, sizeof(identifier), 1,
         &coins, sizeof(coins), 1);
