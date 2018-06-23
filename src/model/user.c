@@ -54,23 +54,26 @@ static const char user_select_by_identifier_query[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
     "FROM \"User\" " \
-    "WHERE useridentifier = $1;";
+    "WHERE useridentifier = $1 " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_select_by_session[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber FROM \"User\" WHERE useridentifier = " \
-    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1);";
+    "(SELECT useridentifier FROM \"Session\" WHERE sessionidentifier = $1) " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_select_by_email_or_username[] =
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
     "FROM \"User\" " \
-    "WHERE emailaddress = $1 OR username = $1;";
+    "WHERE emailaddress = $1 OR username = $1 " \
+    "ORDER BY useridentifier ASC;";
 
 static const char user_get_all_users_query[] = 
     "SELECT useridentifier,userrole,emailaddress,username,password,dogecoin,registrationtime," \
     "firstname,lastname,telephonenumber " \
-    "FROM \"User\";";
+    "FROM \"User\" ORDER BY useridentifier ASC;";
 
 User *
 user_create(uint32_t identifier, Role role, const char *username, const char *email, 

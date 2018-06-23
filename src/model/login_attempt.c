@@ -25,7 +25,8 @@ static const char login_attempt_delete_query[] =
 static const char login_attempt_retrieve_attempts_query[] = 
     "SELECT * FROM \"LoginAttempt\" " \
     "WHERE useridentifier = $1 " \
-    "AND datetime >= CURRENT_TIMESTAMP AT TIME ZONE \'CEST\' - INTERVAL \'5 minutes\';";
+    "AND datetime >= CURRENT_TIMESTAMP AT TIME ZONE \'CEST\' - INTERVAL \'5 minutes\' " \
+    "ORDER BY useridentifier ASC;";
 
 //static const char login_attempt_select_by_identifier[] = "";
 

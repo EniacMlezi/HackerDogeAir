@@ -20,15 +20,15 @@ static const char ticket_insert_query[] =
 
 static const char ticket_select_by_ticket_identifier[] = 
     "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
-    "WHERE ticketidentifier = $1;";
+    "WHERE ticketidentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_select_by_flight_identifier[] =
     "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
-    "WHERE flightidentifier = $1;";
+    "WHERE flightidentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_select_by_user_identifier[] =
     "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
-    "WHERE useridentifier = $1;";
+    "WHERE useridentifier = $1 ORDER BY ticketidentifier ASC;";
 
 static const char ticket_update_query[] = 
     "UPDATE \"Ticket\" SET ticketidentifier = $1, flightidentifier = $2, useridentifier = $3, " \
@@ -38,7 +38,8 @@ static const char ticket_delete_query[] =
     "DELETE FROM \"Session\" WHERE sessionidentifier = $1";
 
 static const char ticket_get_all_tickets_query[] = 
-    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\";";
+    "SELECT ticketidentifier, flightidentifier, useridentifier, cost FROM \"Ticket\" " \
+    "ORDER BY ticketidentifier ASC;";
 
 Ticket *
 ticket_create(uint32_t ticket_identifier, uint32_t flight_identifier, uint32_t user_identifier,

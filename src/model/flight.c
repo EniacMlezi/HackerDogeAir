@@ -16,7 +16,8 @@ static const char flight_find_by_arrival_date_query[] =
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE arrivaldatetime::date = $1;";
+"WHERE arrivaldatetime::date = $1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_insert_query[] =
     "INSERT INTO \"Flight\" " \
@@ -30,31 +31,36 @@ static const char flight_delete_query[] =
 static const char flight_get_all_flights_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
-"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier;";
+"INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_identifier_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE flightidentifier=$1;";
+"WHERE flightidentifier=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_departure_airport_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE d.name=$1;";
+"WHERE d.name=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_arrival_airport_query[] = 
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE a.name=$1;";
+"WHERE a.name=$1 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_find_by_arrival_airport_and_departure_time_query[] =     
 "SELECT flightidentifier,a.name,d.name,arrivaldatetime,departuredatetime,distance,seatsavailable " \
 "FROM \"Flight\" INNER JOIN \"Airport\" AS a ON a.airportidentifier = arrivalairportidentifier " \
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
-"WHERE a.name=$1 AND departuredatetime = $2;";
+"WHERE a.name=$1 AND departuredatetime = $2 " \
+"ORDER BY flightidentifier ASC;";
 
 static const char flight_book_for_user_query[] = "SELECT bookflight($1, $2);";
 
