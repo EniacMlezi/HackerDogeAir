@@ -35,6 +35,8 @@ Voeg de queries toe aan de DogeAir database:
 	psql=# \i DogeAirDump.sql
 
 ## Sources:
-Stap 1: https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e
-Stap 2: https://devstudioonline.com/article/configure-postgresql-in-ubuntu-and-connect-with-datagrip
-Stap 3: https://www.techportal.co.za/databases/52-pgsql/246-how-to-execute-sql-commands-from-a-file-in-postgresql.html
+Stap 1: <https://medium.com/coding-blocks/creating-user-database-and-adding-access-on-postgresql-8bfcd2f4a91e>
+
+Stap 2: <https://devstudioonline.com/article/configure-postgresql-in-ubuntu-and-connect-with-datagrip>
+
+Stap 3: <https://www.techportal.co.za/databases/52-pgsql/246-how-to-execute-sql-commands-from-a-file-in-postgresql.html>
