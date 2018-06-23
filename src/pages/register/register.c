@@ -7,7 +7,9 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/register/register_render.h"
+#include "model/session.h"
 #include "model/user.h"
 #include "assets.h"
 
@@ -27,6 +29,10 @@ register_user(struct http_request *req)
 
     int err;
     int return_code;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
 
     User user = (User) {
         .identifier = 0, 
@@ -53,9 +59,15 @@ register_user(struct http_request *req)
         .partial_context = { 
             .src_context = NULL,
             .dst_context = NULL,
-            .session_id = 0 }, //TODO: fill from request cookie
+            .session = &session }, //TODO: fill from request cookie
         .user = &user
     };
+
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        register_error_handler(req, err, &context);
+        return_code = (KORE_RESULT_OK);
+    }
 
     switch(req->method)
     {

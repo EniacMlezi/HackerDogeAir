@@ -10,6 +10,7 @@
 #include "shared/shared_http.h"
 #include "pages/user/user_detail/user_detail_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 #define USER_DETAIL_ERROR_USERNAME_VALIDATOR_INVALID 300
@@ -34,12 +35,14 @@ user_detail(struct http_request *req)
 
     int return_code = (KORE_RESULT_OK);
     int err = 0;
+
+    Session session;
     
     UserContext context = {
         .partial_context = { 
             .src_context = NULL,
             .dst_context = NULL,
-            .session_id = 0
+            .session = &session
         }
     };
     if((err = shared_http_get_user_from_request(req, &context.user)) != (SHARED_OK))

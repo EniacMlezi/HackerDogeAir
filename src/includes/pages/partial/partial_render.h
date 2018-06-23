@@ -4,6 +4,8 @@
 #include <stdbool.h>
 #include <mustache.h>
 
+#include "model/session.h"
+
 #define SHARED_RENDER_ERROR_TEMPLATE    1001
 #define SHARED_RENDER_ERROR_RENDER      1002
 
@@ -19,7 +21,7 @@ typedef struct PartialContext
     mustache_str_ctx *src_context;
     mustache_str_ctx *dst_context;
     bool should_html_escape; // set this to true before a partial_strwrite to enforce html escaping
-    int session_id; //TODO: replace with a session struct
+    Session *session; //TODO: replace with a session struct
 } PartialContext;
 
 /*

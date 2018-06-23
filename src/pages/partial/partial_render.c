@@ -116,7 +116,7 @@ partial_render_clean(PartialContext *context)
 void
 partial_render_copy_context(PartialContext *src, PartialContext *dst)
 {
-    dst->session_id = src->session_id;
+    dst->session = src->session;
     dst->should_html_escape = src->should_html_escape;
     dst->src_context = NULL;
     dst->dst_context = NULL;

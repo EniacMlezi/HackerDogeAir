@@ -7,8 +7,10 @@
 #include <kore/pgsql.h>
 
 #include "shared/shared_error.h"
+#include "shared/shared_http.h"
 #include "pages/user/user_bookings/user_bookings_render.h"
 #include "model/user.h"
+#include "model/session.h"
 #include "assets.h"
 
 int     user_bookings(struct http_request *);
@@ -25,8 +27,13 @@ user_bookings(struct http_request *req)
 
     int return_code = (KORE_RESULT_OK);
     int err = 0;
+    Session session = (Session) {
+        .identifier = NULL,
+        .user_identifier = 0
+    };
+
     UserBookingsContext context = {
-        .partial_context = {.session_id = 0}
+        .partial_context = {.session = &session}
     };
 
     //TODO: get user bookings from DataAccess layer
@@ -45,6 +52,14 @@ user_bookings(struct http_request *req)
             .departure_location = departure0
         }
     };
+
+    if ((err = shared_http_find_session_from_request(req, &context.partial_context.session)) != (SHARED_OK))
+    {
+        user_bookings_error_handler(req, err);
+        return_code = (KORE_RESULT_OK);
+        goto exit;
+    }
+
     SLIST_INSERT_HEAD(&context.userbookinglist, &booking_node0, userbookings);
 
     char *departure1 = "SchipUitJeHol";

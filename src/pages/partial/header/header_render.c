@@ -6,6 +6,8 @@
 #include <stdbool.h>
 
 #include "shared/shared_error.h"
+#include "model/user.h"
+#include "model/role.h"
 #include "assets.h"
 
 int header_render(PartialContext *context);
@@ -49,33 +51,44 @@ uintmax_t
 header_varget(mustache_api_t *api, void *userdata, mustache_token_variable_t *token)
 {
     const char *output_string = NULL;
-    bool isAdmin = true;
-    bool isLoggedIn = true;
+    uint32_t err = (SHARED_OK);
 
     PartialContext *ctx = (PartialContext *)userdata;
+
+    User *user = NULL;
+    if (ctx->session->identifier != NULL) {
+        kore_log(LOG_INFO, "header: id %s", ctx->session->identifier);
+        user = user_find_by_session_identifier(ctx->session->identifier, &err);
+    }
     
     if(strncmp("NAVBAR", token->text, token->text_length) == 0)
     {
-        //TODO: acquire current logged in user role, if admin show admin nav
-        if(!isAdmin)
+        if(ctx->session != NULL && user != NULL)
         {
-            output_string = "<a href='/'>Home</a>\n<a href=''>Flights</a>";
+            if (user->role == ADMIN) 
+            {
+                output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>\n<a href='/admin'>Admin</a>";
+            } 
+            else
+            {
+                
+                output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>";
+            }
         }
         else
         {
-            output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>\n<a href='/admin'>Admin</a>";
+            output_string = "<a href='/'>Home</a>\n<a href='/flight/search'>Flights</a>";
         }
     }
     else if(strncmp("LOGGEDIN", token->text, token->text_length) == 0)
     {
-        //TODO: acquire current logged in user role, if admin show admin nav
-        if(!isLoggedIn)
+        if(ctx->session != NULL && user != NULL)
         {
-            output_string = "<a href='login'>login/register</a>";
+            output_string = "<a href='/user'>User</a>\n<a href='/logout'>Logout</a>";           
         }
         else
         {
-            output_string = "<a href='userdetail'>User</a>\n<a href='logout'>Logout</a>";
+            output_string = "<a href='login'>login/register</a>";
         }
     }
     ctx->should_html_escape = false;
