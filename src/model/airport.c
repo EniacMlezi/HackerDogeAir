@@ -26,16 +26,20 @@ static const char airrport_update_query[] =
 static const char airport_delete_query[] = "DELETE FROM \"Airport\" WHERE identifier = $1;";
 
 static const char airport_find_by_identifier_query[] = 
-    "SELECT identifier, name, location FROM \"Airport\" WHERE identifier = $1;";
+    "SELECT identifier, name, location FROM \"Airport\" WHERE identifier = $1 " \
+    "ORDER BY identifier ASC;";
 
 static const char airport_find_by_name_query[] = 
-    "SELECT identifier, name, location FROM \"Airport\" WHERE identifier = $1;";
+    "SELECT identifier, name, location FROM \"Airport\" WHERE identifier = $1 " \
+    "ORDER BY identifier ASC;";
 
 static const char airport_find_by_location_query[] =
-    "SELECT identifier, name, location FROM \"Airport\" WHERE location = $1;";
+    "SELECT identifier, name, location FROM \"Airport\" WHERE location = $1 " \
+    "ORDER BY identifier ASC;";
 
 static const char airport_get_all_airports_query[] = 
-    "SELECT identifier, name, location FROM \"Airport\";";
+    "SELECT identifier, name, location FROM \"Airport\" " \
+    "ORDER BY identifier ASC;";
 
 Airport *
 airport_create(uint32_t identifier, const char *name, const char *location, uint32_t *error)
