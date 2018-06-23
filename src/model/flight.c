@@ -59,6 +59,8 @@ static const char flight_find_by_arrival_airport_and_departure_time_query[] =
 "INNER JOIN \"Airport\" AS d ON d.airportidentifier = departureairportidentifier "\
 "WHERE a.name=$1 AND departuredatetime = $2;";
 
+static const char flight_book_for_user_query[] = "SELECT bookflight($1, $2);";
+
 Flight *
 flight_create(uint32_t flight_identifier, char *departure_location, char *arrival_location,
     struct tm *departure_time, struct tm *arrival_time, uint32_t distance, uint32_t seats_available,
@@ -469,13 +471,12 @@ flight_find_by_arrival_airport_and_departure_time(char *arrival_airport,
     return result;
 }
 
-
 struct FlightCollection *
 flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
 {
     uint32_t err = 0;
     uint32_t query_result = 0;
-    void *result;
+    void *result = NULL;
 
     char arrival_datetime[30];
 
@@ -499,6 +500,48 @@ flight_find_by_arrival_date(struct tm *arrival_date, uint32_t *error)
     }
 
     return result;
+}
+
+static void *
+flight_book_get_errorcode_from_query(void *source_location, uint32_t *error)
+{
+    struct kore_pgsql*pgsql = (struct kore_pgsql *)source_location;
+    int err = 0;
+
+
+    uint32_t result = kore_strtonum64(kore_pgsql_getvalue(pgsql, 0, 0), 0, &err);
+    if(err != (KORE_RESULT_OK))
+    {
+        kore_log(LOG_ERR, "flight_book_get_errorcode_from_query: Could not translate result " \
+            "string to uint32_t.");
+        *error = (DATABASE_ENGINE_ERROR_RESULT_PARSE);
+        return NULL;
+    }
+
+    return (void *)result;
+}
+
+uint32_t
+flight_book_for_user(uint32_t flight_identifier, uint32_t user_identifier, uint32_t *error)
+{
+    uint32_t query_result = 0;
+    void *result = NULL;
+
+    flight_identifier = htonl(flight_identifier);
+    user_identifier = htonl(user_identifier);
+
+    result = database_engine_execute_read(flight_book_for_user_query, 
+        flight_book_get_errorcode_from_query, &query_result, 2, 
+        &flight_identifier, sizeof(flight_identifier), 1,
+        &user_identifier, sizeof(user_identifier), 1);
+
+    if(result == NULL)
+    {
+        database_engine_log_error("flight_book_for_user", query_result);
+        *error = query_result;
+    }
+
+    return (uint32_t)result;
 }
 
 struct FlightCollection *
