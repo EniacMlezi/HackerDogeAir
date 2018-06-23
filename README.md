@@ -23,7 +23,7 @@ Een admin zou in staat moeten zijn om DogeCoins toe te voegen aan een gebruiker.
 Als iemand een vlucht wil boeken moet er eerst worden gekeken welke vluchten er bestaan. Door op /flight/flightsearch een datum in te vullen laat het systeem vluchten zien op deze specifieke datum. Per vlucht is er een link om de specifieke vlucht te boeken. Om een vlucht te kunnen boeken moet een gebruiker genoeg DogeCoins bezitten, dit wordt eerst gecheckt. Als de gebruiker genoeg DogeCoins bezit, wordt de vlucht voor deze gebruiker besteld.
 	
 #### 2.1.5 De vlucht betalen met InhollandMiles (Doge Coin)	
-Alle vluchten die HackerDogeAir aan biedt zijn 50 DogeCoins per vlucht. Tijdens het boeken wordt er automatisch betaalt met DogeCoins, indien een gebruiker meer dan 50 DogeCoins in zijn bezit heeft natuurlijk.
+Alle vluchten die HackerDogeAir aan biedt hebben een prijs die uitgedrukt is in een aantal DogeCoin. Tijdens het boeken wordt er automatisch betaalt met de DogeCoins waar de gebruiker over beschikt. Een gebruiker kan alleen een vlucht boeken wanneer hij/zij voldoende DogeCoins in zijn/haar bezit heeft.
 
 #### 2.1.6 Een vlucht annuleren	
 Een admin heeft de mogelijkheid een vlucht te annuleren. Bij HackerDogeAir wordt een geannuleerde vlucht dan ook verwijderd uit de database. Een gebruiker krijgt hiervoor zijn DogeCoins niet terug. Dit gebeurdt in /admin/flightlist, hier staan alle vluchten in een lijst. Per vlucht is er een link om de specifieke vlucht te verwijderen.
