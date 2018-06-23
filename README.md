@@ -8,7 +8,7 @@ De maatregelen die zijn genomen zijn gebasseerd op de lessen gegeven door ITsec 
 
 ## 2.	Behaalde Doelstellingen	
 ### 2.1 Geïmplementeerde functionaliteiten	
-Binnen dit hoofdstuk zal er per functionaliteit gekeken worden de geimplementeerde functinaliteiten.
+Binnen dit hoofdstuk zal er per functionaliteit gekeken worden naar de geimplementeerde functinaliteiten.
 
 #### 2.1.1 Inloggen
 Het inloggen binnen de website kan via /login, hier wordt een email en wachtwoord gevraagt die gelijk moeten zijn aan een database resultaat. Hierna kan ingelogd worden.
